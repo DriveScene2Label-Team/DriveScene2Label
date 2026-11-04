@@ -157,6 +157,7 @@
 | 2026-10-04 | calibration 캐시 | query key를 sensor file id 대신 `datasetId + calibratedSensorToken`으로 두어 카메라당 1회 조회. pose는 파일별 | api/queries.ts |
 | 2026-10-04 | 버튼 대비 | 주요 파랑 `#216FE5`(4.70:1), hover `#1D64D6`(5.46:1) | styles/index.css |
 | 2026-10-04 | recording timeout | Spring 읽기 timeout 660s > exporter 600s (동시 만료 방지) | application.properties, compose.yml |
+| 2026-11-04 | VESPA patch | 고정 commit + `ai-server/vespa-patches`(0001 barrier/traffic_cone, 0002 가려진·너무 깊은 점 제거). Docker·Colab 같은 apply.sh. V13 migration, Spring/AI/프론트 8class 목록 확장. 실제 Colab 재실행·화면 비교는 미실행 | ai-server/VESPA.md, docs/superpowers/specs/2026-11-04-vespa-p1-p2-design.md |
 | 2026-10-04 | job 실행 제한 | 선택한 job이 PENDING/RUNNING이면 같은 패널의 새 실행 버튼 비활성(Idempotency-Key와 별개 정책) | JobPanel.tsx |
 
 ## 알려진 제한·후속

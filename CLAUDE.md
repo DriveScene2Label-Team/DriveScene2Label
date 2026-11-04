@@ -67,7 +67,7 @@
 - Python SDK와 웹 Viewer의 호환 버전을 고정하고 시간 제어·entity/box 선택·resize·WASM 자산을 작은 실제 recording으로 확인한다.
 - recording API 초안은 기획서에 있다. 실제 코드에 맞게 계약을 정리해 문서를 갱신한 뒤 구현한다. recording 오류는 recording만 재시도한다.
 - 기존 migration은 수정하지 않고 새 Flyway migration을 추가한다. 모델, nuScenes 원본, weights, 결과 .rrd/JSON/NPZ, .env를 commit하지 않는다.
-- VESPA upstream 소스와 기존 CLIP 동작을 보존한다. exporter는 프로젝트 코드에 추가한다.
+- VESPA는 고정 commit + `ai-server/vespa-patches`로만 수정한다(2026-11-04 사용자 결정). patch 밖에서 upstream 파일을 직접 고치지 않고 Docker·Colab이 같은 `apply.sh`를 쓴다. 기존 CLIP 동작은 보존한다. exporter는 프로젝트 코드에 추가한다.
 - 결과 저장과 COMPLETED의 기존 transaction 및 Idempotency-Key 의미를 유지한다.
 
 ## 검증과 문서 갱신

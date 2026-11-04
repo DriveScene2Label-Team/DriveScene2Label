@@ -4,7 +4,9 @@ import type { ClassMode } from '@/api/dto';
  * nuScenes category → VESPA comparison class for each classMode.
  *
  * Source: VESPA upstream `assets/class_mapping/{1,3,8}class.yaml`, `mapping_nuscenes`, commit
- * acb2b6e8683363795528f049fe0444ef9f3efdb9 (the commit the AI image pins). Copied verbatim, including the
+ * acb2b6e8683363795528f049fe0444ef9f3efdb9 (the commit the AI image pins) plus DriveScene2Label patch
+ * `ai-server/vespa-patches/0001-classes-barrier-cone.patch`, which adds barrier and traffic_cone to 8class only
+ * (1/3class leave them unmapped, so FROM_8 has no entry and they compare as null). Copied verbatim, including the
  * upstream choices that differ from intuition: 3class maps motorcycle → bicycle, 1class maps pedestrians to "vehicle"
  * (VESPA's single generic class). `null` = upstream marks the category as not evaluated.
  *
@@ -20,10 +22,10 @@ const NUSC_8: Record<string, string | null> = {
   'human.pedestrian.police_officer': 'pedestrian',
   'human.pedestrian.stroller': null,
   'human.pedestrian.wheelchair': null,
-  'movable_object.barrier': null,
+  'movable_object.barrier': 'barrier',
   'movable_object.debris': null,
   'movable_object.pushable_pullable': null,
-  'movable_object.trafficcone': null,
+  'movable_object.trafficcone': 'traffic_cone',
   'static_object.bicycle_rack': null,
   'vehicle.bicycle': 'bicycle',
   'vehicle.bus.bendy': 'bus',
@@ -45,7 +47,7 @@ const FROM_8: Record<1 | 3, Record<string, string>> = {
 export const CLASS_MODES: Record<ClassMode, readonly string[]> = {
   1: ['vehicle'],
   3: ['vehicle', 'pedestrian', 'bicycle'],
-  8: ['car', 'truck', 'bus', 'trailer', 'construction_vehicle', 'pedestrian', 'motorcycle', 'bicycle'],
+  8: ['car', 'truck', 'bus', 'trailer', 'construction_vehicle', 'pedestrian', 'motorcycle', 'bicycle', 'barrier', 'traffic_cone'],
 };
 
 

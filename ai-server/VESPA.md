@@ -16,7 +16,7 @@ T1/frame0, T3/frame18은 팀의 특정 씬 예시이며 기본값으로 강제�
 
 VESPA 원본 소스는 수정하지 않습니다. 공식 main_pseudo_vlm.py의 옵션은 `--scenes`이며 `--scene`이 아닙니다. 공식 CLI는 전체 scene 처리가 아닌 경우 submission을 쓰지 않고, writer도 단일 scene export를 제한합니다. 따라서 단순 CLI 호출 후 기존 all JSON을 읽으면 요청 결과를 얻을 수 없습니다.
 
-adapter는 공식 process_scene()로 단일 scene을 계산하고 공식 serializer로 동일한 박스 형식을 내보냅니다. get_out_dir의 출력 base만 subprocess 메모리에서 변경하여 job별 캐시/결과를 격리합니다. 원본 파일 편집이나 이전 all JSON 재사용은 없습니다. 사용 중인 upstream 커밋은 acb2b6e8683363795528f049fe0444ef9f3efdb9이며 upstream 함수 API가 바뀌면 adapter 호환성을 다시 확인해야 합니다.
+adapter는 공식 process_scene()로 단일 scene을 계산하고 공식 serializer로 동일한 박스 형식을 내보냅니다. get_out_dir의 출력 base만 subprocess 메모리에서 변경하여 job별 캐시/결과를 격리합니다. 원본 파일은 아래 [patch](#drivescene2label-patch)로만 바꾸며 이전 all JSON 재사용은 없습니다. 사용 중인 upstream 커밋은 acb2b6e8683363795528f049fe0444ef9f3efdb9이며 upstream 함수 API가 바뀌면 adapter 호환성을 다시 확인해야 합니다.
 
 ## 서버 설정 (WSL/Ubuntu)
 
@@ -101,3 +101,14 @@ workers=1에서 VESPA 동시 실행은 1개로 제한됩니다. 이 lock은 다�
 ## Docker 실행
 
 컨테이너에는 `/opt/vespa` source와 `/opt/vespa-env/bin/python` 환경이 포함됩니다. 실행 및 모델 다운로드 링크는 [메인 README](../README.md), 실제 검증 결과는 [Docker 통합](../docs/docker-integration.md)을 참조하세요. `VESPA_NUM_THREADS` 기본1로 subprocess BLAS/OMP 스레드 수를 제한하며 CLIP에는 적용하지 않습니다.
+
+## DriveScene2Label patch
+
+2026-11-04부터 VESPA는 고정 commit에 `ai-server/vespa-patches/*.patch`를 번호 순서로 적용해 실행합니다. Docker(`ai-server/Dockerfile`)와 Colab 노트북이 같은 `apply.sh <vespa_dir> <commit>`을 사용하고, commit이 다르거나 checkout이 깨끗하지 않으면 실패합니다. Spring에 저장되는 model_version 기본값은 `acb2b6e…+ds2l-p1-p2`입니다.
+
+|patch|변경|설정|
+|---|---|---|
+|0001-classes-barrier-cone|GroundingDINO 프롬프트에 `barrier`, `traffic cone` 추가. 8class 출력·nuScenes/truckScenes/SAM 매핑에 `barrier`, `traffic_cone` 추가(1/3class는 null → 출력에서 제외, `assign_labels`가 None을 건너뜀). 크기 사전값은 mini GT(LiDAR 점 있는 barrier 1770, cone 803개)의 p5/중앙값/p95. 정지 클래스라 속도 상한 0.3 m/s(yaw 추정 임계 0.5 m/s 미만)|`grounding_sam.class_names`, `velocity_ref_types`|
+|0002-visibility-filter|마스크에 투영된 LiDAR 점 중 ①8px 칸마다 가장 가까운 점보다 1.5 m 이상 뒤의 점(가려진 점) ②물체 앞면(깊이 5백분위)에서 클래스 `hypot(length_max,width_max)`보다 깊은 점을 box fit 전에 제거. 전부 제거되면 원래 마스크 유지. 로직은 numpy만 쓰는 `src/pointcloud/visibility_filter.py`|`reprojection.visibility_filter.{enabled,cell_px,occlusion_margin_m,near_percentile}`; 키가 없으면 upstream 동작|
+
+patch를 바꿀 때는 VESPA clone에서 commit을 만든 뒤 `git format-patch --no-signature --zero-commit acb2b6e..HEAD`로 다시 내보내고 `tests/test_vespa_patches.py`를 실행합니다(`VESPA_SRC=<clone>`이면 깨끗한 checkout 적용까지 확인). reprojection 단계 결과는 npz로 캐시되므로 patch를 바꾼 뒤에는 이전 work/output 폴더를 재사용하지 않습니다.

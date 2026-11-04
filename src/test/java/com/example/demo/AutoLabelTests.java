@@ -34,6 +34,7 @@ class AutoLabelTests {
     var input=JSON.readTree(exchange.getRequestBody().readAllBytes());
     var box=new Box("sample-a",List.of(1.,2.,3.),List.of(2.,4.,1.),List.of(1.,0.,0.,0.),List.of(0.,0.),"car",1.,"");
     Map<String,List<Box>> results=MODE.get().equals("bad")?Map.of("sample-a",List.of(box)):Map.of("sample-a",List.of(box,box),"sample-empty",List.of());
+    if(MODE.get().equals("static-classes")) results=Map.of("sample-a",List.of(withName(box,"barrier"),withName(box,"traffic_cone")),"sample-empty",List.of());
     String body=JSON.writeValueAsString(new AiResponse(UUID.randomUUID(),input.path("scene_name").asText(),8,input.path("job_id").asLong(),
      UUID.fromString(input.path("execution_token").asText()),"8class","mini_train","WORLD","VESPA_CONSTANT",Map.of("use_lidar",true),results,"run/result.json","a".repeat(64)));
     if(MODE.get().equals("fail")) body="{\"detail\":\"VESPA failed\"}";
@@ -45,6 +46,7 @@ class AutoLabelTests {
    }); FakeAi.install(server); server.start();return server;
   } catch(Exception e) { throw new IllegalStateException(e); }
  }
+ static Box withName(Box b,String name) { return new Box(b.sampleToken(),b.translation(),b.size(),b.rotation(),b.velocity(),name,b.detectionScore(),b.attributeName()); }
  @DynamicPropertySource static void properties(DynamicPropertyRegistry r) { r.add("ai-server.base-url",()->"http://127.0.0.1:"+AI.getAddress().getPort()); }
  @AfterAll static void shutdown() { AI.stop(0); }
  @Autowired MockMvc mvc; @Autowired JdbcClient jdbc; @Autowired AutoLabelService jobs; @Autowired AutoLabelClient client; @Autowired SystemStatusService status;
@@ -147,6 +149,13 @@ class AutoLabelTests {
   assertThat(jdbc.sql("SELECT count(*) FROM auto_label_artifact WHERE job_id=:j").param("j",job).query(Long.class).single()).isEqualTo(1);
   assertThat(jdbc.sql("SELECT count(*) FROM predicted_annotation p JOIN sample s ON s.dataset_id=p.dataset_id AND s.token=p.sample_token WHERE job_id=:j").param("j",job).query(Long.class).single()).isEqualTo(2);
   assertThat(jdbc.sql("SELECT count(*) FROM gt_annotation").query(Long.class).single()).isEqualTo(gt);
+ }
+ @Test void barrierAndTrafficConeFromPatchedVespaAreStored() throws Exception {
+  // ai-server/vespa-patches/0001 adds both classes to 8class; V13 extends the detection_name check.
+  MODE.set("static-classes"); long job=create("static-classes"); new AutoLabelWorker(jobs,client).runNextJob();
+  assertThat(jobs.status(job).status()).isEqualTo("COMPLETED");
+  assertThat(jdbc.sql("SELECT detection_name FROM predicted_annotation WHERE job_id=:j ORDER BY box_index").param("j",job).query(String.class).list())
+   .containsExactly("barrier","traffic_cone");
  }
  @Test void idempotentCreationAndConflict() throws Exception {
   long job=create("same");assertThat(create("same")).isEqualTo(job);

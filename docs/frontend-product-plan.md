@@ -240,7 +240,7 @@ A/B를 누르면 우측 작업·객체 패널도 해당 패널을 따른다. 같
 | FR-23 | 실패·재실행 | FAILED 이유 표시. 사용자 새 실행은 새 key로 새 job 생성 |
 | FR-24 | 복원 | URL과 로컬 receipt의 jobId로 다시 조회. 저장된 상태 문자열을 서버 사실로 사용하지 않음 |
 
-classMode는 1/3/8이다. 1종은 vehicle, 3종은 vehicle/pedestrian/bicycle, 8종은 car/truck/bus/trailer/construction_vehicle/pedestrian/motorcycle/bicycle이다. GT 비교 분류는 VESPA upstream `assets/class_mapping/{1,3,8}class.yaml`(commit acb2b6e)의 `mapping_nuscenes`를 그대로 따른다. upstream 기준으로 3종에서 motorcycle은 bicycle, 1종에서는 pedestrian도 vehicle이며, barrier·trafficcone·emergency 등은 비교 분류가 없다(`frontend/src/lib/classes.ts`).
+classMode는 1/3/8이다. 1종은 vehicle, 3종은 vehicle/pedestrian/bicycle, 8종은 car/truck/bus/trailer/construction_vehicle/pedestrian/motorcycle/bicycle에 barrier/traffic_cone을 더한 10개다(VESPA patch 0001, 2026-11-04). GT 비교 분류는 VESPA `assets/class_mapping/{1,3,8}class.yaml`(commit acb2b6e + patch)의 `mapping_nuscenes`를 그대로 따른다. upstream 기준으로 3종에서 motorcycle은 bicycle, 1종에서는 pedestrian도 vehicle이며, 8종에서는 barrier·trafficcone이 같은 이름으로 비교되고, 1/3종의 barrier·trafficcone과 emergency 등은 비교 분류가 없다(`frontend/src/lib/classes.ts`).
 
 상태의 표시 문구는 다음으로 통일한다.
 

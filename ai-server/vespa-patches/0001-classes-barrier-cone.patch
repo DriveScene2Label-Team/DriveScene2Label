@@ -1,0 +1,178 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: DriveScene2Label <noreply@drivescene2label.local>
+Date: Wed, 4 Nov 2026 20:19:36 +0900
+Subject: [PATCH 1/2] DriveScene2Label P1: add barrier and traffic cone classes
+
+---
+ assets/class_mapping/1class.yaml |  5 ++++-
+ assets/class_mapping/3class.yaml |  5 ++++-
+ assets/class_mapping/8class.yaml | 18 ++++++++++++------
+ assets/common_obj_infos.yaml     | 31 +++++++++++++++++++++++++++++++
+ configs/vlm/p_final.yaml         |  5 ++++-
+ src/labeling/assign_labels.py    |  2 ++
+ 6 files changed, 57 insertions(+), 9 deletions(-)
+
+diff --git a/assets/class_mapping/1class.yaml b/assets/class_mapping/1class.yaml
+index 75dd3bc..82ded4e 100755
+--- a/assets/class_mapping/1class.yaml
++++ b/assets/class_mapping/1class.yaml
+@@ -82,4 +82,7 @@ mapping_sam:
+   excavator: "vehicle"
+   pedestrian: "vehicle"
+   motorcycle: "vehicle"
+-  bicycle: "vehicle"
+\ No newline at end of file
++  bicycle: "vehicle"
++  # Not part of the 1/3-class taxonomies: these detections are dropped from the output.
++  barrier: null
++  "traffic cone": null
+diff --git a/assets/class_mapping/3class.yaml b/assets/class_mapping/3class.yaml
+index 9f82411..3d98521 100755
+--- a/assets/class_mapping/3class.yaml
++++ b/assets/class_mapping/3class.yaml
+@@ -83,4 +83,7 @@ mapping_sam:
+   excavator: "vehicle"
+   pedestrian: "pedestrian"
+   motorcycle: "bicycle"
+-  bicycle: "bicycle"
+\ No newline at end of file
++  bicycle: "bicycle"
++  # Not part of the 1/3-class taxonomies: these detections are dropped from the output.
++  barrier: null
++  "traffic cone": null
+diff --git a/assets/class_mapping/8class.yaml b/assets/class_mapping/8class.yaml
+index 940e50b..d77ccf8 100755
+--- a/assets/class_mapping/8class.yaml
++++ b/assets/class_mapping/8class.yaml
+@@ -1,4 +1,4 @@
+-classes: ["car", "truck", "bus", "trailer", "construction_vehicle", "pedestrian", "motorcycle", "bicycle"]
++classes: ["car", "truck", "bus", "trailer", "construction_vehicle", "pedestrian", "motorcycle", "bicycle", "barrier", "traffic_cone"]
+ 
+ mapping_nuscenes:
+   #https://github.com/nutonomy/nuscenes-devkit/tree/master/python-sdk/nuscenes/eval/detection#classes-attributes-and-detection-ranges
+@@ -10,10 +10,10 @@ mapping_nuscenes:
+   human.pedestrian.police_officer: "pedestrian"
+   human.pedestrian.stroller: null
+   human.pedestrian.wheelchair: null
+-  movable_object.barrier: null
++  movable_object.barrier: "barrier"
+   movable_object.debris: null
+   movable_object.pushable_pullable: null
+-  movable_object.trafficcone: null
++  movable_object.trafficcone: "traffic_cone"
+   static_object.bicycle_rack: null
+   vehicle.bicycle: "bicycle"
+   vehicle.bus.bendy: "bus"
+@@ -34,6 +34,8 @@ mapping_nuscenes:
+   pedestrian: "pedestrian"
+   trailer: "trailer"
+   truck: "truck"
++  barrier: "barrier"
++  traffic_cone: "traffic_cone"
+ 
+ mapping_truckscenes:
+   vehicle.car: "car"
+@@ -55,8 +57,8 @@ mapping_truckscenes:
+   human.pedestrian.personal_mobility: null
+   human.pedestrian.police_officer: "pedestrian"
+   animal: null
+-  movable_object.trafficcone: null
+-  movable_object.barrier: null
++  movable_object.trafficcone: "traffic_cone"
++  movable_object.barrier: "barrier"
+   movable_object.pushable_pullable: null
+   movable_object.debris: null
+   vehicle.train: null
+@@ -72,6 +74,8 @@ mapping_truckscenes:
+   trailer: "trailer"
+   pedestrian: "pedestrian"
+   other_vehicle: "construction_vehicle"
++  barrier: "barrier"
++  traffic_cone: "traffic_cone"
+ 
+ mapping_sam:
+   car: "car"
+@@ -81,4 +85,6 @@ mapping_sam:
+   excavator: "construction_vehicle"
+   pedestrian: "pedestrian"
+   motorcycle: "motorcycle"
+-  bicycle: "bicycle"
+\ No newline at end of file
++  bicycle: "bicycle"
++  barrier: "barrier"
++  "traffic cone": "traffic_cone"
+diff --git a/assets/common_obj_infos.yaml b/assets/common_obj_infos.yaml
+index 1b77073..037326d 100755
+--- a/assets/common_obj_infos.yaml
++++ b/assets/common_obj_infos.yaml
+@@ -114,3 +114,34 @@ bicycle:
+   speed_max: 9.0
+   speed_avg_hw: 5.0
+   speed_max_hw: 9.0
++# DriveScene2Label: from nuScenes v1.0-mini GT boxes with lidar points (barrier n=1770, trafficcone n=803):
++# min/avg/max = p5/median/p95, length = longer horizontal side. Static classes: speeds are kept below
++# yaw_heuristic.speed_threshold so tracking noise never sets their yaw.
++barrier:
++  width_min: 0.4
++  width_max: 0.75
++  width_avg: 0.65
++  height_min: 0.9
++  height_max: 1.25
++  height_avg: 1.05
++  length_min: 1.85
++  length_max: 3.3
++  length_avg: 2.05
++  speed_avg: 0.3
++  speed_max: 0.3
++  speed_avg_hw: 0.3
++  speed_max_hw: 0.3
++traffic_cone:
++  width_min: 0.35
++  width_max: 0.55
++  width_avg: 0.45
++  height_min: 0.65
++  height_max: 1.3
++  height_avg: 0.75
++  length_min: 0.35
++  length_max: 0.85
++  length_avg: 0.45
++  speed_avg: 0.3
++  speed_max: 0.3
++  speed_avg_hw: 0.3
++  speed_max_hw: 0.3
+diff --git a/configs/vlm/p_final.yaml b/configs/vlm/p_final.yaml
+index 572deec..193e77f 100755
+--- a/configs/vlm/p_final.yaml
++++ b/configs/vlm/p_final.yaml
+@@ -21,7 +21,8 @@ remove_ground:
+   rangefilter_sky_threshold: 4 # meters
+   rangefilter_range_threshold: 55 # meters
+ grounding_sam:
+-  class_names: ["car", "truck", "bus", "trailer", "excavator", "pedestrian", "motorcycle", "bicycle"]
++  # DriveScene2Label: barrier and traffic cone added (static classes, nuScenes detection classes).
++  class_names: ["car", "truck", "bus", "trailer", "excavator", "pedestrian", "motorcycle", "bicycle", "barrier", "traffic cone"]
+   detector: "IDEA-Research/grounding-dino-base"
+   det_threshold: 0.3
+   segmentator: "facebook/sam-vit-base"
+@@ -63,6 +64,8 @@ velocity_by_app_tracking:
+     "pedestrian": "max"
+     "motorcycle": "avg"
+     "bicycle": "max"
++    "barrier": "avg"
++    "traffic cone": "avg"
+   compatible_class_groups:
+     - ["car", "truck", "bus"]
+     - ["truck", "trailer"]
+diff --git a/src/labeling/assign_labels.py b/src/labeling/assign_labels.py
+index 38a4dfb..cfe74fc 100755
+--- a/src/labeling/assign_labels.py
++++ b/src/labeling/assign_labels.py
+@@ -175,6 +175,8 @@ def get_scene_pseudo_annotations_by_mapping(
+             annotations: List[Annotation] = []
+             for obj in frame.objects:
+                 obj_class = obj.pseudo_labels[mapping_name]
++                if obj_class is None:  # DriveScene2Label: class not in this mapping (e.g. barrier in 3class)
++                    continue
+                 translation = (np.linalg.inv(frame.world_to_ego) @ np.linalg.inv(scene_w_labcluster.ego_to_lidar) \
+                                @ obj.bbox_to_lidar @ np.array([0, 0, obj.bbox_dims[2]/2, 1]))[:3]
+                 yaw = get_bbox_yaw(np.linalg.inv(frame.world_to_ego) @ np.linalg.inv(scene_w_labcluster.ego_to_lidar) @ obj.bbox_to_lidar)

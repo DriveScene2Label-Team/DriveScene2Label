@@ -260,7 +260,7 @@ LabelEdit: `id,datasetId,sceneId` number, `jobId` number|null(GT는 null), `targ
 ## 10. Enum / 상태
 
 - Job status: PENDING → RUNNING → COMPLETED 또는 FAILED. claim 전 실패도 DB schema상 가능하다.
-- ClassMode: 1 (`vehicle`), 3 (`vehicle,pedestrian,bicycle`), 8 (`car,truck,bus,trailer,construction_vehicle,pedestrian,motorcycle,bicycle`).
+- ClassMode: 1 (`vehicle`), 3 (`vehicle,pedestrian,bicycle`), 8 (`car,truck,bus,trailer,construction_vehicle,pedestrian,motorcycle,bicycle,barrier,traffic_cone`). barrier/traffic_cone은 VESPA patch 0001(2026-11-04)부터이며 이름(`8class`)과 classMode 값은 그대로다. 이전 job 결과에는 두 클래스가 없다.
 - mappingName: 1class/3class/8class. coordinateFrame: WORLD. scoreType: VESPA_CONSTANT (현재 wrapper).
 - ArtifactType: FINAL_JSON/RERUN/OTHER (현재 저장 경로는 FINAL_JSON만 생성).
 - Embedding status: STORED/SKIPPED.

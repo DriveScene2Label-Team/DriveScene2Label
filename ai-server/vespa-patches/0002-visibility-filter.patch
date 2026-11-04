@@ -1,0 +1,171 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: DriveScene2Label <noreply@drivescene2label.local>
+Date: Wed, 4 Nov 2026 20:19:56 +0900
+Subject: [PATCH 2/2] DriveScene2Label P2: drop occluded and too-deep points
+ before box fit
+
+---
+ configs/vlm/p_final.yaml               |  5 ++
+ src/image/segmentation_reprojection.py | 23 ++++++++
+ src/pointcloud/visibility_filter.py    | 81 ++++++++++++++++++++++++++
+ 3 files changed, 109 insertions(+)
+ create mode 100644 src/pointcloud/visibility_filter.py
+
+diff --git a/configs/vlm/p_final.yaml b/configs/vlm/p_final.yaml
+index 193e77f..e782635 100755
+--- a/configs/vlm/p_final.yaml
++++ b/configs/vlm/p_final.yaml
+@@ -31,6 +31,11 @@ grounding_sam:
+ reprojection:
+   erosion_kernel_size: 5
+   erosion_iterations: 1
++  visibility_filter:  # DriveScene2Label P2: drop occluded points and points deeper than the class allows
++    enabled: true
++    cell_px: 8               # image cell for the per-cell z-buffer
++    occlusion_margin_m: 1.5  # keep points within this of the nearest point in their cell
++    near_percentile: 5       # object near surface = this depth percentile
+ denoising:
+   distance_based: false
+   xy_based: true
+diff --git a/src/image/segmentation_reprojection.py b/src/image/segmentation_reprojection.py
+index c04f6e8..a341c91 100755
+--- a/src/image/segmentation_reprojection.py
++++ b/src/image/segmentation_reprojection.py
+@@ -7,6 +7,8 @@ from typing import Tuple, List, Dict
+ from src.structures import Scene, Frame, Object, ObjectSegmentation
+ from src.image.appearance_embedding import _reproject_pointcloud_to_image
+ from src.pointcloud.bbox import fit_bounding_box_to_lidar, get_touchground_bbox
++from src.pointcloud.visibility_filter import camera_depth, class_max_extent, filter_object_points
++from src.labeling.prior_info import get_common_object_infos_sam
+ 
+ 
+ def mask_lidar_from_bg_segmentation(scene: Scene, out_dir: Path) -> Scene:
+@@ -111,6 +113,11 @@ def reproject_lidar_to_segmentation(scene_w_segmentation: Scene, config: dict, o
+         Scene: Scene with frames updated to include 3D object clusters derived from
+         camera segmentations, complete with bounding boxes and mask information.
+     """
++    # DriveScene2Label P2: optional occlusion / depth-extent filter (reprojection.visibility_filter.enabled).
++    vis_cfg = config.get('visibility_filter') or {}
++    vis_enabled = bool(vis_cfg.get('enabled', False))
++    vis_extents: Dict[str, float] = {}
++
+     frames_w_segclusters: List[Frame] = []
+     for idx, frame in tqdm(enumerate(scene_w_segmentation.frames), total=len(scene_w_segmentation.frames)):
+         assert frame.lidar_bg_mask is None or ('filter_bg_lidar' in config.keys() and 'filter_bg_segment_ioa_thresh' in config.keys()), \
+@@ -137,6 +144,12 @@ def reproject_lidar_to_segmentation(scene_w_segmentation: Scene, config: dict, o
+                                                                  np.array(frame.camera_segmentations[cam_name][0].mask.shape[:2])[np.newaxis, ...])
+                 if frame.lidar_bg_mask is not None and config['filter_bg_lidar']:
+                     visible[frame.lidar_bg_mask] = 0
++                if vis_enabled:
++                    depth = camera_depth(frame.lidar, frame.world_to_ego,
++                                         frame.world_to_ego_camframe[cam_name][np.newaxis, ...],
++                                         scene_w_segmentation.camera_to_image[cam_name][np.newaxis, ...],
++                                         scene_w_segmentation.ego_to_camera[cam_name][np.newaxis, ...],
++                                         scene_w_segmentation.ego_to_lidar)
+                 uvs_visible = uvs[visible]
+                 uvs_visible = np.floor(uvs_visible + 0.5).astype(np.int32)
+                 uvs_visible[:, 0] = np.clip(uvs_visible[:, 0], 0, frame.camera_segmentations[cam_name][0].mask.shape[1] - 1)
+@@ -157,6 +170,16 @@ def reproject_lidar_to_segmentation(scene_w_segmentation: Scene, config: dict, o
+                     seg_mask[visible] = mask_eroded[uvs_visible[:, 1], uvs_visible[:, 0]]
+                     if not np.any(seg_mask):
+                         continue
++                    if vis_enabled:
++                        label = str(segmentation.label)
++                        if label not in vis_extents:
++                            vis_extents[label] = class_max_extent(get_common_object_infos_sam([label]), label)
++                        obj_idx = np.flatnonzero(seg_mask)
++                        keep = filter_object_points(depth[obj_idx], uvs[obj_idx], vis_extents[label],
++                                                    cell_px=int(vis_cfg.get('cell_px', 8)),
++                                                    occlusion_margin_m=float(vis_cfg.get('occlusion_margin_m', 1.5)),
++                                                    near_percentile=float(vis_cfg.get('near_percentile', 5.0)))
++                        seg_mask[obj_idx[~keep]] = False
+                     seg_confidences.append(segmentation.score)
+                     seg_masks.append(seg_mask)
+                     seg_labels.append(segmentation.label)
+diff --git a/src/pointcloud/visibility_filter.py b/src/pointcloud/visibility_filter.py
+new file mode 100644
+index 0000000..b86f7f4
+--- /dev/null
++++ b/src/pointcloud/visibility_filter.py
+@@ -0,0 +1,81 @@
++"""DriveScene2Label P2: drop LiDAR points that a camera mask picks up but the camera cannot actually see.
++
++A segmentation mask is 2D, so reprojecting it onto LiDAR collects every point that projects inside it,
++whatever its depth: background seen past the object's silhouette, the far side of the road, other
++objects behind it. Two numpy-only filters remove them before the box is fitted:
++
++1. Occlusion (z-buffer): the mask is split into cell_px x cell_px image cells. In each cell only points
++   within occlusion_margin_m of the nearest point are kept; anything further is hidden behind it.
++2. Depth extent: an object cannot be deeper than its class allows. Points more than max_extent_m
++   (diagonal of the class length_max/width_max) behind the object's near surface are dropped. The near
++   surface is a low percentile of the depths, so a single stray close point does not set it.
++
++If filtering would remove every point the original mask is returned unchanged.
++"""
++from typing import Mapping, Optional
++
++import numpy as np
++
++
++def camera_depth(
++    pointcloud: np.ndarray,
++    world_to_ego_lidar: np.ndarray,
++    world_to_ego_camframe: np.ndarray,
++    camera_to_image: np.ndarray,
++    ego_to_camera: np.ndarray,
++    ego_to_lidar: np.ndarray,
++) -> np.ndarray:
++    """Camera-frame depth (m) of each LiDAR point, same transform chain as _reproject_pointcloud_to_image.
++
++    Takes the same (batched, one camera) arguments as that function and returns shape (N,).
++    """
++    lidar_to_img = camera_to_image @ ego_to_camera @ world_to_ego_camframe \
++        @ np.linalg.inv(world_to_ego_lidar) @ np.linalg.inv(ego_to_lidar)
++    points_in_cam = lidar_to_img @ np.vstack([pointcloud.T, np.ones(pointcloud.shape[0])])
++    return points_in_cam[0, 2, :]
++
++
++def occlusion_mask(depth: np.ndarray, uv: np.ndarray, cell_px: int, margin_m: float) -> np.ndarray:
++    """Keep points within margin_m of the nearest point in their image cell."""
++    if depth.size == 0:
++        return np.zeros(0, dtype=bool)
++    cells = np.floor(uv / cell_px).astype(np.int64)
++    _, cell_id = np.unique(cells, axis=0, return_inverse=True)
++    cell_id = cell_id.reshape(-1)
++    nearest = np.full(cell_id.max() + 1, np.inf)
++    np.minimum.at(nearest, cell_id, depth)
++    return depth <= nearest[cell_id] + margin_m
++
++
++def depth_extent_mask(depth: np.ndarray, max_extent_m: float, near_percentile: float) -> np.ndarray:
++    """Keep points no more than max_extent_m behind the object's near surface."""
++    if depth.size == 0:
++        return np.zeros(0, dtype=bool)
++    near = np.percentile(depth, near_percentile)
++    return depth <= near + max_extent_m
++
++
++def filter_object_points(
++    depth: np.ndarray,
++    uv: np.ndarray,
++    max_extent_m: Optional[float],
++    cell_px: int = 8,
++    occlusion_margin_m: float = 1.5,
++    near_percentile: float = 5.0,
++) -> np.ndarray:
++    """Boolean keep-mask over one object's points (depth (N,), uv (N, 2)). Never returns all-False for N > 0."""
++    keep = occlusion_mask(depth, uv, cell_px, occlusion_margin_m)
++    if max_extent_m is not None and keep.any():
++        idx = np.flatnonzero(keep)
++        keep[idx[~depth_extent_mask(depth[idx], max_extent_m, near_percentile)]] = False
++    if depth.size and not keep.any():
++        return np.ones_like(keep)
++    return keep
++
++
++def class_max_extent(obj_infos: Mapping[str, object], sam_label: str) -> Optional[float]:
++    """Diagonal of the class length_max x width_max: the deepest the object can appear from any view."""
++    info = obj_infos.get(sam_label)
++    if info is None:
++        return None
++    return float(np.hypot(info.length_max, info.width_max))

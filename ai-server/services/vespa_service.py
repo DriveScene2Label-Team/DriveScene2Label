@@ -22,7 +22,8 @@ from botocore.exceptions import BotoCoreError, ClientError
 # Child of uvicorn.error so INFO progress lines (slurm job id, state) reach the server log.
 logger = logging.getLogger("uvicorn.error").getChild("vespa")
 CLASSES = {1: {"vehicle"}, 3: {"vehicle", "pedestrian", "bicycle"},
-           8: {"car", "truck", "bus", "trailer", "construction_vehicle", "pedestrian", "motorcycle", "bicycle"}}
+           8: {"car", "truck", "bus", "trailer", "construction_vehicle", "pedestrian", "motorcycle", "bicycle",
+               "barrier", "traffic_cone"}}  # barrier/traffic_cone: ai-server/vespa-patches/0001
 EXECUTORS = ("local", "ssh")
 SSH_UNREACHABLE = 255  # ssh's own exit code when the connection itself fails
 SSH_MAX_POLL_FAILURES = 5

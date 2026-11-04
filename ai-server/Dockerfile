@@ -7,7 +7,10 @@ ENV PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1 HF_HOME=/models/huggingface TORCH_HOME
 RUN apt-get update && apt-get install -y --no-install-recommends git build-essential libgl1 libgomp1 libglib2.0-0 && rm -rf /var/lib/apt/lists/*
 COPY ai-server/requirements.txt /tmp/clip.txt
 RUN pip install -r /tmp/clip.txt
-RUN git clone https://github.com/TUMFTM/VESPA.git /opt/vespa && git -C /opt/vespa checkout "$VESPA_REF"
+# Pinned upstream commit + DriveScene2Label patches (ai-server/vespa-patches, same script as the Colab notebook).
+COPY ai-server/vespa-patches/ /tmp/vespa-patches/
+RUN git clone https://github.com/TUMFTM/VESPA.git /opt/vespa && git -C /opt/vespa checkout "$VESPA_REF" \
+    && bash /tmp/vespa-patches/apply.sh /opt/vespa "$VESPA_REF"
 COPY ai-server/requirements-vespa.txt /tmp/vespa.txt
 # Share large PyTorch libraries, override only VESPA's older scientific dependencies.
 RUN python -m venv --system-site-packages /opt/vespa-env && /opt/vespa-env/bin/pip install -r /tmp/vespa.txt

@@ -134,7 +134,11 @@ describe('GT category → VESPA comparison class', () => {
     expect(comparisonClass('vehicle.bus.rigid', 8)).toBe('bus');
     expect(comparisonClass('vehicle.motorcycle', 3)).toBe('bicycle');
     expect(comparisonClass('human.pedestrian.adult', 1)).toBe('vehicle');
-    expect(comparisonClass('movable_object.barrier', 8)).toBeNull();
+    expect(comparisonClass('movable_object.barrier', 8)).toBe('barrier');            // vespa-patches/0001
+    expect(comparisonClass('movable_object.trafficcone', 8)).toBe('traffic_cone');
+    expect(comparisonClass('movable_object.barrier', 3)).toBeNull();                 // not in 1/3class
+    expect(comparisonClass('movable_object.trafficcone', 1)).toBeNull();
+    expect(comparisonClass('movable_object.debris', 8)).toBeNull();
     expect(comparisonClass('vehicle.emergency.police', 1)).toBeNull();
     expect(comparisonClass('something.new', 8)).toBeNull();
     expect(comparisonClass(null, 8)).toBeNull();

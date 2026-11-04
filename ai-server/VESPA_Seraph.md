@@ -114,7 +114,9 @@ ssh 모드는 클러스터에 있는 VESPA 레포에서 job을 실행합니다. 
 
 ```bash
 # 클러스터에서: 원본 VESPA clone 후 원본 설치 절차대로 환경 준비 (예: conda env "vespa")
-git clone https://github.com/TUMFTM/VESPA.git <VESPA_ROOT>
+git clone https://github.com/TUMFTM/VESPA.git <VESPA_ROOT> && git -C <VESPA_ROOT> checkout acb2b6e8683363795528f049fe0444ef9f3efdb9
+# Docker·Colab과 같은 결과를 원하면 이 레포의 patch도 적용 (apply.sh와 patch 파일을 함께 복사)
+scp -r ai-server/vespa-patches seraph:<VESPA_ROOT>/../vespa-patches && ssh seraph 'bash <VESPA_ROOT>/../vespa-patches/apply.sh <VESPA_ROOT> acb2b6e8683363795528f049fe0444ef9f3efdb9'
 # 로컬(이 레포)에서: 두 파일 복사. scp는 SSH로 파일을 보냅니다(0장의 seraph 별칭 사용)
 scp ai-server/vespa-remote/* seraph:<VESPA_ROOT>/
 ```

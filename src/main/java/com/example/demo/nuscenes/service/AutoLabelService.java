@@ -18,7 +18,7 @@ public class AutoLabelService {
  private final String version,modelVersion,storage;
  public AutoLabelService(AutoLabelRepository repo,SystemStatusService readiness,ObjectMapper json,PlatformTransactionManager manager,
   @Value("${auto-label.dataset-version:v1.0-trainval}") String version,
-  @Value("${auto-label.model-version:acb2b6e8683363795528f049fe0444ef9f3efdb9}") String modelVersion,
+  @Value("${auto-label.model-version:acb2b6e8683363795528f049fe0444ef9f3efdb9+ds2l-p1-p2}") String modelVersion,
   @Value("${auto-label.artifact-storage-key:vespa-results}") String storage) {
   this.repo=repo;this.readiness=readiness;this.json=json;this.tx=new TransactionTemplate(manager);this.version=version;this.modelVersion=modelVersion;this.storage=storage;
  }
@@ -108,6 +108,6 @@ public class AutoLabelService {
   }
  }
  private static void numbers(List<Double> values,int count) { if(values==null || values.size()!=count || values.stream().anyMatch(v->v==null || !Double.isFinite(v))) throw new IllegalArgumentException("Invalid box numeric fields"); }
- private static List<String> classes(int mode) { return switch(mode) { case 1->List.of("vehicle"); case 3->List.of("vehicle","pedestrian","bicycle"); default->List.of("car","truck","bus","trailer","construction_vehicle","pedestrian","motorcycle","bicycle"); }; }
+ private static List<String> classes(int mode) { return switch(mode) { case 1->List.of("vehicle"); case 3->List.of("vehicle","pedestrian","bicycle"); default->List.of("car","truck","bus","trailer","construction_vehicle","pedestrian","motorcycle","bicycle","barrier","traffic_cone"); }; }
  private static ResponseStatusException bad(String reason) { return new ResponseStatusException(HttpStatus.BAD_REQUEST,reason); }
 }
