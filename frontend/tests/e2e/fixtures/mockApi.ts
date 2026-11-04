@@ -127,7 +127,7 @@ export function gtFor(sid: number) {
     centerX: x + dx, centerY: 1100 + dy, centerZ: 0.8, sizeW: 1.9, sizeL: 4.5, sizeH: 1.6, rotationW: 1, rotationX: 0, rotationY: 0, rotationZ: 0,
     numLidarPts: 40, numRadarPts: 1, prevToken: null, nextToken: null, categoryToken: cat ? `cat-${cat}` : null, categoryName: cat,
   });
-  return [mk(sid * 10 + 1, 15, 0, 'vehicle.car'), mk(sid * 10 + 2, 12, 5, 'movable_object.barrier'), mk(sid * 10 + 3, -14, 0, null)];
+  return [mk(sid * 10 + 1, 15, 0, 'vehicle.car'), mk(sid * 10 + 2, 12, 5, 'movable_object.debris'), mk(sid * 10 + 3, -14, 0, null)];
 }
 
 export async function installMockApi(page: Page, opts: MockOptions = {}): Promise<MockLog> {
