@@ -137,8 +137,9 @@ test.describe('3D recording', () => {
   test('recording 실패는 recording만 다시 요청하고 VESPA를 다시 실행하지 않는다 (QA-16)', async ({ page }) => {
     const log = await installMockApi(page, { recording: 'fail-then-ready' });
     await page.goto(ws(21));
-    await page.getByRole('button', { name: /3D recording 만들기/ }).click();
+    // no recording yet: the GT-only one is requested without a click (and fails once here)
     await expect(page.getByText('3D recording을 만들지 못했어요')).toBeVisible();
+    expect(log.recordingPosts).toEqual([{ sceneId: 21, body: {} }]);
     await expect(page.getByText(/RECORDING_EXPORT_FAILED/)).toBeVisible();
     await page.getByRole('button', { name: 'recording 다시 만들기' }).click();
     await expect(page.getByTestId('recording-badge')).toBeAttached();

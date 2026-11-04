@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Icon } from '@/components/Icon';
 import { useEffect, useMemo } from 'react';
 import { describeError, isApiError } from '@/api/http';
-import type { Recording, Scene } from '@/api/models';
+import type { Scene } from '@/api/models';
 import { qk, recordingQuery, recordingsQuery } from '@/api/queries';
 import { capabilityMessage } from '@/api/system';
 import { useSystemStatus } from '@/features/system/useSystemStatus';
@@ -10,19 +10,15 @@ import { errorGuide } from '@/lib/errorCodes';
 import { recordingKey, submitRecording, useSubmissions } from '@/lib/jobs/submissions';
 import { useServer } from '@/stores/server';
 import { useWorkspace, type PaneId } from '@/stores/workspace';
+import { planRecording } from './recordingPlan';
 import { RerunViewer } from './RerunViewer';
+
+export { pickRecording } from './recordingPlan';
 
 const RECORDING_STATUS_KO: Record<string, string> = { PENDING: '대기 중', RUNNING: '생성 중', READY: '준비됨', FAILED: '생성 실패' };
 
-/** Pick the recording to show: the pane's explicit choice, else the newest one for the shown job (or GT-only). */
-export function pickRecording(list: Recording[], jobId: number | null, explicit: number | null): Recording | undefined {
-  if (explicit != null) {
-    const found = list.find((r) => r.recordingId === explicit);
-    if (found) return found;
-  }
-  const same = list.filter((r) => r.jobId === jobId).sort((a, b) => b.createdAt - a.createdAt || b.recordingId - a.recordingId);
-  return same.find((r) => r.status !== 'FAILED') ?? same[0];
-}
+/** Recordings requested automatically in this page session (instance:scene:job), so a missing one is asked for once. */
+const autoRequested = new Set<string>();
 
 interface Props {
   paneId: PaneId;
@@ -49,7 +45,8 @@ function RecordingBody({ paneId, scene, enabled }: Props) {
   const qc = useQueryClient();
   const listQ = useQuery({ ...recordingsQuery(scene.id), enabled });
   const targetJob = pane.resultJobId;
-  const picked = useMemo(() => (listQ.data ? pickRecording(listQ.data, targetJob, pane.recordingId) : undefined), [listQ.data, targetJob, pane.recordingId]);
+  const plan = useMemo(() => (listQ.data ? planRecording(listQ.data, targetJob, pane.recordingId) : undefined), [listQ.data, targetJob, pane.recordingId]);
+  const picked = plan?.primary;
   const detailQ = useQuery({
     ...recordingQuery(picked?.recordingId ?? -1),
     enabled: enabled && !!picked,
@@ -59,6 +56,8 @@ function RecordingBody({ paneId, scene, enabled }: Props) {
     },
   });
   const rec = detailQ.data;
+  // GT recording kept on screen while the shown job's own recording is missing or still being made.
+  const fallbackQ = useQuery({ ...recordingQuery(plan?.fallback?.recordingId ?? -1), enabled: enabled && !!plan?.fallback });
 
   // If the shown job changes, drop an explicit choice that belonged to another job.
   useEffect(() => {
@@ -75,6 +74,14 @@ function RecordingBody({ paneId, scene, enabled }: Props) {
     instanceId: scope, datasetId: scene.datasetId, datasetChecksum: system.status?.dataset?.metadataChecksum ?? null, sceneId: scene.id,
     sceneToken: scene.token, sceneName: scene.name, paneId, generation: pane.generation, jobId: targetJob, requestedAt: Date.now(),
   }, () => useServer.getState().scope);
+  // A target without any recording (new label job, or a scene never opened in 3D) gets one without a click.
+  // Once per page session per target; FAILED recordings are retried only by the button.
+  useEffect(() => {
+    if (!enabled || !plan?.autoCreate || !capability.canExecute || submission || autoRequested.has(subKey)) return;
+    autoRequested.add(subKey);
+    create();
+    // create() reads the same scene/job/pane values that subKey is built from.
+  }, [enabled, plan?.autoCreate, capability.canExecute, submission, subKey]);
   const onFileMissing = () => {
     void qc.invalidateQueries({ queryKey: qk.recordings(scene.id) });
     if (picked) void qc.invalidateQueries({ queryKey: qk.recording(picked.recordingId) });
@@ -117,6 +124,23 @@ function RecordingBody({ paneId, scene, enabled }: Props) {
     </>
   );
 
+  const status = rec?.status ?? picked?.status;
+  const fallbackRec = fallbackQ.data;
+  if (targetJob != null && status !== 'FAILED' && !(status === 'READY' && rec?.contentUrl) && fallbackRec?.status === 'READY' && fallbackRec.contentUrl) {
+    const progress = picked
+      ? `작업 #${targetJob} 예측을 담은 3D ${RECORDING_STATUS_KO[status ?? ''] ?? status ?? ''} · 준비되면 자동으로 바뀌어요`
+      : creating ? `작업 #${targetJob} 예측을 담은 3D를 요청하고 있어요` : null;
+    return (
+      <>
+        <RerunViewer key={fallbackRec.recordingId} paneId={paneId} recording={fallbackRec} displayedSampleToken={pane.displayedSampleToken} onFileMissing={onFileMissing} />
+        <div className="v3d-fallback" role="status" data-testid="recording-badge">
+          <b>LIDAR_TOP · 3D</b>
+          <span data-testid="recording-fallback">GT·센서만 보는 중 · {progress ?? `작업 #${targetJob} 예측을 담은 3D가 아직 없어요`}</span>
+          {!picked && !creating && createButton(`작업 #${targetJob} 예측 3D 만들기`)}
+        </div>
+      </>
+    );
+  }
   if (!picked) {
     return (
       <div className="v3d-state">
@@ -127,7 +151,6 @@ function RecordingBody({ paneId, scene, enabled }: Props) {
       </div>
     );
   }
-  const status = rec?.status ?? picked.status;
   if (status === 'READY' && rec?.contentUrl) {
     return (
       <>
@@ -161,7 +184,7 @@ function RecordingBody({ paneId, scene, enabled }: Props) {
   return (
     <div className="v3d-state" role="status">
       <span className="spinner" aria-hidden="true" />
-      <b>3D recording {RECORDING_STATUS_KO[status] ?? status}</b>
+      <b>3D recording {RECORDING_STATUS_KO[status ?? ''] ?? status}</b>
       <span>recording #{picked.recordingId} · {jobText}. 준비되면 자동으로 열려요.</span>
       {detailQ.isError && <span className="mono">상태를 확인하지 못했어요 · {describeError(detailQ.error)}</span>}
     </div>

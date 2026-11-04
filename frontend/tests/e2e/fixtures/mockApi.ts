@@ -62,7 +62,7 @@ export interface MockOptions {
   /** First N job POSTs are aborted (lost response). */
   postAborts?: number;
   /** recording behaviour */
-  recording?: 'none' | 'fail-then-ready' | 'ready';
+  recording?: 'none' | 'fail-then-ready' | 'fail' | 'ready';
   rrdPath?: string;
   /** Search response mode. */
   search?: 'hits' | 'empty' | 'error';
@@ -357,7 +357,7 @@ export async function installMockApi(page: Page, opts: MockOptions = {}): Promis
         const instance = currentInstance();
         if (opts.recordingPostDelayMs) await new Promise((res) => setTimeout(res, opts.recordingPostDelayMs));
         recordingSeq++;
-        const fail = opts.recording === 'fail-then-ready' && log.recordingPosts.length === 1;
+        const fail = opts.recording === 'fail' || (opts.recording === 'fail-then-ready' && log.recordingPosts.length === 1);
         recordings.unshift({ id: recordingSeq, status: fail ? 'FAILED' : 'READY', jobId: (req.postDataJSON() as { jobId?: number }).jobId ?? null, sceneId: Number(r[1]), instanceId: instance });
         return json(route, { recordingId: recordingSeq, status: 'PENDING', reused: false }, 202);
       }

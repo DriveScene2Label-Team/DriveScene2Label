@@ -240,8 +240,10 @@ test.describe('FU-02 구버전 이력의 DB 귀속 방지', () => {
 test.describe('기능별 만료 시점의 화면 갱신 (만료 보완)', () => {
   test('응답 없이도 VESPA는 60초, recording은 90초에 각각 실행 버튼이 막히고 기존 결과는 유지된다', async ({ page }) => {
     await page.clock.install();
-    const log = await installMockApi(page, { jobSequence: ['COMPLETED'], status: { ttlMs: { search: 15_000, vespa: 60_000, recording: 90_000 } } });
+    // Automatic recording requests fail here, so the "다시 만들기" button stays on screen to watch its expiry.
+    const log = await installMockApi(page, { jobSequence: ['COMPLETED'], recording: 'fail', status: { ttlMs: { search: 15_000, vespa: 60_000, recording: 90_000 } } });
     await page.goto(ws(21, '&job=41'));
+    await expect(page.getByText('3D recording을 만들지 못했어요')).toBeVisible();
     const run = page.getByTestId('run-job-single');
     const create = page.getByTestId('create-recording');
     const box = page.getByTestId('vespa-readiness-single');
@@ -250,6 +252,8 @@ test.describe('기능별 만료 시점의 화면 갱신 (만료 보완)', () => 
     await expect(page.locator('[data-status="COMPLETED"]')).toBeVisible();
     log.statusHang = true; // every later status GET stays unanswered
     const getsBefore = log.statusCalls.length;
+    const autoPosts = log.recordingPosts.length; // automatic requests made while recording was READY
+    expect(autoPosts).toBeGreaterThan(0);
 
     await page.clock.runFor(16_000); // search expired; VESPA/recording still valid
     await expect(run).toBeEnabled();
@@ -275,6 +279,6 @@ test.describe('기능별 만료 시점의 화면 갱신 (만료 보완)', () => 
     await expect(run).toBeEnabled();
     await expect(create).toBeEnabled();
     expect(log.jobPosts).toHaveLength(0);
-    expect(log.recordingPosts).toHaveLength(0);
+    expect(log.recordingPosts).toHaveLength(autoPosts); // expiry and recovery never re-request a FAILED recording
   });
 });
