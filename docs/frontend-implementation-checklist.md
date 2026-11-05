@@ -1,5 +1,7 @@
 # 프론트 구현 체크리스트
 
+> **2026-11-05 UI/UX 리뉴얼**(브랜치 `feature/frontend-renewal`)의 범위·목업과의 차이·검증(R-01~R-07)은 [프론트 리뉴얼 기록](frontend-renewal.md)에 따로 남긴다. 라벨 편집 API는 [README_API 8-1장](../README_API.md). 아래 M1~M6 기록의 화면 묘사(다크 시안, 6개 카메라 버튼 이름 등)는 리뉴얼 이전 상태다.
+>
 > 후속 개선은 [개선 기획서](frontend-integration-plan.md)와 [별도 개선 체크리스트](frontend-integration-checklist.md)에서 추적한다. 아래 M1~M6 및 V-01~V-10은 기존 구현·검증 범위의 기록이며 새 개선 완료로 옮겨 체크하지 않는다.
 
 기준: [개발 기획서 v1.2](frontend-product-plan.md). 작업 브랜치: `codex/frontend-implementation` (시작 HEAD `501da08`, 이번 작업은 미커밋 작업 트리). 기능별 세부 요구는 기획서 FR-01~24, 검증은 QA-01~17을 따른다.
@@ -146,7 +148,7 @@
 ## 알려진 제한·후속
 
 - Viewer의 GT/예측 레이어 표시는 카메라 레이어 토글과 연동되지 않는다(Viewer 패널에서 조작). 0.38.1 JS API에 entity 표시 전환이 없어 blueprint 전송 방식은 후속 검토.
-- 예측 박스는 track ID가 없어 프레임 간 같은 객체로 잇지 않는다. 선택은 프레임 이동 시 해제된다.
+- 예측 박스는 track ID가 없어 프레임 간 같은 객체로 잇지 않는다. (리뉴얼 이후) 선택은 프레임 이동 시 유지되며 GT는 instanceToken으로 같은 객체를 잇고, 예측 선택은 다른 프레임에서 "이어지지 않음"으로 안내한다.
 - 결과 전체를 한 번에 받는다(서버 pagination 없음). 큰 trainval scene은 측정 필요.
 - Spring `RecordingWorker`가 Jackson 3 `asText()`(deprecated)를 사용한다. 동작 영향 없음.
 - AI 스키마는 `scene_name`을 `scene-NNNN` 형식만 허용한다. 실제 nuScenes 이름은 해당되며, 다른 이름의 scene recording은 422로 FAILED가 된다.

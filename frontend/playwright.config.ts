@@ -6,6 +6,8 @@ export default defineConfig({
   testDir: './tests/e2e',
   outputDir: './test-results',
   fullyParallel: true,
+  // Six viewport projects run in parallel against one preview server; 5 s was too tight for first-frame loads under that load.
+  expect: { timeout: 10_000 },
   reporter: [['list'], ['html', { outputFolder: 'playwright-report', open: 'never' }]],
   use: { baseURL: 'http://127.0.0.1:4173', trace: 'retain-on-failure', locale: 'ko-KR' },
   webServer: {

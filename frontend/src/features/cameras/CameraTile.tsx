@@ -1,10 +1,9 @@
-import { AlertTriangle, CameraOff, Maximize2 } from 'lucide-react';
 import { memo, useMemo } from 'react';
 import type { BoxView } from '@/api/models';
+import { Icon } from '@/components/Icon';
 import type { CameraSlot } from '@/features/frames/useFrameBundle';
-import { containFit } from '@/lib/geometry/fit';
 import { useElementSize } from '@/hooks/useElementSize';
-import { cn } from '@/lib/utils';
+import { containFit } from '@/lib/geometry/fit';
 import { CameraGlyph } from './CameraGlyph';
 import { CameraOverlay, projectAll } from './CameraOverlay';
 import { cameraKo } from './cameraMeta';
@@ -16,34 +15,37 @@ const OVERLAY_NOTE: Record<string, string> = {
   invalid: '보정값이 올바르지 않아 박스를 표시할 수 없어요',
 };
 
-interface MediaProps {
+export interface MediaProps {
   slot: CameraSlot;
   boxes: readonly BoxView[];
   selectedKey: string | null;
   onSelect?: (key: string) => void;
-  showLabels?: boolean;
+  names: boolean;
+  /** 1-based frame number, for the "no image in this frame" message. */
+  frameNumber: number;
 }
 
-/** Image + projected boxes of one camera at one sample. Used by tiles and the zoom dialog. */
-export function CameraMedia({ slot, boxes, selectedKey, onSelect, showLabels }: MediaProps) {
+/** JPG keyframe of one camera at one sample with its projected boxes. Used by tiles and the quick look. */
+export function CameraMedia({ slot, boxes, selectedKey, onSelect, names, frameNumber }: MediaProps) {
   const [ref, size] = useElementSize<HTMLDivElement>();
   const { file, image, camera, overlayIssue } = slot;
-  const items = useMemo(() => projectAll(camera, boxes), [camera, boxes]);
+  const ego = file?.vehicle ?? null;
+  const items = useMemo(() => projectAll(camera, boxes, ego), [camera, boxes, ego]);
   if (!file) {
     return (
-      <div className="cam-state" data-state="missing">
-        <CameraOff className="icon" aria-hidden="true" />
-        <b>이 프레임에 카메라 파일이 없어요</b>
-        <span>다른 카메라와 탐색은 그대로 쓸 수 있어요</span>
+      <div className="cam-state cam-state--missing" data-state="missing">
+        <Icon name="camoff" />
+        <b>이 프레임에 카메라 이미지가 없어요</b>
+        <span className="mono">{slot.channel}, 프레임 {frameNumber}</span>
       </div>
     );
   }
-  if (!image || image.status === 'loading') return <div className="cam-state cam-state--loading" data-state="loading" aria-label="이미지 불러오는 중" />;
+  if (!image || image.status === 'loading') return <div className="cam-state cam-state--loading" data-state="loading" aria-label="이미지 불러오는 중"><span>불러오는 중</span></div>;
   if (image.status === 'error') {
     const msg = image.error === 'missing' ? '서버에 이미지 파일이 없어요' : image.error === 'decode' ? '이미지를 읽을 수 없어요' : '이미지를 내려받지 못했어요';
     return (
       <div className="cam-state cam-state--error" data-state="error">
-        <AlertTriangle className="icon" aria-hidden="true" />
+        <Icon name="warn" />
         <b>{msg}</b>
         <span className="mono">{file.channel}</span>
       </div>
@@ -54,7 +56,8 @@ export function CameraMedia({ slot, boxes, selectedKey, onSelect, showLabels }: 
     <div className="cam-media" ref={ref} data-state="ready" data-sample-data={file.token}>
       <img src={image.src ?? undefined} alt={`${cameraKo(file.channel)} 카메라 (${file.channel})`} draggable={false} />
       {camera && fit && (
-        <CameraOverlay items={items} width={file.width} height={file.height} scale={fit.scale} selectedKey={selectedKey} onSelect={onSelect} showLabels={showLabels} />
+        <CameraOverlay items={items} width={file.width} height={file.height} scale={fit.scale} selectedKey={selectedKey} onSelect={onSelect}
+          names={names} compact={size.width < 300} />
       )}
       {overlayIssue && overlayIssue !== 'loading' && boxes.length > 0 && <span className="cam-note">{OVERLAY_NOTE[overlayIssue]}</span>}
     </div>
@@ -62,21 +65,22 @@ export function CameraMedia({ slot, boxes, selectedKey, onSelect, showLabels }: 
 }
 
 interface TileProps extends MediaProps {
-  current?: boolean;
+  current: boolean;
+  onFocus: () => void;
   onExpand: () => void;
 }
 
-export const CameraTile = memo(function CameraTile({ slot, current, onExpand, ...media }: TileProps) {
+export const CameraTile = memo(function CameraTile({ current, onFocus, onExpand, onSelect, ...media }: TileProps) {
+  const ch = media.slot.channel;
+  const select = onSelect ? (k: string) => { onFocus(); onSelect(k); } : undefined;
   return (
-    <div className={cn('cam-tile', current && 'is-current')} style={{ gridArea: areaOf(slot.channel) }} data-channel={slot.channel}>
-      <CameraMedia slot={slot} {...media} />
-      <div className="cam-head">
-        <CameraGlyph channel={slot.channel} />
-        <span className="cam-ko">{cameraKo(slot.channel)}</span>
-        <span className="cam-ch">{slot.channel}</span>
-      </div>
-      <button type="button" className="cam-expand" onClick={onExpand} aria-label={`${cameraKo(slot.channel)} 카메라 크게 보기`} title="크게 보기">
-        <Maximize2 className="icon" aria-hidden="true" />
+    <div className={current ? 'cam cam-tile is-current' : 'cam cam-tile'} style={{ gridArea: areaOf(ch) }} data-channel={ch}
+      onClick={onFocus} onDoubleClick={onExpand}>
+      <CameraMedia {...media} onSelect={select} />
+      <div className="cam-label"><CameraGlyph channel={ch} /><span>{cameraKo(ch)}</span><span className="ch">{ch}</span></div>
+      <button type="button" className="cam-zoom" onClick={(e) => { e.stopPropagation(); onExpand(); }} onDoubleClick={(e) => e.stopPropagation()}
+        aria-label={`${cameraKo(ch)} ${ch} 크게 보기`} title="크게 보기 (더블클릭)">
+        <Icon name="expand" />
       </button>
     </div>
   );

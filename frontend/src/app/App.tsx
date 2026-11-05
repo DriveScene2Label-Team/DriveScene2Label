@@ -1,7 +1,9 @@
 import { QueryClientProvider } from '@tanstack/react-query';
 import { lazy, Suspense, useState } from 'react';
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router';
-import { Toasts } from '@/components/Toasts';
+import { IconSprite } from '@/components/Icon';
+import { ThemeSync } from '@/components/ThemeSync';
+import { ToastHost } from '@/components/ToastHost';
 import { InstanceWatcher } from '@/features/system/InstanceWatcher';
 import { bindQueryClient } from '@/lib/jobs/submissions';
 import { createQueryClient } from './queryClient';
@@ -11,7 +13,7 @@ import { SceneSearchPage } from '@/pages/SceneSearchPage';
 const SceneWorkspacePage = lazy(() => import('@/pages/SceneWorkspacePage'));
 const SceneComparePage = lazy(() => import('@/pages/SceneComparePage'));
 
-const loading = <div className="page-state" role="status"><span className="spin" aria-hidden="true" /></div>;
+const loading = <div className="page-state" role="status"><span className="spinner" aria-hidden="true" /></div>;
 
 const router = createBrowserRouter([
   { path: '/', element: <Navigate to="/scenes" replace /> },
@@ -29,9 +31,11 @@ export function App() {
   });
   return (
     <QueryClientProvider client={client}>
+      <IconSprite />
+      <ThemeSync />
       <InstanceWatcher />
       <RouterProvider router={router} />
-      <Toasts />
+      <ToastHost />
     </QueryClientProvider>
   );
 }

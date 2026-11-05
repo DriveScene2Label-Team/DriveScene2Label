@@ -1,4 +1,4 @@
-import type { ClassMode, JobStatusValue, RecordingStatusValue } from './dto';
+import type { ClassMode, EditAction, EditScope, EditTargetType, JobStatusValue, RecordingStatusValue } from './dto';
 import type { Mat3, Pose, Quat, Vec3 } from '@/lib/geometry/transform';
 
 /** Screen models. Built only by mappers.ts; never sent back to the server. */
@@ -73,8 +73,14 @@ export interface BoxView {
   sampleToken: string;
   source: BoxSource;
   jobId: number | null;
-  /** GT: original nuScenes category (null if the server did not return one). VESPA: detectionName. */
+  /** GT: original nuScenes category (null if the server did not return one). VESPA: detectionName. Never changed by edits. */
   label: string | null;
+  /** Class shown in the UI: the edited class when a label edit exists, otherwise `baseCls`. */
+  cls: string;
+  /** Original class: GT = VESPA 8class comparison class of the category (or the category itself when VESPA does not evaluate it); VESPA = detectionName. */
+  baseCls: string;
+  /** A label edit changed the class. */
+  edited: boolean;
   categoryToken: string | null;
   center: Vec3;
   sizeWLH: Vec3;
@@ -128,7 +134,10 @@ export interface JobResults {
   sampleTokens: Set<string>;
   boxesBySample: Map<string, BoxView[]>;
   boxCount: number;
+  /** Boxes whose class was changed by a label edit (deleted boxes are not in the results). */
+  editedCount: number;
   artifactCount: number;
+  artifactPath: string | null;
 }
 
 export interface RecordingSample {
@@ -158,3 +167,25 @@ export interface Recording {
   errorCode: string | null;
   createdAt: number;
 }
+
+export interface LabelEdit {
+  id: number;
+  datasetId: number;
+  sceneId: number;
+  jobId: number | null;
+  targetType: EditTargetType;
+  action: EditAction;
+  scope: EditScope;
+  instanceToken: string | null;
+  fromLabel: string;
+  toLabel: string | null;
+  targetIds: number[];
+  sampleTokens: string[];
+  count: number;
+  createdAt: number;
+  revertedAt: number | null;
+  revertible: boolean;
+}
+
+/** GT instances of a scene: instanceToken → sample tokens where the instance has a (not deleted) box. */
+export type SceneInstances = Map<string, Set<string>>;

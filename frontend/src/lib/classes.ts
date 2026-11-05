@@ -48,10 +48,6 @@ export const CLASS_MODES: Record<ClassMode, readonly string[]> = {
   8: ['car', 'truck', 'bus', 'trailer', 'construction_vehicle', 'pedestrian', 'motorcycle', 'bicycle'],
 };
 
-export const CLASS_COLORS: Record<string, string> = {
-  vehicle: '#86a8ff', car: '#86a8ff', truck: '#b494ff', bus: '#ff8cbc', trailer: '#a9b8c9',
-  construction_vehicle: '#ff9f66', pedestrian: '#6fe2a4', motorcycle: '#c9ef72', bicycle: '#ffb8a6',
-};
 
 export function isClassMode(n: unknown): n is ClassMode {
   return n === 1 || n === 3 || n === 8;
@@ -68,4 +64,16 @@ export function comparisonClass(categoryName: string | null | undefined, mode: C
 export function classModeFromMapping(mappingName: string | null | undefined): ClassMode | null {
   const n = mappingName ? Number.parseInt(mappingName, 10) : NaN;
   return isClassMode(n) ? n : null;
+}
+
+/** Classes a box can be renamed to. Must match the server list (LabelClasses.LABELS). */
+export const LABEL_OPTIONS = ['car', 'truck', 'bus', 'trailer', 'construction_vehicle', 'pedestrian', 'motorcycle', 'bicycle', 'vehicle'] as const;
+
+/**
+ * Original display class of a GT category: the 8class comparison class, or the category itself when VESPA does not
+ * evaluate it (never coerced to "vehicle"). Same rule as the server's LabelClasses.gtBase.
+ */
+export function gtBaseClass(categoryName: string | null | undefined): string {
+  if (!categoryName) return '클래스 정보 없음';
+  return comparisonClass(categoryName, 8) ?? categoryName;
 }

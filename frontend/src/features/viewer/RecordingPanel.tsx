@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Box, RefreshCw } from 'lucide-react';
+import { Icon } from '@/components/Icon';
 import { useEffect, useMemo } from 'react';
 import { describeError, isApiError } from '@/api/http';
 import type { Recording, Scene } from '@/api/models';
@@ -35,7 +35,15 @@ interface Props {
  * LiDAR/3D area. Recording readiness (PENDING/RUNNING/READY/FAILED) is separate from the label job status, and a
  * failed recording is retried by asking for a recording again — never by re-running VESPA.
  */
-export function RecordingPanel({ paneId, scene, enabled }: Props) {
+export function RecordingPanel(props: Props) {
+  return (
+    <div className="v3d" data-v3d={props.paneId}>
+      <div className="v3d-body"><RecordingBody {...props} /></div>
+    </div>
+  );
+}
+
+function RecordingBody({ paneId, scene, enabled }: Props) {
   const pane = useWorkspace((s) => s.panes[paneId]);
   const setRecording = useWorkspace((s) => s.setRecording);
   const qc = useQueryClient();
@@ -74,21 +82,21 @@ export function RecordingPanel({ paneId, scene, enabled }: Props) {
 
   if (!enabled) {
     return (
-      <div className="lidar-state">
-        <Box className="icon" aria-hidden="true" />
+      <div className="v3d-state">
+        <Icon name="cube" />
         <b>3D 보기는 작업 대상 패널 하나에서만 열려요</b>
         <span>이 패널을 작업 대상으로 고르면 3D 뷰어가 이쪽으로 옮겨 와요.</span>
       </div>
     );
   }
-  if (listQ.isPending) return <div className="lidar-state" role="status"><span className="spin" aria-hidden="true" />3D recording 정보를 확인하고 있어요</div>;
+  if (listQ.isPending) return <div className="v3d-state" role="status"><span className="spinner" aria-hidden="true" />3D recording 정보를 확인하고 있어요</div>;
   if (listQ.isError) {
     const unsupported = isApiError(listQ.error) && (listQ.error.status === 404 || listQ.error.status === 405);
     return (
-      <div className="lidar-state" role="alert">
+      <div className="v3d-state" role="alert">
         <b>{unsupported ? '이 서버는 3D recording을 제공하지 않아요' : '3D recording 정보를 불러오지 못했어요'}</b>
         <span className="mono">{describeError(listQ.error)}</span>
-        <button type="button" className="btn btn--sm btn--weak" onClick={() => void listQ.refetch()}><RefreshCw className="icon" aria-hidden="true" />다시 확인</button>
+        <button type="button" className="btn sm weak" onClick={() => void listQ.refetch()}>다시 확인</button>
       </div>
     );
   }
@@ -96,13 +104,13 @@ export function RecordingPanel({ paneId, scene, enabled }: Props) {
   const jobText = targetJob != null ? `작업 #${targetJob} 예측 포함` : 'GT·센서만';
   const createButton = (labelText: string) => (
     <>
-      <button type="button" className="btn btn--primary" onClick={create} disabled={creating || !capability.canExecute} data-testid="create-recording">
-        {creating ? <span className="spin" aria-hidden="true" /> : <Box className="icon" aria-hidden="true" />}{labelText}
+      <button type="button" className="btn primary sm" onClick={create} disabled={creating || !capability.canExecute} data-testid="create-recording">
+        {creating ? <span className="spinner" aria-hidden="true" /> : <Icon name="cube" />}{labelText}
       </button>
       {!capability.canExecute && (
-        <span className="readiness readiness--blocked" data-testid="recording-readiness" data-reason={capability.reasonCode ?? ''}>
+        <span className="v3d-ready-note" data-testid="recording-readiness" data-reason={capability.reasonCode ?? ''}>
           3D 생성 준비 안 됨 · {capabilityMessage(capability)}{' '}
-          <button type="button" className="btn btn--sm btn--weak" onClick={() => void system.recheck(capability)} disabled={system.refreshing}>다시 확인</button>
+          <button type="button" className="btn sm weak" onClick={() => void system.recheck(capability)} disabled={system.refreshing}>다시 확인</button>
         </span>
       )}
       {submission?.status === 'error' && <span className="mono">{describeError(submission.error)}</span>}
@@ -111,8 +119,8 @@ export function RecordingPanel({ paneId, scene, enabled }: Props) {
 
   if (!picked) {
     return (
-      <div className="lidar-state">
-        <Box className="icon" aria-hidden="true" />
+      <div className="v3d-state">
+        <Icon name="cube" />
         <b>아직 3D recording이 없어요</b>
         <span>실제 LiDAR 점군과 GT{targetJob != null ? `, 작업 #${targetJob}의 예측` : ''}을 담은 recording을 서버에서 만들어요.</span>
         {createButton(`3D recording 만들기 (${jobText})`)}
@@ -124,16 +132,15 @@ export function RecordingPanel({ paneId, scene, enabled }: Props) {
     return (
       <>
         <RerunViewer key={rec.recordingId} paneId={paneId} recording={rec} displayedSampleToken={pane.displayedSampleToken} onFileMissing={onFileMissing} />
-        <div className="lidar-badge" data-testid="recording-badge">
-          <b>LiDAR · 3D</b>
-          <span className="dim">{rec.jobId != null ? `GT + 작업 #${rec.jobId} 예측` : 'GT·센서'} · 카메라 라벨 토글과 별개(뷰어에서 조절)</span>
+        <div className="v3d-note v3d-badge" data-testid="recording-badge">
+          <b>LIDAR_TOP · 3D</b> {rec.jobId != null ? `GT + 작업 #${rec.jobId} 예측` : 'GT·센서'} · 원본 박스 기준, 표시는 뷰어에서 조절
         </div>
       </>
     );
   }
   if (status === 'FAILED') {
     return (
-      <div className="lidar-state" role="alert">
+      <div className="v3d-state" role="alert">
         <b>{errorGuide(rec?.errorCode ?? picked.errorCode)?.title ?? '3D recording을 만들지 못했어요'}</b>
         <span className="mono">{(rec?.errorCode ?? picked.errorCode) ? `${rec?.errorCode ?? picked.errorCode} · ` : ''}{rec?.errorMessage ?? picked.errorMessage ?? '오류 메시지 없음'}</span>
         <span>recording만 다시 만들어요. 라벨 작업은 다시 실행하지 않아요.</span>
@@ -144,15 +151,15 @@ export function RecordingPanel({ paneId, scene, enabled }: Props) {
   if (status === 'READY') {
     // READY in the list, detail (with the content URL) still loading or failed to load.
     return (
-      <div className="lidar-state" role="status">
-        {detailQ.isError ? <b>3D recording 정보를 불러오지 못했어요</b> : <><span className="spin" aria-hidden="true" /><b>3D recording 정보를 불러오고 있어요</b></>}
-        {detailQ.isError && <><span className="mono">{describeError(detailQ.error)}</span><button type="button" className="btn btn--sm btn--weak" onClick={() => void detailQ.refetch()}>다시 확인</button></>}
+      <div className="v3d-state" role="status">
+        {detailQ.isError ? <b>3D recording 정보를 불러오지 못했어요</b> : <><span className="spinner" aria-hidden="true" /><b>3D recording 정보를 불러오고 있어요</b></>}
+        {detailQ.isError && <><span className="mono">{describeError(detailQ.error)}</span><button type="button" className="btn sm weak" onClick={() => void detailQ.refetch()}>다시 확인</button></>}
       </div>
     );
   }
   return (
-    <div className="lidar-state" role="status">
-      <span className="spin" aria-hidden="true" />
+    <div className="v3d-state" role="status">
+      <span className="spinner" aria-hidden="true" />
       <b>3D recording {RECORDING_STATUS_KO[status] ?? status}</b>
       <span>recording #{picked.recordingId} · {jobText}. 준비되면 자동으로 열려요.</span>
       {detailQ.isError && <span className="mono">상태를 확인하지 못했어요 · {describeError(detailQ.error)}</span>}

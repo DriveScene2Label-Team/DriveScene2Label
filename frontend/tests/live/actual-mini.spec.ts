@@ -41,7 +41,7 @@ async function framesShowReadyCameras(page: Page, ctx: Ctx, index: number) {
   const shown = await page.locator('.cam-media').evaluateAll((els) => els.map((e) => e.getAttribute('data-sample-data')));
   expect(new Set(shown)).toEqual(new Set(cams.map((c) => c.token))); // images are this sample's files, not another frame's
   const gt = await (await page.request.get(`/api/samples/${s.id}/annotations`)).json() as unknown[];
-  await expect(page.locator('.obj-row')).toHaveCount(gt.length);
+  await expect(page.locator('.otable tbody tr')).toHaveCount(gt.length);
   test.info().annotations.push({ type: `frame ${index + 1}`, description: `sample=${s.token} gt=${gt.length}` });
 }
 
@@ -62,8 +62,8 @@ test('IT-11: real 6 cameras + GT across several frames (no missing/error accepte
 test('IT-16: same real scene in A/B at different frames stays independent', async ({ page }) => {
   const ctx = await context(page);
   await page.goto(`/compare?datasetA=${ctx.datasetId}&sceneA=${ctx.sceneId}&datasetB=${ctx.datasetId}&sceneB=${ctx.sceneId}&sampleB=${ctx.samples[1]!.token}`);
-  await expect(page.locator('.pane--A .cam-media[data-state="ready"]')).toHaveCount(6, { timeout: 60_000 });
-  await expect(page.locator('.pane--B .cam-media[data-state="ready"]')).toHaveCount(6, { timeout: 60_000 });
+  await expect(page.locator('.pane[data-pane="A"] .cam-media[data-state="ready"]')).toHaveCount(6, { timeout: 60_000 });
+  await expect(page.locator('.pane[data-pane="B"] .cam-media[data-state="ready"]')).toHaveCount(6, { timeout: 60_000 });
   await page.getByRole('button', { name: '씬 A 다음 프레임' }).click();
   await expect(page.getByTestId('frame-readout-A')).toHaveText(/2\s*\//);
   await expect(page.getByTestId('frame-readout-B')).toHaveText(/2\s*\//);

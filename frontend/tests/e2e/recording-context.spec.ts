@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { DATASET, installMockApi } from './fixtures/mockApi';
+import { DATASET, installMockApi, preferJobsTab } from './fixtures/mockApi';
 
 /**
  * FU-03: a recording POST answered late must update only its own scene/pane/server context. Route fixtures only
@@ -9,9 +9,11 @@ const ws = (sceneId: number, extra = '') => `/scenes/${sceneId}?dataset=${DATASE
 const DELAY = 1500;
 
 async function openScene(page: Page, name: RegExp) {
-  await page.getByRole('link', { name: '씬 목록' }).click();
+  await page.getByRole('button', { name: '씬 목록으로' }).click();
   await page.getByRole('link', { name }).click();
 }
+
+test.beforeEach(async ({ page }) => { await preferJobsTab(page); });
 
 test.describe('FU-03 지연 recording 응답의 문맥 고정', () => {
   test('A에서 요청 후 B로 이동: B에는 연결하지 않고, A로 돌아오면 원래 recording을 조회·선택한다', async ({ page }) => {
@@ -36,7 +38,7 @@ test.describe('FU-03 지연 recording 응답의 문맥 고정', () => {
     await page.getByTestId('create-recording').click();
     await openScene(page, /scene-0103 열기/);
     await openScene(page, /scene-0061 열기/);
-    await page.getByPlaceholder('작업 번호로 열기').fill('41');
+    await page.getByLabel('번호로 열기').fill('41');
     await page.getByRole('button', { name: '열기', exact: true }).click();
     await expect(page.locator('[data-status="COMPLETED"]')).toBeVisible();
     await expect(page.getByTestId('create-recording')).toContainText('작업 #41 예측 포함');
@@ -52,15 +54,15 @@ test.describe('FU-03 지연 recording 응답의 문맥 고정', () => {
     const log = await installMockApi(page, { recordingPostDelayMs: DELAY });
     await page.goto(`/compare?datasetA=${DATASET.id}&sceneA=21&datasetB=${DATASET.id}&sceneB=22`);
     // the last clicked pane becomes the active one (only it opens the 3D viewer)
-    await page.locator('.pane--B').getByRole('button', { name: '3D', exact: true }).click();
-    await page.locator('.pane--A').getByRole('button', { name: '3D', exact: true }).click();
-    await page.locator('.pane--A').getByTestId('create-recording').click();
-    await page.getByRole('radio', { name: /B scene-0103/ }).click();
+    await page.locator('.pane[data-pane="B"]').getByRole('button', { name: '3D', exact: true }).click();
+    await page.locator('.pane[data-pane="A"]').getByRole('button', { name: '3D', exact: true }).click();
+    await page.locator('.pane[data-pane="A"]').getByTestId('create-recording').click();
+    await page.getByRole('radio', { name: /B\s*scene-0103/ }).click();
     await page.waitForTimeout(DELAY + 400);
-    await expect(page.locator('.pane--B').getByTestId('create-recording')).toBeVisible();
-    await expect(page.locator('.pane--B').getByTestId('recording-badge')).toHaveCount(0);
-    await page.getByRole('radio', { name: /A scene-0061/ }).click();
-    await expect(page.locator('.pane--A').getByTestId('recording-badge')).toBeVisible();
+    await expect(page.locator('.pane[data-pane="B"]').getByTestId('create-recording')).toBeVisible();
+    await expect(page.locator('.pane[data-pane="B"]').getByTestId('recording-badge')).toHaveCount(0);
+    await page.getByRole('radio', { name: /A\s*scene-0061/ }).click();
+    await expect(page.locator('.pane[data-pane="A"]').getByTestId('recording-badge')).toBeVisible();
     expect(log.recordingPosts).toEqual([{ sceneId: 21, body: {} }]);
   });
 
@@ -68,9 +70,9 @@ test.describe('FU-03 지연 recording 응답의 문맥 고정', () => {
     const log = await installMockApi(page, { recordingPostDelayMs: DELAY });
     await page.goto(ws(21));
     await page.getByTestId('create-recording').click();
-    await page.getByRole('button', { name: /6개 카메라/ }).click(); // RecordingPanel unmounts
+    await page.getByRole('group', { name: '보기 방식' }).getByRole('button', { name: '카메라', exact: true }).click(); // RecordingPanel unmounts
     await page.waitForTimeout(DELAY + 400);
-    await page.getByRole('button', { name: /카메라 \+ LiDAR/ }).click();
+    await page.getByRole('group', { name: '보기 방식' }).getByRole('button', { name: '카메라 + 3D', exact: true }).click();
     await expect(page.getByTestId('recording-badge')).toBeVisible();
     expect(log.recordingPosts).toHaveLength(1);
   });

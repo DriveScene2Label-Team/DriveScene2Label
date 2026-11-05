@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Recording } from '@/api/models';
 import { useWorkspace, type PaneId } from '@/stores/workspace';
-import { boxKeyForSelection, indexForSample, normalizeEntity } from './recordingMap';
+import { useQueryClient } from '@tanstack/react-query';
+import type { BoxView } from '@/api/models';
+import { boxKeyForSelection, indexForSample, normalizeEntity, objectKeyForBoxKey } from './recordingMap';
 
 type WebViewerType = import('@rerun-io/web-viewer').WebViewer;
 
@@ -47,6 +49,7 @@ export function RerunViewer({ paneId, recording, displayedSampleToken, onFileMis
   fileMissingRef.current = onFileMissing;
   const requestSample = useWorkspace((s) => s.requestSample);
   const selectBox = useWorkspace((s) => s.selectBox);
+  const qc = useQueryClient();
   const contentUrl = recording.contentUrl;
 
   const recRef = useRef(recording);
@@ -125,7 +128,14 @@ export function RerunViewer({ paneId, recording, displayedSampleToken, onFileMis
           const item = e.items.find((i) => i.type === 'entity' && i.instance_id != null);
           if (!item || item.type !== 'entity') return;
           const key = boxKeyForSelection(rec, normalizeEntity(item.entity_path), item.instance_id ?? -1, currentIdxRef.current);
-          if (key) selectBox(paneId, key);
+          const objKey = key ? objectKeyForBoxKey(key, (k) => {
+            for (const [, data] of qc.getQueriesData<BoxView[]>({ queryKey: ['annotations'] })) {
+              const box = data?.find((b) => b.key === k);
+              if (box) return box;
+            }
+            return undefined;
+          }) : null;
+          if (objKey) selectBox(paneId, objKey);
         }));
         const ch = viewer.open_channel(`ds2l-recording-${recRef.current.recordingId}`);
         channel = ch;
@@ -152,7 +162,7 @@ export function RerunViewer({ paneId, recording, displayedSampleToken, onFileMis
       rrIdRef.current = null;
       lastSentRef.current = null;
     };
-  }, [contentUrl, paneId, requestSample, selectBox, attempt]);
+  }, [contentUrl, paneId, requestSample, selectBox, attempt, qc]);
 
   // React timeline → viewer.
   useEffect(() => {
@@ -165,28 +175,28 @@ export function RerunViewer({ paneId, recording, displayedSampleToken, onFileMis
     viewer.set_current_time(rr, recording.timeline, idx);
   }, [displayedSampleToken, recording, phase]);
 
-  const reopen = <button type="button" className="btn btn--sm btn--weak" onClick={() => setAttempt((a) => a + 1)} data-testid="reopen-recording">같은 recording 다시 열기</button>;
+  const reopen = <button type="button" className="btn sm weak" onClick={() => setAttempt((a) => a + 1)} data-testid="reopen-recording">같은 recording 다시 열기</button>;
   return (
     <>
       {/* Rerun sets `position: relative` on the element it is given, so it gets a full-size child of an absolute frame.
           The key gives each attempt a fresh element. */}
-      <div className="lidar-frame"><div key={attempt} ref={hostRef} className="lidar-host" data-testid="rerun-host" data-phase={phase} data-attempt={attempt} /></div>
+      <div className="v3d-frame"><div key={attempt} ref={hostRef} className="v3d-host" data-testid="rerun-host" data-phase={phase} data-attempt={attempt} /></div>
       {phase === 'loading' && (
-        <div className="lidar-state" role="status">
-          <span className="spin" aria-hidden="true" /><b>3D 뷰어를 불러오고 있어요</b>
+        <div className="v3d-state" role="status">
+          <span className="spinner" aria-hidden="true" /><b>3D 뷰어를 불러오고 있어요</b>
           <span>recording {(recording.sizeBytes ?? 0) > 0 ? `${((recording.sizeBytes ?? 0) / 1e6).toFixed(1)} MB` : ''}</span>
           {stalled && <><span>예상보다 오래 걸려요.</span>{reopen}</>}
         </div>
       )}
       {phase === 'download-error' && (
-        <div className="lidar-state" role="alert" data-testid="viewer-download-error">
+        <div className="v3d-state" role="alert" data-testid="viewer-download-error">
           <b>3D 파일을 받지 못했어요</b><span className="mono">{error}</span>
           <span>recording은 만들어져 있어요. 파일만 다시 받아요(새로 만들거나 라벨 작업을 다시 실행하지 않아요).</span>
           {reopen}
         </div>
       )}
       {phase === 'viewer-error' && (
-        <div className="lidar-state" role="alert" data-testid="viewer-start-error">
+        <div className="v3d-state" role="alert" data-testid="viewer-start-error">
           <b>3D 뷰어를 시작하지 못했어요</b><span className="mono">{error}</span>
           <span>브라우저의 WebGL/WebGPU 또는 뷰어 로딩 문제일 수 있어요. 카메라와 작업 조회는 그대로 쓸 수 있어요.</span>
           {reopen}

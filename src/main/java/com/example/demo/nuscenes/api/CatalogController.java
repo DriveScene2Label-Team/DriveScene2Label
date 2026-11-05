@@ -73,9 +73,14 @@ public class CatalogController {
    """).param("dataset",sample.datasetId()).param("scene",sample.sceneToken()).query(MapView.class).list();
   return new SampleDetail(sample,files,maps);
  }
- @GetMapping("/samples/{id}/annotations") public List<GtAnnotationView> annotations(@PathVariable long id) {
+ @GetMapping("/samples/{id}/annotations") public List<GtAnnotationView> annotations(@PathVariable long id,@RequestParam(defaultValue="false") boolean includeDeleted) {
   Sample sample=samples.findById(id).orElseThrow(CatalogController::notFound);
-  return annotations.bySample(sample.datasetId(),sample.token());
+  return annotations.bySample(sample.datasetId(),sample.token(),includeDeleted);
+ }
+ /** All not-deleted GT of a scene (every sample). Lets the UI count an instance's frames and mark them on the timeline. */
+ @GetMapping("/scenes/{id}/annotations") public List<GtAnnotationView> sceneAnnotations(@PathVariable long id) {
+  Scene scene=scenes.findById(id).orElseThrow(CatalogController::notFound);
+  return annotations.visibleByScene(scene.datasetId(),scene.token());
  }
  @GetMapping("/datasets/{id}/categories") public List<Category> categories(@PathVariable long id) {
   datasets.findById(id).orElseThrow(CatalogController::notFound);

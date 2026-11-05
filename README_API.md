@@ -54,7 +54,8 @@
 |---|---|---|---|---|
 |GET|`/api/scenes/{id}/samples` scene ID|`limit=100` (1..500), `offset=0` (>=0) / 없음|`Sample[]`|400,404|
 |GET|`/api/samples/{id}` sample ID|`keyframesOnly=true` / 없음|`{sample:Sample,sensorFiles:SensorFile[],maps:MapView[]}`|404|
-|GET|`/api/samples/{id}/annotations` sample ID|없음 / 없음|`GtAnnotation[]`|404|
+|GET|`/api/samples/{id}/annotations` sample ID|`includeDeleted=false` / 없음|`GtAnnotation[]`|404|
+|GET|`/api/scenes/{id}/annotations` scene ID|없음 / 없음|scene 전체 sample의 `GtAnnotation[]` (삭제 편집 제외, sampleToken·token 순)|404|
 |GET|`/api/sensor-files/{id}/calibration` sample_data ID|없음 / 없음|`CalibratedSensor`|404|
 |GET|`/api/sensor-files/{id}/pose` sample_data ID|없음 / 없음|`EgoPose`|404|
 |GET|`/api/sensor-files/{id}/content` sample_data ID|없음 / 없음|파일 bytes|404 metadata/파일 없음|
@@ -64,7 +65,7 @@
 - Sample: `id,datasetId,timestampUs` 숫자; `token,sceneToken,prevToken,nextToken` 문자열. 연결 토큰은 없을 수 있다.
 - SensorFile: `id,token,channel,modality,relativePath,timestampUs,isKeyFrame,width,height,egoPoseToken,calibratedSensorToken,vehicleX,vehicleY,vehicleZ,contentUrl`. `isKeyFrame` boolean, ID/시간/크기/좌표 numeric, 나머지 string. vehicleXYZ는 해당 센서 시간의 ego world 위치다.
 - MapView: `id:number,token:string,relativePath:string,location:string,contentUrl:string`.
-- GtAnnotation: `id,datasetId,token,sampleToken,instanceToken,visibilityToken,centerX,centerY,centerZ,sizeW,sizeL,sizeH,rotationW,rotationX,rotationY,rotationZ,numLidarPts,numRadarPts,prevToken,nextToken,categoryToken,categoryName`. ID/box/point count numeric, token string. 일부 관계값 nullable. `categoryToken/categoryName`은 같은 dataset의 object_instance→category JOIN 결과이며 연결이 없으면 null.
+- GtAnnotation: `id,datasetId,token,sampleToken,instanceToken,visibilityToken,centerX,centerY,centerZ,sizeW,sizeL,sizeH,rotationW,rotationX,rotationY,rotationZ,numLidarPts,numRadarPts,prevToken,nextToken,categoryToken,categoryName`. ID/box/point count numeric, token string. 일부 관계값 nullable. `categoryToken/categoryName`은 같은 dataset의 object_instance→category JOIN 결과이며 연결이 없으면 null. `labelOverride`(string|null)는 라벨 편집으로 바뀐 클래스(8-1장), `deleted`(boolean)는 `includeDeleted=true`일 때만 true가 될 수 있다. 기본 응답은 삭제 편집된 박스를 빼고 원본 행·category는 바꾸지 않는다.
 - CalibratedSensor: `id,datasetId,token,sensorToken,translationX/Y/Z,rotationW/X/Y/Z,intrinsic00/01/02/10/11/12/20/21/22` (슬래시는 실제 JSON 필드 각각을 뜻함). 카메라 외 intrinsic은 null 가능. sensor→ego 변환.
 - EgoPose: `id,datasetId,token,timestampUs,translationX/Y/Z,rotationW/X/Y/Z`. ego→world 변환.
 
@@ -157,10 +158,37 @@ job 생성과 sample snapshot은 한 transaction. worker가 PENDING을 claim하�
 {"jobId":12,"datasetId":1,"mappingName":"8class","coordinateFrame":"WORLD","scoreType":"VESPA_CONSTANT","sampleTokens":["sample-a","sample-empty"],"boxes":[{"id":100,"sampleToken":"sample-a","boxIndex":0,"detectionName":"car","centerX":1.0,"centerY":2.0,"centerZ":3.0,"sizeW":2.0,"sizeL":4.0,"sizeH":1.0,"rotationW":1.0,"rotationX":0.0,"rotationY":0.0,"rotationZ":0.0,"velocityX":0.0,"velocityY":0.0,"detectionScore":1.0,"attributeName":""}],"artifacts":[{"id":9,"artifactType":"FINAL_JSON","storageKey":"vespa-results","relativePath":"run/outs/vlm/p_final/#out_labels/vlm_p_final_scene-0061_8class.json","checksum":"64-character-sha256","contentType":"application/json"}]}
 ```
 
+query `includeDeleted=false`(기본). 각 box에 `labelOverride`(라벨 편집 클래스, 없으면 null)와 `deleted`가 추가되었다(2026-11-05). 기본 응답은 삭제 편집된 box를 빼며 `detectionName`은 원본 그대로다.
 404 job 없음,409 PENDING/RUNNING/FAILED. sampleTokens에 모든 처리 sample이 들어가며 box 없는 sample도 유지한다. boxes는 sampleToken,boxIndex 순서. 결과는 현재 전체 반환이므로 대규모 scene에는 pagination이 후속으로 필요하다.
 `detectionScore=1.0`은 VESPA 고정값이며 calibrated confidence가 아니다. velocity는 원본 변환 출력이며 GT sample_annotation에는 직접 대응 필드가 없다. tracking instanceToken, visibility, lidar/radar point counts는 예측에 존재하지 않는다.
 `predicted_annotation` + sample receipt + artifact + job COMPLETED를 같은 transaction으로 저장한다. 실패 시 전체 rollback 후 별도 transaction으로 FAILED 기록한다. DB 자체가 다운이면 FAILED 기록도 실패하므로 복구 작업이 필요하다.
 Artifact는 metadata만 제공한다. relativePath는 다운로드 URL이 아니다. 최종 JSON artifact 다운로드 endpoint는 현재 없다. Rerun 파일은 artifact가 아니라 9장 recording API로 제공한다. checksum은 FastAPI가 canonical JSON으로 계산한 값이며 파일 bytes SHA와 동일하다고 가정하지 않는다. NPZ는 DB 저장/REST 반환 대상이 아니다.
+
+## 8-1. Label Edit API (2026-11-05)
+
+GT annotation과 VESPA 예측 박스의 클래스 변경·삭제·되돌리기·기록. **원본 행(gt_annotation, category, predicted_annotation)은 바꾸지 않는다.** 현재 상태는 `label_override`, 이력과 각 대상의 이전 상태는 `label_edit`/`label_edit_target`(V7 migration)에 저장한다. 바뀐 상태는 4장 GT 조회와 8장 결과 조회에 `labelOverride`/`deleted`로 반영된다. Rerun recording(9장)은 원본 박스를 기록하며 편집을 반영하지 않는다.
+
+|Method|URL|Query / body|200 Response|오류|
+|---|---|---|---|---|
+|PATCH|`/api/annotations/{id}` gt_annotation ID|`{"label":"truck","scope":"SAMPLE"\|"INSTANCE"}` (scope 기본 SAMPLE)|`{edit:LabelEdit}`|400 `INVALID_LABEL`/`INVALID_SCOPE`/`SAME_LABEL`/`INVALID_REQUEST`, 404, 409 `TARGET_DELETED`|
+|DELETE|`/api/annotations/{id}`|`scope=SAMPLE`\|`INSTANCE` (기본 SAMPLE) / 없음|`{edit:LabelEdit}`|400 `INVALID_SCOPE`, 404, 409 `TARGET_DELETED`|
+|PATCH|`/api/auto-label/predictions/{id}` predicted_annotation ID|`{"label":"bus"}` (scope는 SAMPLE만)|`{edit:LabelEdit}`|400, 404, 409 `TARGET_DELETED`/`JOB_NOT_COMPLETED`/`SCENE_NOT_FOUND`|
+|DELETE|`/api/auto-label/predictions/{id}`|없음|`{edit:LabelEdit}`|404, 409 `TARGET_DELETED`/`JOB_NOT_COMPLETED`|
+|GET|`/api/scenes/{sceneId}/label-edits`|`jobId` (선택)|`LabelEdit[]` 최신순, 최대 200|404 scene 없음|
+|POST|`/api/label-edits/{id}/revert`|없음|`{edit:LabelEdit}`|404, 409 `ALREADY_REVERTED`/`LATER_EDIT_EXISTS`|
+
+- `label`은 `car,truck,bus,trailer,construction_vehicle,pedestrian,motorcycle,bicycle,vehicle` 중 하나(VESPA 8class + 1/3class의 vehicle).
+- 원래 클래스: GT는 원본 category의 VESPA 8class 비교 분류(`vehicle.car`→`car`), VESPA가 평가하지 않는 category는 category 이름 그대로(임의로 vehicle로 바꾸지 않음). 예측은 `detectionName`. 원래 클래스로 되돌리는 이름 변경은 override를 지운다.
+- `scope=INSTANCE`: 같은 dataset·scene에서 같은 `instanceToken`인 모든 GT. 이미 삭제된 프레임은 건너뛰고, 이름 변경은 실제로 클래스가 바뀌는 박스만 대상이다. 선택한 박스가 이미 그 클래스이면 400 `SAME_LABEL`.
+- 기록 조회는 그 scene의 GT 편집 전체와 `jobId`가 주어졌을 때 그 job의 예측 편집을 돌려준다.
+- 되돌리기는 이 편집 직전 상태를 복원한다. 같은 박스에 되돌리지 않은 나중 편집이 있으면 409 `LATER_EDIT_EXISTS`(최신부터 되돌림). `revertible`이 이 조건을 미리 알려 준다.
+- 동시성: 대상 원본 행을 id 순으로 `FOR UPDATE` 잠근 transaction에서 처리한다. 편집 요청은 자동 재시도하지 않는다(응답 유실 시 기록 조회로 상태를 확인).
+
+LabelEdit: `id,datasetId,sceneId` number, `jobId` number|null(GT는 null), `targetType` ANNOTATION|PREDICTION, `action` RENAME|DELETE, `scope` SAMPLE|INSTANCE, `instanceToken` string|null, `fromLabel` string, `toLabel` string|null(DELETE), `targetIds` number[], `sampleTokens` string[](targetIds와 같은 순서), `count` number, `createdAt` ISO-8601, `revertedAt` ISO-8601|null, `revertible` boolean.
+
+```json
+{"edit":{"id":3,"datasetId":1,"sceneId":7,"jobId":null,"targetType":"ANNOTATION","action":"RENAME","scope":"INSTANCE","instanceToken":"inst-car","fromLabel":"car","toLabel":"truck","targetIds":[101,102],"sampleTokens":["sample-a","sample-b"],"count":2,"createdAt":"2026-11-05T05:12:00Z","revertedAt":null,"revertible":true}}
+```
 
 ## 9. Rerun Recording API
 
@@ -248,6 +276,7 @@ Auto-label job_id/execution_token은 둘 다 생략하거나 둘 다 제공하�
 7. results.sampleTokens와 scene sample 목록의 token을 연결해 sample ID를 구하고 /api/samples/{id}/annotations로 GT를 읽는다.
 8. 같은 world 좌표계에서 GT/예측을 비교한다. 카메라 투영 시 world→ego→sensor 역변환과 intrinsic 적용이 필요하다.
 9. 3D는 GET /api/scenes/{sceneId}/recordings로 기존 recording을 찾고, 없거나 FAILED뿐이면 POST(필요 시 COMPLETED jobId) → GET /api/recordings/{id} polling → READY의 contentUrl을 Web Viewer에 연다.
+10. 라벨 편집은 8-1장 PATCH/DELETE 후 해당 GT(sample annotations, scene annotations)나 job 결과와 기록(label-edits)만 다시 읽는다. 결과 재조회는 새 VESPA 작업을 만들지 않는다.
 
 ## 13. 운영 제약 / 실행 / 검증
 

@@ -56,9 +56,13 @@ public class AutoLabelRepository {
   jdbc.sql("UPDATE auto_label_job SET status='COMPLETED',completed_at=now(),result_checksum=:c WHERE id=:j").param("j",job.id()).param("c",result.resultChecksum()).update();
  }
  public void fail(Work job,String code,String reason) { jdbc.sql("UPDATE auto_label_job SET status='FAILED',completed_at=now(),failure_reason=:r,error_code=:c WHERE id=:j AND status='RUNNING' AND execution_token=:t").param("r",reason).param("c",code).param("j",job.id()).param("t",job.executionToken()).update(); }
- public Results results(long id,JobStatus status) {
+ public Results results(long id,JobStatus status,boolean includeDeleted) {
   var header=jdbc.sql("SELECT mapping_name,coordinate_frame,score_type FROM auto_label_job WHERE id=:j").param("j",id).query(Header.class).single();
-  var boxes=jdbc.sql("SELECT id,sample_token,box_index,detection_name,center_x,center_y,center_z,size_w,size_l,size_h,rotation_w,rotation_x,rotation_y,rotation_z,velocity_x,velocity_y,detection_score,attribute_name FROM predicted_annotation WHERE job_id=:j ORDER BY sample_token,box_index").param("j",id).query(Prediction.class).list();
+  var boxes=jdbc.sql("""
+   SELECT p.id,p.sample_token,p.box_index,p.detection_name,p.center_x,p.center_y,p.center_z,p.size_w,p.size_l,p.size_h,p.rotation_w,p.rotation_x,p.rotation_y,p.rotation_z,
+    p.velocity_x,p.velocity_y,p.detection_score,p.attribute_name,o.label AS label_override,COALESCE(o.deleted,false) AS deleted
+   FROM predicted_annotation p LEFT JOIN label_override o ON o.target_type='PREDICTION' AND o.target_id=p.id
+   WHERE p.job_id=:j AND (CAST(:all AS boolean) OR COALESCE(o.deleted,false)=false) ORDER BY p.sample_token,p.box_index""").param("j",id).param("all",includeDeleted).query(Prediction.class).list();
   var artifacts=jdbc.sql("SELECT id,artifact_type,storage_key,relative_path,checksum,content_type FROM auto_label_artifact WHERE job_id=:j ORDER BY id").param("j",id).query(Artifact.class).list();
   return new Results(id,status.datasetId(),header.mappingName(),header.coordinateFrame(),header.scoreType(),samples(id).stream().sorted().toList(),boxes,artifacts);
  }

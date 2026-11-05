@@ -3,11 +3,17 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="color-scheme" content="dark" />
+    <meta name="color-scheme" content="light dark" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>DriveScene2Label</title>
-    <!-- Optional web font; falls back to system Korean fonts when unavailable. -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+    <!-- System fonts only (design). Apply the saved theme before first paint to avoid a light/dark flash. -->
+    <script>
+      try {
+        var p = JSON.parse(localStorage.getItem('ds2l.layout') || 'null');
+        var t = p && p.v === 2 && p.data ? p.data.theme : 'light';
+        document.documentElement.dataset.theme = t === 'auto' ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : (t === 'dark' ? 'dark' : 'light');
+      } catch (e) { document.documentElement.dataset.theme = 'light'; }
+    </script>
   </head>
   <body>
     <div id="root"></div>

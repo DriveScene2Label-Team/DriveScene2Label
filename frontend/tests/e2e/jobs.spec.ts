@@ -1,5 +1,5 @@
 import { expect, test, type Locator } from '@playwright/test';
-import { DATASET, installMockApi, sampleToken } from './fixtures/mockApi';
+import { DATASET, installMockApi, openTab, preferJobsTab, sampleToken } from './fixtures/mockApi';
 
 /** Keyboard-driven slider move (Home, then →×n): exercises the real input path. */
 async function setSlider(slider: Locator, n: number) {
@@ -10,13 +10,15 @@ async function setSlider(slider: Locator, n: number) {
 
 const ws = (sceneId: number, extra = '') => `/scenes/${sceneId}?dataset=${DATASET.id}${extra}`;
 
+test.beforeEach(async ({ page }) => { await preferJobsTab(page); });
+
 test.describe('VESPA 작업', () => {
   test('응답 유실 후 같은 Idempotency-Key로 재시도해 같은 job을 받고, 완료 결과를 이미지에 그린다 (QA-06)', async ({ page }) => {
     const log = await installMockApi(page, { postAborts: 1, jobSequence: ['PENDING', 'RUNNING', 'COMPLETED'] });
     await page.goto(ws(21, '&view=six'));
     await expect(page.locator('.cam-media[data-state="ready"]')).toHaveCount(6);
-    await page.getByRole('radio', { name: '3개 클래스' }).click();
-    await page.getByRole('button', { name: /씬 전체 라벨 생성/ }).click();
+    await page.getByLabel('클래스', { exact: true }).selectOption('3');
+    await page.getByRole('button', { name: '라벨 생성하기' }).click();
     await expect(page.getByTestId('job-card-single')).toContainText('작업 #41');
     expect(log.jobPosts).toHaveLength(2);
     expect(log.jobPosts[0]!.key).toBeTruthy();
@@ -30,7 +32,10 @@ test.describe('VESPA 작업', () => {
     await expect(page.getByTestId('job-card-single')).toContainText('2분 30초');
     // last frame of the job has no boxes: a normal empty state, not an error
     await setSlider(page.getByRole('slider', { name: '프레임' }), 3);
-    await expect(page.getByText(/0 · 검출 박스 없음/)).toBeVisible();
+    await openTab(page, '객체');
+    await page.getByRole('group', { name: '구분' }).getByRole('button', { name: /예측/ }).click();
+    await expect(page.getByText('이 프레임에 해당하는 객체가 없어요.')).toBeVisible();
+    await expect(page.locator('.obj-warn')).toHaveCount(0);
     // a new user run uses a new key
     expect(new Set(log.jobPosts.map((p) => p.key)).size).toBe(1);
   });
@@ -57,7 +62,7 @@ test.describe('VESPA 작업', () => {
     const log = await installMockApi(page, { jobSequence: ['FAILED'] });
     await page.goto(ws(21, '&job=41'));
     await expect(page.getByText('AI request failed or timed out')).toBeVisible();
-    await page.getByRole('button', { name: '새 작업으로 다시 실행' }).click();
+    await page.getByRole('button', { name: '다시 시도' }).click();
     await expect.poll(() => log.jobPosts.length).toBe(1);
     expect(log.jobPosts[0]!.key).toMatch(/^ds2l-/);
   });
@@ -80,7 +85,7 @@ test.describe('VESPA 작업', () => {
   test('receipt로 새로고침 후 작업을 복원한다 (FR-24)', async ({ page }) => {
     await installMockApi(page, { jobSequence: ['RUNNING'] });
     await page.goto(ws(21));
-    await page.getByRole('button', { name: /씬 전체 라벨 생성/ }).click();
+    await page.getByRole('button', { name: '라벨 생성하기' }).click();
     await expect(page.getByTestId('job-card-single')).toContainText('작업 #41');
     await page.goto(ws(21)); // no job in URL
     await expect(page.getByTestId('job-card-single')).toContainText('작업 #41');
@@ -97,12 +102,12 @@ test.describe('두 씬 비교', () => {
     await page.getByRole('button', { name: '씬 A 다음 프레임' }).click();
     await expect(page.getByTestId('frame-readout-A')).toHaveText(/2\s*\/ 4/);
     await expect(page.getByTestId('frame-readout-B')).toHaveText(/3\s*\/ 4/);
-    await page.locator('.pane--A').getByRole('button', { name: 'GT', exact: true }).click();
-    await expect(page.locator('.pane--A g[data-source="GT"]')).toHaveCount(0);
-    await expect(page.locator('.pane--B g[data-source="GT"]').first()).toBeAttached();
+    await page.getByRole('toolbar', { name: '씬 A 표시' }).getByRole('button', { name: 'GT', exact: true }).click();
+    await expect(page.locator('.pane[data-pane="A"] g[data-source="GT"]')).toHaveCount(0);
+    await expect(page.locator('.pane[data-pane="B"] g[data-source="GT"]').first()).toBeAttached();
     // active pane drives the inspector target
-    await page.getByRole('radio', { name: /B scene-0061/ }).click();
-    await expect(page.getByRole('button', { name: '씬 B 전체 라벨 생성' })).toBeVisible();
+    await page.getByRole('radio', { name: /B\s*scene-0061/ }).click();
+    await expect(page.getByRole('button', { name: '씬 B 라벨 생성하기' })).toBeVisible();
     await expect(page).toHaveURL(/active=B/);
   });
 
@@ -110,20 +115,20 @@ test.describe('두 씬 비교', () => {
     await installMockApi(page);
     await page.goto(`/compare?datasetA=${DATASET.id}&sceneA=21&datasetB=${DATASET.id}&sceneB=22`);
     await expect(page.getByTestId('frame-readout-B')).toHaveText(/1\s*\/ 3/);
-    await page.getByText('상대 위치 동기화', { exact: true }).click();
-    await setSlider(page.locator('.pane--A').getByRole('slider'), 3); // A at 100 %
+    await page.getByText('재생 위치 맞추기', { exact: true }).click();
+    await setSlider(page.locator('.pane[data-pane="A"]').getByRole('slider'), 3); // A at 100 %
     await expect(page.getByTestId('frame-readout-B')).toHaveText(/3\s*\/ 3/);
-    await setSlider(page.locator('.pane--A').getByRole('slider'), 1); // A at 1/3 → B nearest to 1/3 of its span
+    await setSlider(page.locator('.pane[data-pane="A"]').getByRole('slider'), 1); // A at 1/3 → B nearest to 1/3 of its span
     await expect(page.getByTestId('frame-readout-B')).toHaveText(/2\s*\/ 3/);
-    await page.getByText('상대 위치 동기화', { exact: true }).click();
-    await setSlider(page.locator('.pane--A').getByRole('slider'), 0);
+    await page.getByText('재생 위치 맞추기', { exact: true }).click();
+    await setSlider(page.locator('.pane[data-pane="A"]').getByRole('slider'), 0);
     await expect(page.getByTestId('frame-readout-B')).toHaveText(/2\s*\/ 3/);
   });
 
   test('단일 프레임 씬과 동기화해도 오류가 없다', async ({ page }) => {
     await installMockApi(page);
     await page.goto(`/compare?datasetA=${DATASET.id}&sceneA=21&datasetB=${DATASET.id}&sceneB=23&sync=relative`);
-    await setSlider(page.locator('.pane--A').getByRole('slider'), 2);
+    await setSlider(page.locator('.pane[data-pane="A"]').getByRole('slider'), 2);
     await expect(page.getByTestId('frame-readout-B')).toHaveText(/1\s*\/ 1/);
   });
 });

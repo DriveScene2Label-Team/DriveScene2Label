@@ -22,12 +22,41 @@ describe('A/B pane independence', () => {
     expect([A.jobId, B.jobId]).toEqual([12, null]);
   });
 
-  it('clears the selection on frame change (box ids are not track ids)', () => {
+  it('keeps the selected object across frames (object keys, not per-frame rows) and clears it with another scene', () => {
     const s = useWorkspace.getState();
     s.openScene('single', { datasetId: 1, sceneId: 7, sampleToken: 's0' });
-    s.selectBox('single', 'GT:1:s0:1');
+    s.selectBox('single', 'gt:1:inst-a');
     s.requestSample('single', 's1', 'user');
+    expect(useWorkspace.getState().panes.single.selectedBoxKey).toBe('gt:1:inst-a');
+    s.openScene('single', { datasetId: 1, sceneId: 8 });
     expect(useWorkspace.getState().panes.single.selectedBoxKey).toBeNull();
+  });
+
+  it('hiding a layer drops a selection of that source only; names layer never does', () => {
+    const s = useWorkspace.getState();
+    s.openScene('A', { datasetId: 1, sceneId: 7 });
+    s.selectBox('A', 'pred:12:900');
+    s.toggleLayer('A', 'gt');
+    expect(useWorkspace.getState().panes.A.selectedBoxKey).toBe('pred:12:900');
+    s.toggleLayer('A', 'names');
+    expect(useWorkspace.getState().panes.A.selectedBoxKey).toBe('pred:12:900');
+    s.toggleLayer('A', 'pred');
+    expect(useWorkspace.getState().panes.A.selectedBoxKey).toBeNull();
+    expect(useWorkspace.getState().panes.A.layers).toEqual({ gt: false, pred: false, names: false });
+  });
+
+  it('keeps hidden objects per pane and resets them for another scene', () => {
+    const s = useWorkspace.getState();
+    s.openScene('A', { datasetId: 1, sceneId: 7 });
+    s.openScene('B', { datasetId: 1, sceneId: 7 });
+    s.toggleHidden('A', 'gt:1:inst-a');
+    s.toggleHidden('A', 'pred:12:900');
+    expect(useWorkspace.getState().panes.A.hidden).toEqual(['gt:1:inst-a', 'pred:12:900']);
+    expect(useWorkspace.getState().panes.B.hidden).toEqual([]);
+    s.toggleHidden('A', 'gt:1:inst-a');
+    expect(useWorkspace.getState().panes.A.hidden).toEqual(['pred:12:900']);
+    s.openScene('A', { datasetId: 1, sceneId: 9 });
+    expect(useWorkspace.getState().panes.A.hidden).toEqual([]);
   });
 
   it('resets per-scene state when a pane switches to another scene', () => {
