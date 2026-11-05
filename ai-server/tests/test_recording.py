@@ -243,14 +243,15 @@ def box(cls, x, y, z=0.8, h=1.6, source="gt"):
 def test_label_layer_declutters():
     from services.recording_exporter import BOTH_COLOR, GT_COLOR, PREDICTION_COLOR, label_layer
     gt = [box("vehicle.car", 10, 0), box("human.pedestrian.adult", 20, 5, h=1.8), box("human.pedestrian.child", 21, 6),
-          box("human.pedestrian.adult", 22, 7), box("movable_object.barrier", 15, -4), box(None, 12, 3), box("vehicle.car", 60, 0)]
+          box("human.pedestrian.adult", 22, 7), box("movable_object.debris", 15, -4), box(None, 12, 3), box("vehicle.car", 60, 0),
+          box("movable_object.barrier", 5, 8)]
     preds = [box("car", 10.5, 0.4, h=1.7, source="pred"), box("truck", 25, -6, source="pred")]
     out = {text: (pos, color, source) for pos, text, color, source in label_layer(gt, preds, (0.0, 0.0))}
-    assert set(out) == {"car", "pedestrian ×3", "movable_object.barrier", "GT", "truck"}  # 60 m car has no label
+    assert set(out) == {"car", "pedestrian ×3", "movable_object.debris", "barrier", "GT", "truck"}  # 60 m car has no label
     assert out["car"][1] == BOTH_COLOR and out["car"][0][2] == pytest.approx(0.8 + 1.7 / 2 + 0.6)  # higher top of the pair
     assert out["pedestrian ×3"][1] == GT_COLOR and out["pedestrian ×3"][0][:2] == pytest.approx([21, 6])
     assert out["truck"][1] == PREDICTION_COLOR
-    assert {t: v[2] for t, v in out.items()} == {"car": "both", "pedestrian ×3": "gt", "movable_object.barrier": "gt", "GT": "gt", "truck": "pred"}
+    assert {t: v[2] for t, v in out.items()} == {"car": "both", "pedestrian ×3": "gt", "movable_object.debris": "gt", "barrier": "gt", "GT": "gt", "truck": "pred"}
 
 
 def test_label_layer_keeps_different_classes_and_far_pairs_apart():

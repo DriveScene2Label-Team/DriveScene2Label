@@ -29,7 +29,9 @@ LABEL_LIFT_M = 0.6      # labels float this far above the highest box top of the
 NUSC_8 = {"human.pedestrian.adult": "pedestrian", "human.pedestrian.child": "pedestrian", "human.pedestrian.construction_worker": "pedestrian",
           "human.pedestrian.police_officer": "pedestrian", "vehicle.bicycle": "bicycle", "vehicle.bus.bendy": "bus", "vehicle.bus.rigid": "bus",
           "vehicle.car": "car", "vehicle.construction": "construction_vehicle", "vehicle.motorcycle": "motorcycle", "vehicle.trailer": "trailer",
-          "vehicle.truck": "truck"}
+          "vehicle.truck": "truck",
+          # ai-server/vespa-patches/0001 adds these two to 8class.
+          "movable_object.barrier": "barrier", "movable_object.trafficcone": "traffic_cone"}
 # Approximate nuScenes ego (Renault Zoe): origin at the rear axle on the ground, local x=L, y=W, z=H.
 EGO_CENTER, EGO_HALF_SIZE = (1.3, 0.0, 0.78), (2.04, 0.87, 0.78)
 EXIT_SDK_MISSING, EXIT_LIDAR_MISSING, EXIT_INVALID = 3, 4, 5
