@@ -67,7 +67,7 @@ class WorkerConcurrencyTests {
     Path file=ROOT.resolve(path); Files.createDirectories(file.getParent()); Files.write(file,rrd);
     ObjectNode body=JSON.createObjectNode();
     body.put("recording_id",id).put("execution_token",token).put("relative_path",path).put("size_bytes",rrd.length).put("checksum",sha(rrd))
-     .put("sdk_version","0.38.1").put("export_version","ds2l-rrd-v2").put("application_id","drivescene2label").put("rerun_recording_id","ds2l-recording-"+id)
+     .put("sdk_version","0.38.1").put("export_version","ds2l-rrd-v3").put("application_id","drivescene2label").put("rerun_recording_id","ds2l-recording-"+id)
      .put("timeline","sample").put("time_timeline","timestamp");
     body.putObject("entities").put("lidar","world/lidar").put("ego","world/ego").put("gt","world/gt").putNull("prediction");
     var samples=body.putArray("samples");

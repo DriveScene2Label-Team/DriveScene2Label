@@ -281,7 +281,7 @@ Auto-label job_id/execution_token은 둘 다 생략하거나 둘 다 제공하�
 ## 13. 운영 제약 / 실행 / 검증
 
 - MVP는 Spring DB polling worker + FastAPI sync subprocess. VESPA 프로세스 timeout 7200초, Spring read timeout7300초, connect5초. CLIP read timeout30초. timeout 설정은 Spring이 VESPA보다 충분히 길어야 한다.
-- Recording: Spring read timeout `recording.read-timeout`(기본 660s, exporter 600s보다 길게), 파일 root `recording.root`(기본 `/recordings`), 기대 SDK `recording.sdk-version`(0.38.1), `recording.export-version`(ds2l-rrd-v2). RUNNING 도중 종료 복구는 job과 같이 없다.
+- Recording: Spring read timeout `recording.read-timeout`(기본 660s, exporter 600s보다 길게), 파일 root `recording.root`(기본 `/recordings`), 기대 SDK `recording.sdk-version`(0.38.1), `recording.export-version`(ds2l-rrd-v3). RUNNING 도중 종료 복구는 job과 같이 없다.
 - FastAPI `--workers 1`, Spring worker 한 인스턴스를 권장한다. VESPA lock은 프로세스별이다. 여러 Spring worker를 동시에 돌리면 AI busy409로 job FAILED가 될 수 있다.
 - RUNNING 도중 Spring 종료/네트워크 단절 후 자동 lease 복구, retry queue, 취소 API는 없다. 운영 전 복구 정책이 필요하다. 결과를 받지 못해 FAILED여도 AI 파일이 남을 수 있다.
 - VESPA 원본 main의 부분 scene 출력 제한을 외부 vespa_runner.py에서 우회하고 원본 writer 변환 함수를 재사용한다. 원본 저장소는 수정하지 않는다. 자세한 설정은 [VESPA wrapper](ai-server/VESPA.md).

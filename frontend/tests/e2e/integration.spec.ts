@@ -157,7 +157,7 @@ test.describe('IT-10 라벨 토글 적용 범위', () => {
     const hudB = page.getByRole('toolbar', { name: '씬 B 표시' });
     await expect(hudB.getByRole('button', { name: 'GT', exact: true })).toHaveAttribute('aria-pressed', 'true');
     await page.goto(ws(21));
-    await expect(page.getByTestId('recording-badge')).toContainText('표시는 뷰어에서 조절');
+    await expect(page.getByTestId('recording-badge')).toContainText('표시는 위 버튼을 따라요');
   });
 });
 

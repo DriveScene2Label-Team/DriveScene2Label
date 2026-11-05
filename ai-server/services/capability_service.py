@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 SCHEMA_VERSION = 1
 EXPECTED_RERUN = "0.38.1"
-EXPORT_VERSION = "ds2l-rrd-v2"
+EXPORT_VERSION = "ds2l-rrd-v3"
 # Same order Spring's NuscenesImporter hashes (ImportSchema.TABLES): sha256(name + bytes) for each table.
 CHECKSUM_TABLES = ("log", "map", "scene", "sample", "sensor", "calibrated_sensor", "ego_pose", "sample_data",
                    "category", "instance", "visibility", "attribute", "sample_annotation")

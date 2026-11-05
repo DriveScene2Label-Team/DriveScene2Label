@@ -19,7 +19,7 @@ export function LayerToggle({ paneId, layer }: { paneId: PaneId; layer: LayerKey
   const m = META[layer];
   return (
     <button type="button" className="hud-tog" aria-pressed={on} data-layer={layer} onClick={() => toggleLayerAnnounced(paneId, layer)}
-      title={`${m.label} ${on ? '숨기기' : '보이기'}${m.key ? ` (${m.key})` : ''}${layer !== 'names' ? ' · 카메라 박스와 객체 목록에 적용' : ''}`}>
+      title={`${m.label} ${on ? '숨기기' : '보이기'}${m.key ? ` (${m.key})` : ''}${layer !== 'names' ? ' · 카메라·3D·객체 목록에 적용' : ' · 카메라·3D에 적용'}`}>
       {layer === 'names' ? <Icon name="text" /> : <><Icon name="eye" className="i-on" /><Icon name="eye-off" className="i-off" /></>}
       {layer !== 'names' && <span className={`sw sw-${layer}`} aria-hidden="true" />}
       <span>{m.label}</span>

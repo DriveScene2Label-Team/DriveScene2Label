@@ -95,7 +95,7 @@ class RecordingResponse(BaseModel):
     size_bytes: int = Field(gt=0)
     checksum: str = Field(pattern=r"^[0-9a-f]{64}$", description="SHA-256 of the .rrd file bytes.")
     sdk_version: str
-    export_version: Literal["ds2l-rrd-v2"] = "ds2l-rrd-v2"
+    export_version: Literal["ds2l-rrd-v3"] = "ds2l-rrd-v3"
     application_id: Literal["drivescene2label"] = "drivescene2label"
     rerun_recording_id: str
     timeline: Literal["sample"] = "sample"

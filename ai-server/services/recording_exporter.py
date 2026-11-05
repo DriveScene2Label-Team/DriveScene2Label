@@ -10,10 +10,13 @@ from uuid import uuid4
 import numpy as np
 
 APPLICATION_ID = "drivescene2label"
-EXPORT_VERSION = "ds2l-rrd-v2"
+EXPORT_VERSION = "ds2l-rrd-v3"
 ENTITIES = {"lidar": "world/lidar", "ego": "world/ego", "gt": "world/gt", "prediction": "world/prediction"}
-# Text layer (v2). Not part of the response entities: it holds no box instances, so viewer selection on it maps to nothing.
+# Text layers. Not part of the response entities: they hold no box instances, so viewer selection on them maps to nothing.
+# Split by source (v3) so the app's GT / prediction toggles can hide the matching labels: "both" = a GT box and a
+# prediction of the same class at the same place (hidden only when both sources are hidden).
 LABELS_ENTITY = "world/labels"
+LABEL_ENTITIES = {"gt": "world/labels/gt", "pred": "world/labels/pred", "both": "world/labels/both"}
 GT_COLOR, PREDICTION_COLOR, EGO_COLOR = (0xFF, 0xCC, 0x4D), (0x4F, 0xE0, 0xD5), (0xC8, 0xCE, 0xD8)
 BOTH_COLOR = (0xF2, 0xF4, 0xF6)  # label shared by a GT box and a prediction of the same class
 # Label decluttering (Rerun has no screen-space label collision avoidance):
@@ -88,7 +91,7 @@ def gt_class(category_name):
 
 
 def label_layer(gt, predictions, ego_xy):
-    """Decluttered labels for one sample: [(position xyz, text, rgb)].
+    """Decluttered labels for one sample: [(position xyz, text, rgb, source)] with source gt | pred | both.
     Near objects only, GT+prediction of the same class at the same place share a label, same-class groups are merged
     ("pedestrian ×3"), and each label floats above its group. Without an ego position (no lidar) no labels are written."""
     if ego_xy is None:
@@ -125,8 +128,9 @@ def label_layer(gt, predictions, ego_xy):
                      top=max(group["top"], it["top"]), n=n, src=group["src"] | it["src"])
     out = []
     for c in groups:
-        color = BOTH_COLOR if c["src"] == {"gt", "pred"} else GT_COLOR if c["src"] == {"gt"} else PREDICTION_COLOR
-        out.append(([c["x"], c["y"], c["top"] + LABEL_LIFT_M], c["cls"] if c["n"] == 1 else f"{c['cls']} ×{c['n']}", color))
+        source = "both" if c["src"] == {"gt", "pred"} else "gt" if c["src"] == {"gt"} else "pred"
+        color = {"both": BOTH_COLOR, "gt": GT_COLOR, "pred": PREDICTION_COLOR}[source]
+        out.append(([c["x"], c["y"], c["top"] + LABEL_LIFT_M], c["cls"] if c["n"] == 1 else f"{c['cls']} ×{c['n']}", color, source))
     return out
 
 
@@ -198,7 +202,9 @@ def export(request, data_root, output, rr):
             if with_predictions:
                 rec.log(ENTITIES["prediction"], boxes(rr, predictions, PREDICTION_COLOR, [b["detection_name"] for b in predictions]))
             # Written every sample (also empty) so latest-at never keeps the previous sample's labels.
-            rec.log(LABELS_ENTITY, labels_archetype(rr, label_layer(gt, predictions if with_predictions else [], ego_xy)))
+            layer = label_layer(gt, predictions if with_predictions else [], ego_xy)
+            for source, entity in LABEL_ENTITIES.items():
+                rec.log(entity, labels_archetype(rr, [r for r in layer if r[3] == source]))
             counts.append({"index": sample["index"], "sample_token": sample["sample_token"], "lidar_points": points,
                            "gt_boxes": len(gt), "prediction_boxes": len(predictions)})
         rec.flush()

@@ -31,6 +31,20 @@ test.describe('Rerun Web Viewer 0.38.1', () => {
     await expect(host).toHaveAttribute('data-viewer-time', '2', { timeout: 10_000 });
     await expect(page.getByTestId('frame-readout-single')).toHaveText(/3\s*\/ 4/); // no ping-pong back
 
+    // App layer toggles follow into 3D: a prebuilt blueprint per combination is sent, then frame/timeline are restored.
+    await expect(host).toHaveAttribute('data-blueprint', 'gt1-pred1-names1');
+    await page.getByRole('button', { name: 'GT', exact: true }).click();
+    await expect(host).toHaveAttribute('data-blueprint', 'gt0-pred1-names1');
+    await page.getByRole('button', { name: '클래스 이름', exact: true }).click();
+    await expect(host).toHaveAttribute('data-blueprint', 'gt0-pred1-names0');
+    await page.waitForTimeout(1500);
+    await expect(page.getByTestId('frame-readout-single')).toHaveText(/3\s*\/ 4/);
+    await page.getByRole('button', { name: '다음 프레임' }).click();
+    await expect(host).toHaveAttribute('data-viewer-time', '3', { timeout: 10_000 });
+    await page.getByRole('button', { name: 'GT', exact: true }).click();
+    await page.getByRole('button', { name: '클래스 이름', exact: true }).click();
+    await expect(host).toHaveAttribute('data-blueprint', 'gt1-pred1-names1');
+
     // resize via the split handle
     const before = await host.boundingBox();
     const divider = page.getByRole('separator', { name: '카메라와 3D 영역 높이 비율' });
