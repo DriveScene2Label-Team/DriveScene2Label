@@ -141,7 +141,7 @@ test.describe('3D recording', () => {
     await expect(page.getByText('3D recording을 만들지 못했어요')).toBeVisible();
     await expect(page.getByText(/RECORDING_EXPORT_FAILED/)).toBeVisible();
     await page.getByRole('button', { name: 'recording 다시 만들기' }).click();
-    await expect(page.getByTestId('recording-badge')).toBeVisible();
+    await expect(page.getByTestId('recording-badge')).toBeAttached();
     expect(log.recordingPosts).toHaveLength(2);
     expect(log.jobPosts).toHaveLength(0);
     // camera UI stays usable while the 3D area changes state

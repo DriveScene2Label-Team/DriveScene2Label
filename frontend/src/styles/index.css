@@ -849,9 +849,6 @@ a.card-hit:hover { text-decoration: none; }
 .v3d-state .btn.weak { background: rgba(69, 147, 252, .18); color: var(--media-link); }
 .v3d-ready-note { display: block; max-width: 420px; color: var(--orange); font-size: 12.5px; }
 .v3d-ready-note .btn { margin-left: 6px; }
-.v3d-badge { left: 14px; right: auto; max-width: calc(100% - 28px); padding: 4px 10px; border-radius: 999px; background: rgba(0, 0, 0, .55); color: var(--media-label-2); }
-.v3d-badge b { color: var(--media-label); font-weight: 700; margin-right: 4px; }
-.pane .v3d-badge { display: block; font-size: 11px; }
 
 /* 비교: 표시 막대가 적용되는 씬 */
 .hud-pane { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; background: var(--media-accent); color: #fff; font-weight: 800; font-size: 13px; flex: none; }

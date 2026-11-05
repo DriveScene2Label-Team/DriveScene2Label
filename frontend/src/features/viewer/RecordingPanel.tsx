@@ -132,8 +132,9 @@ function RecordingBody({ paneId, scene, enabled }: Props) {
     return (
       <>
         <RerunViewer key={rec.recordingId} paneId={paneId} recording={rec} displayedSampleToken={pane.displayedSampleToken} onFileMissing={onFileMissing} />
-        <div className="v3d-note v3d-badge" data-testid="recording-badge">
-          <b>LIDAR_TOP · 3D</b> {rec.jobId != null ? `GT + 작업 #${rec.jobId} 예측` : 'GT·센서'} · 원본 박스 기준, 표시는 뷰어에서 조절
+        {/* Not drawn over the viewer (it covered Rerun's own timeline controls); kept for screen readers and tests. */}
+        <div className="sr-only" role="status" data-testid="recording-badge">
+          3D recording 열림 · {rec.jobId != null ? `GT + 작업 #${rec.jobId} 예측` : 'GT·센서'} · 원본 박스 기준, 표시는 뷰어에서 조절
         </div>
       </>
     );

@@ -27,7 +27,7 @@ test.describe('FU-03 지연 recording 응답의 문맥 고정', () => {
     await expect(page.getByTestId('recording-badge')).toHaveCount(0);
     expect(log.recordingPosts).toEqual([{ sceneId: 21, body: {} }]);
     await openScene(page, /scene-0061 열기/);
-    await expect(page.getByTestId('recording-badge')).toBeVisible();
+    await expect(page.getByTestId('recording-badge')).toBeAttached();
     expect(log.recordingPosts).toHaveLength(1);
     expect(log.jobPosts).toHaveLength(0);
   });
@@ -62,7 +62,7 @@ test.describe('FU-03 지연 recording 응답의 문맥 고정', () => {
     await expect(page.locator('.pane[data-pane="B"]').getByTestId('create-recording')).toBeVisible();
     await expect(page.locator('.pane[data-pane="B"]').getByTestId('recording-badge')).toHaveCount(0);
     await page.getByRole('radio', { name: /A\s*scene-0061/ }).click();
-    await expect(page.locator('.pane[data-pane="A"]').getByTestId('recording-badge')).toBeVisible();
+    await expect(page.locator('.pane[data-pane="A"]').getByTestId('recording-badge')).toBeAttached();
     expect(log.recordingPosts).toEqual([{ sceneId: 21, body: {} }]);
   });
 
@@ -73,7 +73,7 @@ test.describe('FU-03 지연 recording 응답의 문맥 고정', () => {
     await page.getByRole('group', { name: '보기 방식' }).getByRole('button', { name: '카메라', exact: true }).click(); // RecordingPanel unmounts
     await page.waitForTimeout(DELAY + 400);
     await page.getByRole('group', { name: '보기 방식' }).getByRole('button', { name: '카메라 + 3D', exact: true }).click();
-    await expect(page.getByTestId('recording-badge')).toBeVisible();
+    await expect(page.getByTestId('recording-badge')).toBeAttached();
     expect(log.recordingPosts).toHaveLength(1);
   });
 
