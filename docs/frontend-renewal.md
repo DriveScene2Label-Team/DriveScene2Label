@@ -44,6 +44,15 @@
 - 편집 후에는 영향받는 조회만 무효화한다(GT annotations·scene instances 또는 해당 job results, 기록). 결과 재조회는 새 VESPA 작업을 만들지 않는다.
 - Rerun recording은 원본 박스를 기록한다(편집 미반영). 인스펙터 기록 탭 안내 문구에 표시했다.
 
+## 3-1. 3D 이름표 정리 (export `ds2l-rrd-v2`, 2026-11-05)
+
+Rerun 3D에서 모든 GT·예측 박스에 이름이 붙어 확대해도 읽기 어려웠다. 이름표는 끄지 않고 exporter에서 정리한다([Rerun recording 계약](rerun-recording.md)의 `world/labels`).
+
+- GT·예측 `Boxes3D`는 `show_labels=False`(이름은 데이터로 남아 선택·hover에 표시).
+- 이름표 전용 `world/labels`(`Points3D`): ego 기준 30 m 안만, 같은 클래스 GT·예측이 1.5 m 안이면 하나(흰색), 같은 클래스가 4 m 안이면 `pedestrian ×3`, 무리 윗면 0.6 m 위. GT는 8class 비교 분류(미매핑은 category 그대로). Viewer 엔티티 목록에서 이 레이어만 끌 수 있다.
+- export 버전을 v2로 올려 기존 v1 recording은 재사용하지 않는다(씬마다 새로 만들어야 반영). 응답 entities·선택 매핑은 그대로.
+- 함께 고친 기존 버그: 개발 모드(StrictMode)에서 `bindQueryClient`가 버려진 QueryClient에 묶여, job/recording 생성 뒤 목록 재조회가 일어나지 않았다(“3D recording 만들기” 후 화면 그대로). 커밋 후 effect에서 묶도록 변경. production 빌드(e2e)에서는 드러나지 않았다.
+
 ## 4. 검증 기록
 
 | ID | 범위 | 명령 | 결과 | 미검증·제약 |
@@ -55,6 +64,10 @@
 | R-05 | Spring(PostgreSQL 컨테이너) | `bash scripts/docker-test.sh` | 40 tests 통과(신규 LabelEditTests 8: instance 이름 변경·원본 불변, 원래 클래스로 되돌림·검증 오류, 미매핑 category, 프레임/모든 프레임 삭제·scene GT, 예측 편집·결과 필터·기록 범위, 미완료 job 거부, 최신순 되돌리기·충돌, 삭제 되돌리기) | fake AI |
 | R-06 | 목업 대조 | 같은 크기(1440×900, 1024, 768, 375)로 목업과 앱(route fixture) 화면 캡처 비교: 라이브러리·검색·작업 화면·선택·작업 탭·카메라·비교·삭제 확인·크게 보기·토스트·어두운 테마 | 배치·간격·색·글자 크기 일치. 차이는 2장 표의 의도된 항목과 fixture 이미지 | 실제 JPG·실제 GT 밀도로는 미확인 |
 | R-07 | 형식 | `git diff --check` | 통과 | — |
+| R-08 | 3D 이름표(exporter) | `ai-server/.venv-recording`: `pytest tests/test_recording.py` (`PYTHONPATH=…/rerun_sdk`) | 11 통과·1 skip(torch 필요). 실제 .rrd read-back: 박스 `show_labels=False`, `world/labels` 이름표(GT·예측 쌍 합침), 빈 sample·lidar 없는 sample은 빈 batch. 정리 규칙 단위 테스트 2개 | 전체 AI pytest(`.venv-recording-full`)의 `test_vespa_ssh.py` 6개 실패는 변경 전 코드에서도 같은 실패(이번 변경과 무관) |
+| R-09 | Spring | `bash scripts/docker-test.sh` | 40 통과(export 버전 v2 반영) | — |
+| R-10 | 로컬 실제 스택 | 합성 nuScenes 형식 데이터(씬 2·sample 24·GT 142, SYNTHETIC) + Spring jar·pgvector 컨테이너 + recording 전용 AI 하네스(CLIP 실패 주입, 제품 AI 컨테이너 아님) + `npm run dev` | 브라우저에서 GT 이름 변경·되돌리기·기록(실제 PostgreSQL), 3D recording 생성 → READY 자동 열림(StrictMode 수정 후), 이름표가 박스 위 별도 레이어로 표시 | 실제 nuScenes·실제 예측 밀도에서의 이름표 겹침은 미확인 |
+| R-11 | Rerun Viewer(v2 .rrd) + 전체 e2e(desktop) | `DS2L_RRD=<v2 .rrd> npx playwright test --project=desktop-1440` | 65 통과(Viewer 3 포함: 박스 선택 → 인스펙터 매핑 유지) | 합성 recording |
 
 **실제 연동은 하지 않았다.** 실제 nuScenes mini, 실제 Spring 서버에서의 라벨 편집 API(브라우저→Spring→PostgreSQL), 실제 CLIP 검색, 실제 VESPA job, 실제 GPU 브라우저 성능은 이 환경(로컬 JDK·데이터·GPU 없음)에서 확인하지 못했다.
 

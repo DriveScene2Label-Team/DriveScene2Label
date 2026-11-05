@@ -50,7 +50,7 @@ body 생략 또는 `{"jobId": 12}`. 같은 dataset·scene·job·exportVersion의
 ```json
 {
  "recordingId":5,"datasetId":1,"sceneId":7,"sceneToken":"scene-token","sceneName":"scene-0061","jobId":12,
- "status":"READY","sdkVersion":"0.38.1","exportVersion":"ds2l-rrd-v1","coordinateFrame":"WORLD",
+ "status":"READY","sdkVersion":"0.38.1","exportVersion":"ds2l-rrd-v2","coordinateFrame":"WORLD",
  "applicationId":"drivescene2label","rerunRecordingId":"ds2l-recording-5",
  "timeline":"sample","timeTimeline":"timestamp",
  "entities":{"lidar":"world/lidar","ego":"world/ego","gt":"world/gt","prediction":"world/prediction"},
@@ -94,7 +94,7 @@ Viewer 연결(2026-10-04 브라우저 확인): `@rerun-io/web-viewer@0.38.1`의 
 
 ```json
 {"recording_id":5,"execution_token":"UUID","relative_path":"5-UUID/scene-0061.rrd","size_bytes":1234567,
- "checksum":"64-hex sha256 of file bytes","sdk_version":"0.38.1","export_version":"ds2l-rrd-v1",
+ "checksum":"64-hex sha256 of file bytes","sdk_version":"0.38.1","export_version":"ds2l-rrd-v2",
  "application_id":"drivescene2label","rerun_recording_id":"ds2l-recording-5","timeline":"sample","time_timeline":"timestamp",
  "entities":{"lidar":"world/lidar","ego":"world/ego","gt":"world/gt","prediction":"world/prediction"},
  "samples":[{"index":0,"sample_token":"s0","lidar_points":34688,"gt_boxes":1,"prediction_boxes":1}]}
@@ -113,13 +113,14 @@ Viewer 연결(2026-10-04 브라우저 확인): `@rerun-io/web-viewer@0.38.1`의 
 - `world/ego`: ego pose `Transform3D`와 차량 크기 상자.
 - `world/gt`: GT `Boxes3D`. half_sizes는 로컬 x=L/2, y=W/2, z=H/2. quaternion은 API의 W/X/Y/Z를 Rerun의 x,y,z,w로 변환. 노랑, label은 원본 category 이름 또는 `GT`.
 - `world/prediction`: 예측 `Boxes3D`, 민트, label은 detection_name. jobId가 없으면 기록하지 않는다.
+- `world/labels` (export `ds2l-rrd-v2`, 2026-11-05): 박스 이름이 뭉쳐 읽기 어려워 이름표를 별도 `Points3D` 레이어로 정리한다. 박스 엔티티는 `show_labels=False`(이름은 데이터로 남아 선택 패널에 보임). ego 기준 30 m 안의 객체만, 같은 클래스 GT·예측이 1.5 m 안이면 하나로(흰색), 같은 클래스가 4 m 안이면 `class ×n`으로 묶고, 무리 윗면 0.6 m 위에 둔다. Viewer 엔티티 목록에서 이 레이어만 켜고 끌 수 있다. 응답 `entities`와 선택 매핑에는 포함하지 않는다(박스 인스턴스가 아니므로 선택 시 인스펙터 연결 없음). v1 recording은 재사용되지 않고 새로 만들어진다.
 - 박스가 없는 sample도 빈 batch를 기록해 이전 sample의 박스가 latest-at으로 남지 않게 한다.
 - instance 순서는 요청 배열 순서와 같다. Spring은 같은 순서로 `gtAnnotationIds`/`predictionIds`를 저장한다.
 
 ## 6. 저장소와 배포
 
 - Compose volume `rerun_recordings`: ai-server `/recordings` 쓰기, backend `/recordings` 읽기 전용. 기존 `postgres_data`, `model_cache`, `vespa_results`는 그대로다.
-- Spring 설정: `recording.root=${RECORDING_ROOT:/recordings}`, `recording.worker.enabled=${RECORDING_WORKER_ENABLED:true}`, `recording.read-timeout=${RECORDING_READ_TIMEOUT:660s}`, `recording.sdk-version=${RECORDING_SDK_VERSION:0.38.1}`, `recording.export-version=${RECORDING_EXPORT_VERSION:ds2l-rrd-v1}`, `recording.poll-delay-ms`(기본 1000).
+- Spring 설정: `recording.root=${RECORDING_ROOT:/recordings}`, `recording.worker.enabled=${RECORDING_WORKER_ENABLED:true}`, `recording.read-timeout=${RECORDING_READ_TIMEOUT:660s}`, `recording.sdk-version=${RECORDING_SDK_VERSION:0.38.1}`, `recording.export-version=${RECORDING_EXPORT_VERSION:ds2l-rrd-v2}`, `recording.poll-delay-ms`(기본 1000).
 - DB: `V5__scene_recording.sql`의 `scene_recording`. FAILED가 아닌 행은 `(dataset_id,scene_token,COALESCE(job_id,0),export_version)` partial unique index로 하나만 존재한다. job FK는 `(dataset_id,job_id)`.
 - 생성된 `.rrd`는 Git에 넣지 않는다(`*.rrd` ignore).
 

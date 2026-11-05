@@ -47,7 +47,7 @@ class RecordingTests {
     Path file=ROOT.resolve(path); Files.createDirectories(file.getParent()); Files.write(file,rrd);
     ObjectNode body=JSON.createObjectNode();
     body.put("recording_id",id).put("execution_token",token).put("relative_path",mode.equals("traversal")?"../escape.rrd":path).put("size_bytes",rrd.length)
-     .put("checksum",mode.equals("checksum")?"b".repeat(64):sha(rrd)).put("sdk_version",mode.equals("sdk")?"0.21.0":"0.38.1").put("export_version","ds2l-rrd-v1")
+     .put("checksum",mode.equals("checksum")?"b".repeat(64):sha(rrd)).put("sdk_version",mode.equals("sdk")?"0.21.0":"0.38.1").put("export_version","ds2l-rrd-v2")
      .put("application_id","drivescene2label").put("rerun_recording_id","ds2l-recording-"+id).put("timeline","sample").put("time_timeline","timestamp");
     body.putObject("entities").put("lidar","world/lidar").put("ego","world/ego").put("gt","world/gt").put("prediction","world/prediction");
     var samples=body.putArray("samples");
@@ -148,7 +148,7 @@ class RecordingTests {
   mvc.perform(get("/api/recordings/{id}",id)).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("PENDING")).andExpect(jsonPath("$.recordingId").value(id))
    .andExpect(jsonPath("$.datasetId").value(dataset)).andExpect(jsonPath("$.sceneId").value(scene)).andExpect(jsonPath("$.sceneToken").value("scene-token"))
    .andExpect(jsonPath("$.sceneName").value("scene-rec")).andExpect(jsonPath("$.jobId").value(job)).andExpect(jsonPath("$.sdkVersion").value("0.38.1"))
-   .andExpect(jsonPath("$.exportVersion").value("ds2l-rrd-v1")).andExpect(jsonPath("$.coordinateFrame").value("WORLD")).andExpect(jsonPath("$.samples.length()").value(0))
+   .andExpect(jsonPath("$.exportVersion").value("ds2l-rrd-v2")).andExpect(jsonPath("$.coordinateFrame").value("WORLD")).andExpect(jsonPath("$.samples.length()").value(0))
    .andExpect(jsonPath("$.contentUrl").isEmpty()).andExpect(jsonPath("$.entities").isEmpty());
   mvc.perform(get("/api/recordings/{id}/content",id)).andExpect(status().isConflict());
   work();

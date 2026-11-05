@@ -386,7 +386,7 @@ function recordingView(id: number, status: string, jobId: number | null, sceneId
   const smp = samplesOf(sc);
   const ready = status === 'READY';
   return {
-    recordingId: id, datasetId: DATASET.id, sceneId: sc.id, sceneToken: sc.token, sceneName: sc.name, jobId, status, sdkVersion: '0.38.1', exportVersion: 'ds2l-rrd-v1',
+    recordingId: id, datasetId: DATASET.id, sceneId: sc.id, sceneToken: sc.token, sceneName: sc.name, jobId, status, sdkVersion: '0.38.1', exportVersion: 'ds2l-rrd-v2',
     coordinateFrame: 'WORLD', applicationId: ready ? 'drivescene2label' : null, rerunRecordingId: ready ? `ds2l-recording-${id}` : null, timeline: ready ? 'sample' : null, timeTimeline: ready ? 'timestamp' : null,
     entities: ready ? { lidar: 'world/lidar', ego: 'world/ego', gt: 'world/gt', prediction: jobId != null ? 'world/prediction' : null } : null,
     samples: ready ? smp.map((s, i) => ({ index: i, sampleToken: s.token, timestampUs: s.timestampUs, lidarPoints: 1321, gtAnnotationIds: gtFor(s.id).map((g) => g.id), predictionIds: [] })) : [],

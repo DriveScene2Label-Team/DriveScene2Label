@@ -37,7 +37,7 @@ public class RecordingService {
  private final TransactionTemplate tx;
  private final String sdkVersion,exportVersion;
  public RecordingService(RecordingRepository repo,SystemStatusService readiness,GtAnnotationViewRepository gt,SceneRepository scenes,RecordingFiles files,ObjectMapper json,PlatformTransactionManager manager,
-   @Value("${recording.sdk-version:0.38.1}") String sdkVersion,@Value("${recording.export-version:ds2l-rrd-v1}") String exportVersion) {
+   @Value("${recording.sdk-version:0.38.1}") String sdkVersion,@Value("${recording.export-version:ds2l-rrd-v2}") String exportVersion) {
   this.repo=repo;this.readiness=readiness;this.gt=gt;this.scenes=scenes;this.files=files;this.json=json;this.tx=new TransactionTemplate(manager);this.sdkVersion=sdkVersion;this.exportVersion=exportVersion;
  }
  public Created create(long sceneId,Long jobId) {

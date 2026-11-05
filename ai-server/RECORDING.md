@@ -33,6 +33,7 @@ VESPA venv는 `--system-site-packages`지만 venv 패키지가 먼저 import됩�
 | `world/ego` | ego pose `Transform3D`(sample마다) + static 차량 상자(근사 Renault Zoe 4.08×1.74×1.56 m). lidar null sample은 직전 pose 유지 |
 | `world/gt` | `Boxes3D`. half_sizes=[L/2,W/2,H/2] (size_wlh=[W,L,H]), quaternion W,X,Y,Z→x,y,z,w, 노랑 #FFCC4D, label=category_name 또는 `GT` |
 | `world/prediction` | `Boxes3D`, 민트 #4FE0D5, label=detection_name. `job_id`가 없으면 기록하지 않고 응답 `entities.prediction=null` |
+| `world/labels` (v2) | 이름표 전용 `Points3D`(labels, show_labels). GT·예측 `Boxes3D`는 `show_labels=False`로 기록하고 이름은 데이터로만 남긴다(선택·hover용). ego 기준 30 m 안만, 같은 클래스의 GT·예측이 1.5 m 안이면 이름표 하나(흰색), 같은 클래스가 4 m 안에 모이면 `pedestrian ×3`처럼 한 번, 무리의 가장 높은 박스 윗면 0.6 m 위. GT는 8class 비교 분류(미매핑은 category 그대로). lidar가 없는 sample은 ego 위치를 몰라 이름표를 쓰지 않는다. 응답 entities에는 넣지 않는다 |
 
 - timeline: `sample`(sequence=index), `timestamp`(`timestamp_us` 마이크로초 정밀 timestamp). `log_time`은 끕니다.
 - 박스가 0개인 sample도 모든 component를 빈 batch로 기록해 latest-at으로 이전 박스가 남지 않습니다.

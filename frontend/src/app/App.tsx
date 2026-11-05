@@ -1,5 +1,5 @@
 import { QueryClientProvider } from '@tanstack/react-query';
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router';
 import { IconSprite } from '@/components/Icon';
 import { ThemeSync } from '@/components/ThemeSync';
@@ -24,11 +24,10 @@ const router = createBrowserRouter([
 ]);
 
 export function App() {
-  const [client] = useState(() => {
-    const qc = createQueryClient();
-    bindQueryClient(qc);
-    return qc;
-  });
+  const [client] = useState(createQueryClient);
+  // Bind after commit: in development StrictMode runs state initializers twice and keeps only one result, so binding
+  // inside the initializer could point submissions (job/recording POST follow-ups) at a discarded QueryClient.
+  useEffect(() => bindQueryClient(client), [client]);
   return (
     <QueryClientProvider client={client}>
       <IconSprite />
