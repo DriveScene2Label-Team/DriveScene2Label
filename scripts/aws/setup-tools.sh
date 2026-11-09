@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # GitHub's Ubuntu runner only. CloudShell already includes aws/kubectl/helm.
 set -euo pipefail
-python3 -m pip install -r scripts/aws/requirements.txt
+python3 -m venv "$RUNNER_TEMP/ds2l-aws"
+"$RUNNER_TEMP/ds2l-aws/bin/pip" install -r scripts/aws/requirements.txt
+echo "$RUNNER_TEMP/ds2l-aws/bin" >> "$GITHUB_PATH"
 if ! command -v session-manager-plugin >/dev/null; then
   curl --fail --silent --show-error --location https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64bit/session-manager-plugin.deb --output /tmp/ds2l-session-manager.deb
   sudo dpkg -i /tmp/ds2l-session-manager.deb
