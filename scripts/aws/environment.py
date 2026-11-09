@@ -102,6 +102,8 @@ class Environment:
         if current and current["StackStatus"] not in ["CREATE_COMPLETE", "UPDATE_COMPLETE", "UPDATE_ROLLBACK_COMPLETE"]:
             raise RuntimeError(f"{component}: {current['StackStatus']}; resolve the stack failure before retrying.")
         try:
+            if not current:
+                request["EnableTerminationProtection"] = component == "foundation"
             (client.update_stack if current else client.create_stack)(**request)
         except ClientError as error:
             if "No updates are to be performed" in error.response["Error"]["Message"]:
@@ -366,6 +368,22 @@ class Environment:
         with self.tunnel(f"ai.{self.project}.internal", 8000) as port:
             wait_until("GPU model readiness", lambda: self.http_ready(f"http://127.0.0.1:{port}/health"), timeout=3600, interval=15)
 
+    def deploy_application_stack(self, image, workers=None):
+        if workers is None:
+            current = self.stack("app")
+            parameters = {item["ParameterKey"]: item["ParameterValue"] for item in current.get("Parameters", [])} if current else {}
+            # Legacy deployments did not have this parameter. Fail safe when GPU is off.
+            workers = parameters.get("WorkerEnabled", "true" if self.stack("gpu") else "false") == "true"
+        self.deploy_stack("app", {**self.foundation, **self.outputs("database"), "AppImage": image,
+                                  "WorkerEnabled": "true" if workers else "false"})
+
+    def set_workers(self, enabled):
+        current = self.stack("app")
+        if not current:
+            raise RuntimeError("Application must be running before changing its worker state.")
+        image = next(item["ParameterValue"] for item in current["Parameters"] if item["ParameterKey"] == "AppImage")
+        self.deploy_application_stack(image, workers=enabled)
+
     def start(self, with_gpu=True):
         images, _ = self.read_control("images")
         if not images.get("app") or (with_gpu and not images.get("ai")):
@@ -398,7 +416,7 @@ class Environment:
         self.initialize_database()
         if with_gpu:
             self.gpu_start(images["ai"])
-        self.deploy_stack("app", {**self.foundation, **self.outputs("database"), "AppImage": images["app"]})
+        self.deploy_application_stack(images["app"], workers=with_gpu)
         self.install_application(images["app"])
         self.resume()
         state, etag = self.read_control("state")
@@ -442,7 +460,7 @@ class Environment:
         self.drain()
         try:
             if component == "app":
-                self.deploy_stack("app", {**self.foundation, **self.outputs("database"), "AppImage": image})
+                self.deploy_application_stack(image)
                 self.install_application(image)
             else:
                 self.gpu_start(image)
@@ -450,7 +468,7 @@ class Environment:
             if previous:
                 log("Deployment failed; restoring the previous image while writes remain blocked.")
                 if component == "app":
-                    self.deploy_stack("app", {**self.foundation, **self.outputs("database"), "AppImage": previous})
+                    self.deploy_application_stack(previous)
                     self.install_application(previous)
                 else:
                     self.gpu_start(previous)
@@ -511,9 +529,13 @@ def main():
                 images, _ = environment.read_control("images")
                 if not images.get("ai") or not environment.stack("app"):
                     raise RuntimeError("Start the application and publish the GPU image first.")
+                environment.drain()
                 environment.gpu_start(images["ai"])
+                environment.set_workers(True)
+                environment.resume()
             elif args.action == "gpu-stop":
                 environment.drain()
+                environment.set_workers(False)
                 environment.delete_stack("gpu")
                 environment.resume()
 

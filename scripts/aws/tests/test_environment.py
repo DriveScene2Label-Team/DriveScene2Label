@@ -97,6 +97,16 @@ class LifecycleSafetyTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Persistent foundation"):
             self.environment.delete_stack("foundation")
 
+    def test_cpu_start_and_gpu_stop_keep_pending_jobs_unclaimed(self):
+        self.environment.stack = Mock(return_value={"Parameters": [{"ParameterKey": "AppImage", "ParameterValue": "current-image"}]})
+        self.environment.outputs = Mock(return_value={"DatabaseHost": "private-database"})
+        self.environment.deploy_stack = Mock()
+        self.environment.set_workers(False)
+        component, parameters = self.environment.deploy_stack.call_args.args
+        self.assertEqual(component, "app")
+        self.assertEqual(parameters["AppImage"], "current-image")
+        self.assertEqual(parameters["WorkerEnabled"], "false")
+
     def test_snapshot_source_and_encryption_are_required(self):
         environment = Environment.__new__(Environment)
         environment.project = "ds2l"
@@ -137,7 +147,8 @@ class InfrastructureContractTests(unittest.TestCase):
         self.assertNotIn("DB_PASSWORD", env)
         ecs = BUILDERS["app"]()["Resources"]["Task"]["Properties"]["ContainerDefinitions"][0]
         ecs_env = {item["Name"]: item["Value"] for item in ecs["Environment"]}
-        self.assertEqual(ecs_env["AUTO_LABEL_WORKER_ENABLED"], "true")
+        self.assertEqual(ecs_env["AUTO_LABEL_WORKER_ENABLED"], {"Ref": "WorkerEnabled"})
+        self.assertEqual(BUILDERS["app"]()["Parameters"]["WorkerEnabled"]["Default"], "false")
         self.assertEqual(ecs_env["RECORDING_WORKER_ENABLED"], "false")
 
 

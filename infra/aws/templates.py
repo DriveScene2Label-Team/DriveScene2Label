@@ -398,8 +398,9 @@ def gpu():
 
 def app():
     body = template("Private Fargate application; shares data with EKS and is the only automatic-label worker.",
-        parameters("Cluster", "PublicA", "PublicB", "AppSecurityGroup", "AppDiscovery", "AppImage",
-                   "AppRole", "ExecutionRole", "AppSecret", "OperationsSecret", "AppLogs", "DataBucket", "DatabaseHost"))
+        {**parameters("Cluster", "PublicA", "PublicB", "AppSecurityGroup", "AppDiscovery", "AppImage",
+                   "AppRole", "ExecutionRole", "AppSecret", "OperationsSecret", "AppLogs", "DataBucket", "DatabaseHost"),
+         "WorkerEnabled": {"Type": "String", "Default": "false", "AllowedValues": ["true", "false"]}})
     body["Resources"]["Task"] = resource("ECS::TaskDefinition", {
         "Family": name("app"), "NetworkMode": "awsvpc", "RequiresCompatibilities": ["FARGATE"], "Cpu": "1024", "Memory": "2048",
         "RuntimePlatform": {"CpuArchitecture": "X86_64", "OperatingSystemFamily": "LINUX"},
@@ -411,7 +412,7 @@ def app():
                 "DB_URL": join("jdbc:postgresql://", ref("DatabaseHost"), ":5432/drivescene?sslmode=verify-full&sslrootcert=/app/rds-ca.pem"),
                 "AWS_REGION": ref("AWS::Region"), "UPLOAD_S3_BUCKET": ref("DataBucket"), "UPLOAD_ROOT": "/uploads",
                 "AI_SERVER_BASE_URL": join("http://ai.", ref("Project"), ".internal:8000"),
-                "AUTO_LABEL_WORKER_ENABLED": "true", "RECORDING_WORKER_ENABLED": "false", "NUSCENES_IMPORT_ENABLED": "false"}.items()],
+                "AUTO_LABEL_WORKER_ENABLED": ref("WorkerEnabled"), "RECORDING_WORKER_ENABLED": "false", "NUSCENES_IMPORT_ENABLED": "false"}.items()],
             "Secrets": [{"Name": key, "ValueFrom": join(ref(secret), ":", field, "::")} for key, secret, field in [
                 ("DB_USERNAME", "AppSecret", "username"), ("DB_PASSWORD", "AppSecret", "password"), ("OPERATIONS_TOKEN", "OperationsSecret", "token")]],
             "HealthCheck": {"Command": ["CMD-SHELL", "curl --fail --silent http://127.0.0.1:8080/ >/dev/null"],
