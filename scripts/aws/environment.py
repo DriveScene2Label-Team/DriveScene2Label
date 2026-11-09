@@ -298,6 +298,15 @@ class Environment:
             run(["kubectl", "apply", "-f", "-"], input=json.dumps(resource))
         run(["kubectl", "-n", "drivescene", "rollout", "status", "deployment/backend", "--timeout=600s"])
 
+    def verify_application_image(self, expected):
+        service = self.clients["ecs"].describe_services(cluster=self.foundation["Cluster"], services=[self.project + "-app"])["services"][0]
+        task = self.clients["ecs"].describe_task_definition(taskDefinition=service["taskDefinition"])["taskDefinition"]
+        ecs_image = next(item["image"] for item in task["containerDefinitions"] if item["name"] == "app")
+        deployment = json.loads(run(["kubectl", "-n", "drivescene", "get", "deployment", "backend", "-o", "json"], capture_output=True).stdout)
+        eks_image = next(item["image"] for item in deployment["spec"]["template"]["spec"]["containers"] if item["name"] == "app")
+        if ecs_image != expected or eks_image != expected:
+            raise RuntimeError("ECS and EKS do not both reference the expected image digest; keeping writes blocked.")
+
     @contextmanager
     def app_connections(self):
         with ExitStack() as context:
@@ -418,6 +427,7 @@ class Environment:
             self.gpu_start(images["ai"])
         self.deploy_application_stack(images["app"], workers=with_gpu)
         self.install_application(images["app"])
+        self.verify_application_image(images["app"])
         self.resume()
         state, etag = self.read_control("state")
         state.update(phase="running", app_image=images["app"], ai_image=images.get("ai") if with_gpu else None)
@@ -462,6 +472,7 @@ class Environment:
             if component == "app":
                 self.deploy_application_stack(image)
                 self.install_application(image)
+                self.verify_application_image(image)
             else:
                 self.gpu_start(image)
         except Exception:
@@ -470,6 +481,7 @@ class Environment:
                 if component == "app":
                     self.deploy_application_stack(previous)
                     self.install_application(previous)
+                    self.verify_application_image(previous)
                 else:
                     self.gpu_start(previous)
                 images[component] = previous

@@ -7,13 +7,16 @@ COPY frontend/ ./
 RUN npm run build
 
 # Integration tests run in CI against a separate PostgreSQL database.
-FROM eclipse-temurin:21-jdk-jammy AS build
+# Keep this Gradle version aligned with gradle-wrapper.properties. The official
+# image avoids downloading the distribution again through the redirect service.
+FROM gradle:9.7.1-jdk21@sha256:3695cd3c4b617ccb7b351ff1481c0f141c5e87a89872dc8ca1e5a8eeac6a85e3 AS build
+USER root
 WORKDIR /workspace
 COPY gradlew build.gradle settings.gradle ./
 COPY gradle/ gradle/
 COPY src/main/ src/main/
 COPY --from=frontend /frontend/dist/ src/main/resources/static/
-RUN bash gradlew --no-daemon bootJar
+RUN gradle --no-daemon bootJar
 
 FROM eclipse-temurin:21-jre-jammy AS runtime
 WORKDIR /app

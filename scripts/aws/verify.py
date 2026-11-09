@@ -20,6 +20,8 @@ def verify(restore_only=False):
     with environment.lock("verify"), environment.app_connections() as urls:
         if len(urls) != 2:
             raise RuntimeError("Both ECS and EKS applications must be running for validation.")
+        images, _ = environment.read_control("images")
+        environment.verify_application_image(images["app"])
         if restore_only:
             evidence, _ = environment.read_control("verification")
         else:

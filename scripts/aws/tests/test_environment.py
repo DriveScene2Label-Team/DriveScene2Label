@@ -107,6 +107,18 @@ class LifecycleSafetyTests(unittest.TestCase):
         self.assertEqual(parameters["AppImage"], "current-image")
         self.assertEqual(parameters["WorkerEnabled"], "false")
 
+    @patch("environment.run")
+    def test_mismatched_eks_image_is_rejected(self, run):
+        import json
+        self.environment.foundation["Cluster"] = "ds2l-ecs"
+        ecs = Mock()
+        self.environment.clients["ecs"] = ecs
+        ecs.describe_services.return_value = {"services": [{"taskDefinition": "task-arn"}]}
+        ecs.describe_task_definition.return_value = {"taskDefinition": {"containerDefinitions": [{"name": "app", "image": "expected@digest"}]}}
+        run.return_value.stdout = json.dumps({"spec": {"template": {"spec": {"containers": [{"name": "app", "image": "other@digest"}]}}}})
+        with self.assertRaisesRegex(RuntimeError, "expected image digest"):
+            self.environment.verify_application_image("expected@digest")
+
     def test_snapshot_source_and_encryption_are_required(self):
         environment = Environment.__new__(Environment)
         environment.project = "ds2l"

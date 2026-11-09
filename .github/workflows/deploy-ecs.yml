@@ -19,14 +19,16 @@ jobs:
   checks:
     uses: ./.github/workflows/ci.yml
 
-  deploy:
+  images:
     needs: checks
     if: github.ref == 'refs/heads/release-version' && vars.AWS_DEPLOY_ENABLED == 'true'
     runs-on: ${{ inputs.component == 'ai' && vars.AI_BUILD_RUNNER || 'ubuntu-24.04' }}
     timeout-minutes: 240
     environment: production
+    outputs:
+      image: ${{ steps.image.outputs.uri }}
     concurrency:
-      group: ds2l-production-mutations
+      group: ds2l-image-build-${{ inputs.component || 'app' }}
       cancel-in-progress: false
     permissions:
       contents: read
@@ -53,8 +55,6 @@ jobs:
           role-session-name: github-${{ github.run_id }}
           role-duration-seconds: 14400
           allowed-account-ids: '189750306426'
-      - name: Lifecycle tooling
-        run: bash scripts/aws/setup-tools.sh
       - name: Publish immutable image
         id: image
         run: |
@@ -69,9 +69,37 @@ jobs:
           digest=$(aws ecr describe-images --repository-name "$repository" --image-ids imageTag="$tag" --query 'imageDetails[0].imageDigest' --output text)
           [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]]
           echo "uri=$repository_uri@$digest" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    needs: images
+    if: github.ref == 'refs/heads/release-version' && vars.AWS_DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    environment: production
+    concurrency:
+      group: ds2l-production-mutations
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      COMPONENT: ${{ inputs.component || 'app' }}
+      AWS_REGION: ap-northeast-2
+      DS2L_PROJECT: ds2l
+      IMAGE: ${{ needs.images.outputs.image }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ap-northeast-2
+          role-duration-seconds: 14400
+          allowed-account-ids: '189750306426'
+      - name: Lifecycle tooling
+        run: bash scripts/aws/setup-tools.sh
       - name: Record image and update only running environments
-        env:
-          IMAGE: ${{ steps.image.outputs.uri }}
         run: |
           python3 scripts/aws/environment.py publish --component "$COMPONENT" --image "$IMAGE"
           echo "Image published: $IMAGE" >> "$GITHUB_STEP_SUMMARY"
