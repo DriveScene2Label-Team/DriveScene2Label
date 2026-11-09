@@ -77,7 +77,7 @@ push는 테스트·Docker 빌드·ECR 업로드 후 **이미 실행 중인** 환
 
 스냅샷 생성·검증·S3 기록 중 하나라도 실패하면 DB 삭제를 호출하지 않는다. 실패 시 쓰기가 차단된 상태가 유지될 수 있으므로 원인을 해결한 뒤 start/stop을 다시 실행한다. `foundation` 삭제는 lifecycle 도구가 거부한다. DB CloudFormation 리소스도 `Retain`이므로 실수로 스택만 지워도 DB가 자동 삭제되지 않는다.
 
-GitHub 배포와 lifecycle은 같은 concurrency group을 쓰며 S3 조건부 쓰기 lock도 공유한다. 실행이 강제로 중단되면 lock이 남을 수 있다. 자동으로 만료시키지 않는다. 기존 실행이 종료됐고 스냅샷·스택 상태를 검토한 관리자가 `control/lock.json`의 현재 버전을 보존한 채 조건부 갱신으로 `{"owner":null}`로 복구해야 한다. 실행 중인 작업의 lock을 해제하지 않는다.
+GitHub 배포와 lifecycle은 같은 concurrency group과 `queue: max`를 써서 대기 중인 수동 작업이 새 push로 취소되지 않게 하며, S3 조건부 쓰기 lock도 공유한다. 실행이 강제로 중단되면 lock이 남을 수 있다. 자동으로 만료시키지 않는다. 기존 실행이 종료됐고 스냅샷·스택 상태를 검토한 관리자가 `control/lock.json`의 현재 버전을 보존한 채 조건부 갱신으로 `{"owner":null}`로 복구해야 한다. 실행 중인 작업의 lock을 해제하지 않는다.
 
 ## 내 PC에서 접속
 

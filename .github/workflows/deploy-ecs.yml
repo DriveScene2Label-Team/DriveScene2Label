@@ -78,6 +78,7 @@ jobs:
     environment: production
     concurrency:
       group: ds2l-production-mutations
+      queue: max
       cancel-in-progress: false
     permissions:
       contents: read
