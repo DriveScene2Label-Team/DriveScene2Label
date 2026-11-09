@@ -59,6 +59,7 @@ GitHub Actions → **AWS environment** → Run workflow → `release-version`:
 | stop | 쓰기 차단, 실행 작업 종료 대기, 스냅샷 확인, 런타임 전체 제거 |
 | gpu-start | 공유 GPU만 생성하고 CLIP 로딩 확인 |
 | gpu-stop | 작업 종료 대기 후 GPU 제거, 앱 쓰기 재허용 |
+| verify | 두 환경에서 실제 브라우저 업로드·수정·저장·다운로드 검사. restore_check=true면 이전 검사 문서의 복구 여부만 확인 |
 
 GPU 승인 전에는 `start`에서 `gpu=false`를 선택해 업로드·수정·저장·다운로드를 검증할 수 있다. 자동 라벨과 임베딩은 GPU가 준비된 뒤 검증한다. `/health`는 CLIP 로딩 상태다. VESPA 실제 추론 성공 여부는 유효한 업로드 데이터셋으로 작업을 실행해 별도 확인해야 한다.
 

@@ -7,12 +7,16 @@ on:
         description: Environment action (Seoul)
         required: true
         type: choice
-        options: [status, start, stop, gpu-start, gpu-stop]
+        options: [status, start, stop, gpu-start, gpu-stop, verify]
         default: status
       gpu:
         description: Include GPU when starting (requires approved 8 vCPU quota and a published AI image)
         type: boolean
         default: true
+      restore_check:
+        description: For verify, check previously saved test documents after stop/start (no new upload)
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -35,6 +39,7 @@ jobs:
       DS2L_PROJECT: ds2l
       ACTION: ${{ inputs.action }}
       GPU: ${{ inputs.gpu }}
+      RESTORE_CHECK: ${{ inputs.restore_check }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -48,11 +53,30 @@ jobs:
       - name: Lifecycle tooling
         run: bash scripts/aws/setup-tools.sh
       - name: Run requested action
+        if: inputs.action != 'verify'
         run: |
           set -euo pipefail
           options=()
           if [[ "$ACTION" == start && "$GPU" != true ]]; then options+=(--without-gpu); fi
           python3 scripts/aws/environment.py "$ACTION" "${options[@]}"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        if: inputs.action == 'verify' && !inputs.restore_check
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Browser verification dependencies
+        if: inputs.action == 'verify' && !inputs.restore_check
+        working-directory: frontend
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Verify both deployments and saved data
+        if: inputs.action == 'verify'
+        run: |
+          options=()
+          if [[ "$RESTORE_CHECK" == true ]]; then options+=(--restore-only); fi
+          python3 scripts/aws/verify.py "${options[@]}"
       - name: Resource status after action
         if: always()
         run: python3 scripts/aws/environment.py status

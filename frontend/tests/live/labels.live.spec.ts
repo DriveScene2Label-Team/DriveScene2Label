@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 
 test('실제 서버에 업로드하고 UI 수정본을 저장·재조회·다운로드한다', async ({ page, request }) => {
   test.skip(process.env.DS2L_LIVE_ALLOW_LABEL_UPLOAD !== '1', 'Dedicated test DB and explicit upload opt-in required');
@@ -33,5 +33,6 @@ test('실제 서버에 업로드하고 UI 수정본을 저장·재조회·다운
   expect(saved.results.empty).toEqual([]);
   const untouched = await request.get('/api/label-documents/' + id + '/original');
   expect(await untouched.text()).toBe(original);
+  if (process.env.DS2L_LABEL_RECORD) await writeFile(process.env.DS2L_LABEL_RECORD, JSON.stringify({ id, original, saved }));
   if (process.env.DS2L_LABEL_SCREENSHOT) await page.screenshot({ path: process.env.DS2L_LABEL_SCREENSHOT, fullPage: true });
 });
