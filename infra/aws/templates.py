@@ -214,6 +214,10 @@ def foundation():
         statement(["iam:GetInstanceProfile"], att("GpuProfile")),
         statement(["iam:GetRole"], [arn("iam", f"role/aws-service-role/{service}/*", region="")
                   for service in ["eks.amazonaws.com", "eks-nodegroup.amazonaws.com", "ecs.amazonaws.com", "rds.amazonaws.com", "autoscaling.amazonaws.com"]]),
+        # IAM resolves a role that does not exist yet without its eventual service-linked path.
+        statement(["iam:GetRole"], [arn("iam", "role/" + role_name, region="") for role_name in [
+            "AWSServiceRoleForAmazonEKS", "AWSServiceRoleForAmazonEKSNodegroup", "AWSServiceRoleForECS",
+            "AWSServiceRoleForRDS", "AWSServiceRoleForAutoScaling"]]),
         statement(["iam:CreateServiceLinkedRole"], "*",
                   Condition={"StringEquals": {"iam:AWSServiceName": ["eks.amazonaws.com", "eks-nodegroup.amazonaws.com", "ecs.amazonaws.com", "rds.amazonaws.com", "autoscaling.amazonaws.com"]}}),
         statement(["secretsmanager:GetSecretValue"], ref("AdminSecret")),
