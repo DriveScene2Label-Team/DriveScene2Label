@@ -376,7 +376,7 @@ flowchart LR
 |start|DB 생성/복원 → EKS·GPU·ECS 구성 → 앱 준비 확인. GPU 승인 전에는 `gpu=false`로 CPU 환경만 검증|
 |stop|쓰기 차단 → 작업 종료 대기 → 스냅샷·S3 복구 기록 검증 → 실행 리소스 제거|
 |gpu-start / gpu-stop|공유 GPU와 ECS worker만 켜거나 끄기|
-|verify|두 환경에서 브라우저 업로드·버튼 편집·저장·다운로드 검사. stop/start 후 `restore_check=true`로 이전 문서·이력·다운로드 일치 확인|
+|verify|두 환경에서 브라우저 라벨 업로드·버튼 편집·저장·다운로드와 ZIP 업로드/API 다운로드 검사. stop/start 후 `restore_check=true`로 이전 문서·이력·ZIP SHA-256 일치 확인|
 
 원본 파일·수정 라벨·스냅샷·이미지를 **최소 한 달 보관하고, 한 달 이후에도 자동 삭제하지 않습니다.** 서버를 꺼도 S3·ECR·스냅샷·Secrets Manager·DNS 등의 보관 비용은 남습니다. CloudWatch 진단 로그만 30일 보관합니다. RDS는 단순 정지 시 7일 후 자동 시작되므로 장기 미사용에는 스냅샷 보존 후 인스턴스를 제거합니다. EKS도 제어 영역 요금을 줄이기 위해 클러스터 자체를 제거합니다. 다시 켜려면 재생성·복원·모델 로딩 시간이 필요합니다. [운영 명령·접속 방법·장애 복구](docs/aws-ecs-cicd.md).
 

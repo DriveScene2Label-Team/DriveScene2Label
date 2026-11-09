@@ -61,7 +61,7 @@ GitHub Actions → **AWS environment** → Run workflow → `release-version`:
 | stop | 쓰기 차단, 실행 작업 종료 대기, 스냅샷 확인, 런타임 전체 제거 |
 | gpu-start | 공유 GPU만 생성하고 CLIP 로딩 확인 |
 | gpu-stop | 작업 종료 대기 후 GPU 제거, 앱 쓰기 재허용 |
-| verify | 두 환경에서 실제 브라우저 업로드·수정·저장·다운로드 검사. restore_check=true면 이전 검사 문서의 복구 여부만 확인 |
+| verify | 두 환경에서 실제 브라우저 라벨 업로드·수정·저장·다운로드 및 ZIP 업로드/API 다운로드 검사. restore_check=true면 이전 문서와 ZIP의 복구 여부만 확인 |
 
 GPU 승인 전에는 `start`에서 `gpu=false`를 선택해 업로드·수정·저장·다운로드를 검증할 수 있다. 자동 라벨과 임베딩은 GPU가 준비된 뒤 검증한다. `/health`는 CLIP 로딩 상태다. VESPA 실제 추론 성공 여부는 유효한 업로드 데이터셋으로 작업을 실행해 별도 확인해야 한다.
 
@@ -112,6 +112,8 @@ bash gradlew test
 ```
 
 CI는 백엔드, 프런트엔드, 업로드/라벨 브라우저 흐름, AI 업로드 계약, Docker 빌드 및 종료 안전장치를 검사한다. 실제 AWS 확인은 ECS와 EKS 양쪽에서 업로드 → 수정 → 수정본 저장 → 다운로드, stop/start 후 동일 원본·수정 이력 유지, off 상태 push 후 리소스 미생성을 검증한다.
+
+`verify`는 저장소의 테스트 metadata와 합성 미디어로 작은 nuScenes ZIP을 만들고 양쪽 앱에 올린다. 다운로드 SHA-256과 라벨 원문·revision을 S3 `control/verification.json`에 기록해 재생성 뒤 대조한다. 이 합성 ZIP은 저장·복구 검사용이며 GPU 추론 검사용 데이터가 아니다. 검사 문서는 실제 DB에 남는다.
 
 업로드 지원은 라벨 JSON과 유효한 nuScenes ZIP이다. 임의 이미지·MP4를 nuScenes로 변환하는 기능은 포함하지 않는다. 업로드 ZIP 최대 512 MiB, 압축 해제 최대 4 GiB이며 필요한 메타데이터와 참조 미디어를 포함해야 한다. 현재 업로드 데이터셋의 자동 CLIP 인덱싱과 Rerun 생성은 별도 후속 작업이다. 라벨 JSON 업로드·UI 수정·수정본 저장/다운로드에는 GPU가 필요 없다. 자세한 JSON 형식은 [라벨 편집 문서](label-editing.md)를 참조한다.
 
