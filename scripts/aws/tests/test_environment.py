@@ -189,6 +189,8 @@ class InfrastructureContractTests(unittest.TestCase):
         self.assertEqual(settings["OAUTH2_PROXY_INSECURE_OIDC_SKIP_NONCE"], "false")
         self.assertEqual(settings["OAUTH2_PROXY_CODE_CHALLENGE_METHOD"], "S256")
         self.assertEqual(settings["OAUTH2_PROXY_COOKIE_SECURE"], "true")
+        self.assertEqual(settings["OAUTH2_PROXY_UPSTREAM_TIMEOUT"], "600s")
+        self.assertNotIn("OAUTH2_PROXY_PROXY_TIMEOUT", settings)
         self.assertNotIn("OAUTH2_PROXY_SKIP_AUTH_ROUTES", settings)
         self.assertNotIn("OAUTH2_PROXY_CLIENT_SECRET", settings)
         self.assertNotIn("OAUTH2_PROXY_COOKIE_SECRET", settings)

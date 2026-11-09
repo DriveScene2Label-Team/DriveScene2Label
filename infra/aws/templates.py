@@ -527,7 +527,7 @@ def web():
                 "OAUTH2_PROXY_COOKIE_HTTPONLY": "true", "OAUTH2_PROXY_COOKIE_SAMESITE": "lax",
                 "OAUTH2_PROXY_COOKIE_EXPIRE": "8h", "OAUTH2_PROXY_COOKIE_REFRESH": "30m",
                 "OAUTH2_PROXY_PASS_ACCESS_TOKEN": "false", "OAUTH2_PROXY_PASS_BASIC_AUTH": "false",
-                "OAUTH2_PROXY_PROXY_TIMEOUT": "600s", "OAUTH2_PROXY_REQUEST_LOGGING": "false"}.items()],
+                "OAUTH2_PROXY_UPSTREAM_TIMEOUT": "600s", "OAUTH2_PROXY_REQUEST_LOGGING": "false"}.items()],
             "Secrets": [{"Name": key, "ValueFrom": join(ref("WebSecret"), ":", field, "::")} for key, field in [
                 ("OAUTH2_PROXY_CLIENT_SECRET", "client_secret"), ("OAUTH2_PROXY_COOKIE_SECRET", "cookie_secret")]]}},
         "Every application request requires a signed login session and team membership; /ping exposes no application data.")

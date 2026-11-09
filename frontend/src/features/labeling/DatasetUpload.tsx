@@ -1,23 +1,65 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { toApiError } from '@/api/http';
+
+type UploadedDataset = { datasetId: number; sceneCount: number };
+type Transfer = { loaded: number; total: number; bytesPerSecond: number };
+
+function uploadDataset(file: File, progress: (value: Transfer) => void, transferred: () => void): Promise<UploadedDataset> {
+  return new Promise((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    const started = Date.now();
+    request.open('POST', '/api/dataset-uploads');
+    request.setRequestHeader('Accept', 'application/json');
+    request.upload.onprogress = (event) => {
+      if (event.lengthComputable && event.total > 0) progress({ loaded: event.loaded, total: event.total,
+        bytesPerSecond: event.loaded / Math.max((Date.now() - started) / 1000, 1) });
+    };
+    request.upload.onload = transferred;
+    request.onerror = () => reject(new Error('업로드 연결이 끊겼습니다. 씬 목록에서 등록 여부를 확인한 뒤 다시 시도해 주세요.'));
+    request.onabort = () => reject(new Error('업로드가 중단되었습니다.'));
+    request.onload = () => {
+      if (request.status >= 200 && request.status < 300) {
+        try { resolve(JSON.parse(request.responseText) as UploadedDataset); }
+        catch { reject(new Error('서버의 업로드 응답을 읽을 수 없습니다. 씬 목록에서 등록 여부를 확인해 주세요.')); }
+      } else if (request.status === 502 || request.status === 504) {
+        reject(new Error(`서버 응답을 기다리던 연결이 끊겼습니다 (HTTP ${request.status}). 씬 목록에서 등록 여부를 확인해 주세요.`));
+      } else {
+        void toApiError(new Response(request.responseText, { status: request.status }), '/api/dataset-uploads').then(reject, reject);
+      }
+    };
+    const body = new FormData(); body.append('file', file);
+    request.send(body);
+  });
+}
 
 export function DatasetUpload({ disabled }: { disabled: boolean }) {
   const client = useQueryClient();
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [dataset, setDataset] = useState<{ datasetId: number; sceneCount: number } | null>(null);
+  const [dataset, setDataset] = useState<UploadedDataset | null>(null);
+  const [phase, setPhase] = useState<'transfer' | 'processing'>('transfer');
+  const [transfer, setTransfer] = useState<Transfer | null>(null);
+  const [phaseStarted, setPhaseStarted] = useState(0);
+  const [elapsed, setElapsed] = useState(0);
+  useEffect(() => {
+    if (!busy) return;
+    setElapsed(0);
+    const timer = window.setInterval(() => setElapsed(Math.floor((Date.now() - phaseStarted) / 1000)), 1000);
+    const keepPage = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ''; };
+    window.addEventListener('beforeunload', keepPage);
+    return () => { window.clearInterval(timer); window.removeEventListener('beforeunload', keepPage); };
+  }, [busy, phaseStarted]);
   const upload = async () => {
     if (!file) return;
+    if (!file.name.toLowerCase().endsWith('.zip')) { setError('ZIP 파일을 선택해 주세요. .tgz는 압축을 푼 뒤 ZIP으로 다시 압축해야 합니다.'); return; }
     if (file.size > 5_000_000_000) { setError('5GB 이하의 nuScenes ZIP을 선택해 주세요.'); return; }
     setBusy(true); setError(''); setDataset(null);
+    setPhase('transfer'); setTransfer(null); setPhaseStarted(Date.now());
     try {
-      const body = new FormData(); body.append('file', file);
-      const response = await fetch('/api/dataset-uploads', { method: 'POST', body });
-      if (!response.ok) throw await toApiError(response, '/api/dataset-uploads');
-      setDataset(await response.json() as { datasetId: number; sceneCount: number });
+      setDataset(await uploadDataset(file, setTransfer, () => { setPhase('processing'); setPhaseStarted(Date.now()); }));
       void client.invalidateQueries({ queryKey: ['datasets'] });
     } catch (e) { setError(e instanceof Error ? e.message : '데이터셋 업로드에 실패했습니다.'); }
     finally { setBusy(false); }
@@ -26,9 +68,18 @@ export function DatasetUpload({ disabled }: { disabled: boolean }) {
     <h2>원본 데이터 업로드</h2>
     <p className="note">nuScenes ZIP · 최대 5GB, 압축 해제 후 8GiB. 최상위에 v1.0-mini 또는 v1.0-trainval 메타데이터와 해당 samples/sweeps 파일이 필요합니다.</p>
     <p className="note">라벨 JSON은 없어도 됩니다. 원본 ZIP을 올리고 씬을 열어 자동 라벨링을 실행하세요.</p>
+    <p className="note">.tgz 원본은 압축을 푼 뒤 위 폴더들을 ZIP으로 묶어 주세요. 파일 확장자만 바꾸면 업로드할 수 없습니다.</p>
     <p className="note">일반 JPG·MP4만으로는 3D 자동 라벨링을 할 수 없습니다. 카메라 보정·센서·위치 정보가 필요합니다.</p>
     <input aria-label="원본 데이터 ZIP" type="file" accept=".zip,application/zip" disabled={disabled || busy} onChange={(e) => { setFile(e.currentTarget.files?.[0] ?? null); setError(''); }} />
-    <button className="btn btn--weak" disabled={!file || disabled || busy} onClick={() => void upload()}>{busy ? '업로드·검증 중…' : '데이터셋 업로드'}</button>
+    <button className="btn btn--weak" disabled={!file || disabled || busy} onClick={() => void upload()}>{busy ? (phase === 'transfer' ? '파일 전송 중…' : '서버 검증 중…') : '데이터셋 업로드'}</button>
+    {busy && <div role="status">
+      {phase === 'transfer' ? <>
+        <progress aria-label="파일 전송 진행률" max={100} value={transfer ? Math.floor(transfer.loaded / transfer.total * 100) : 0} />
+        <p>파일 전송 {transfer ? Math.floor(transfer.loaded / transfer.total * 100) : 0}%
+          {transfer && ` · ${(transfer.loaded / 1_000_000).toFixed(0)} / ${(transfer.total / 1_000_000).toFixed(0)} MB · ${(transfer.bytesPerSecond / 1_000_000).toFixed(1)} MB/s`}</p>
+      </> : <p>파일 전송 완료 · 서버에서 파일 검증 및 데이터셋 등록 중입니다.</p>}
+      <p>{phase === 'processing' ? '검증 대기' : '전송 경과'} {elapsed}초 · 완료될 때까지 이 페이지를 유지해 주세요.</p>
+    </div>}
     {error && <p className="labels-error" role="alert">{error}</p>}
     {dataset && <div role="status"><p>{dataset.sceneCount}개 씬을 등록했습니다.</p>
       <Link className="btn btn--primary" to={`/scenes?dataset=${dataset.datasetId}`}>씬 열기 · 자동 라벨링</Link>
