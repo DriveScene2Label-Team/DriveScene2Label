@@ -1,6 +1,8 @@
 # DriveScene2Label
 
-nuScenes 기반 **3D Auto-Labeling + 자연어 Scene Retrieval** 백엔드입니다. 카메라 이미지를 CLIP 벡터로 저장하고 자연어로 scene을 검색합니다. 선택한 scene은 VESPA로 3D pseudo-label을 생성하여 GT와 분리해 저장합니다.
+nuScenes 기반 **3D Auto-Labeling + 자연어 Scene Retrieval + 라벨 편집** 웹 애플리케이션입니다. 카메라 이미지를 CLIP 벡터로 저장하고 자연어로 scene을 검색합니다. 선택한 scene은 VESPA로 3D pseudo-label을 생성하여 GT와 분리해 저장합니다. 업로드한 라벨이나 완료된 자동 라벨 결과를 UI에서 수정하고, 원본을 보존하면서 수정본을 서버에 저장·다운로드할 수 있습니다.
+
+배포 기준 브랜치는 **`release-version`**, AWS 리전은 **서울 `ap-northeast-2`**입니다. [이번 릴리스 변경사항과 JPA 선택 이유](#15-release-version-변경사항), [AWS 구성·선택 이유·배포 방법](#16-aws-배포와-구성-이유)을 먼저 확인하세요.
 
 - [프론트엔드 REST API 명세](README_API.md)
 - [파일 업로드·라벨 수정본 저장·다운로드](docs/label-editing.md)
@@ -52,7 +54,7 @@ AI 컨테이너에서 CLIP은 기본 Python, VESPA는 `/opt/vespa-env/bin/python
 |Backend|Java21, Spring Boot4.1.1, Spring Data JPA, JdbcClient, Flyway|
 |AI|Python3.12, FastAPI, PyTorch, OpenCLIP, VESPA-Direct|
 |DB|PostgreSQL16, pgvector vector(768)|
-|Infrastructure|Docker Engine/Desktop, Docker Compose v2|
+|Infrastructure|Docker/Compose, CloudFormation, ECS Fargate, EKS, GPU EC2, ECR, S3, RDS, Secrets Manager, GitHub Actions OIDC|
 |Dataset|nuScenes mini 또는 trainval|
 
 정확한 Python 버전 pin은 [CLIP requirements](ai-server/requirements.txt), [VESPA requirements](ai-server/requirements-vespa.txt)를 참조합니다.
@@ -97,7 +99,7 @@ Spring metadata importer는 원본 관계/경로를 검증합니다. 같은 입�
 |SAM ViT-base|[facebook/sam-vit-base](https://huggingface.co/facebook/sam-vit-base)|첫 VESPA 사용 시 Hugging Face cache|
 |DINOv2|[facebookresearch/dinov2](https://github.com/facebookresearch/dinov2), `dinov2_vitb14_reg`|torch.hub 다운로드, `/models/torch`|
 
-각 모델/데이터의 라이선스와 사용 조건은 원본 링크를 따릅니다. VESPA 설정은 `/opt/vespa/configs/vlm/p_final.yaml`이며 실제 설정은 DINOv2 **register variant**입니다. 모델 캐시는 컨테이너 재생성 시 유지됩니다. 가중치를 이미지 layer에 굽지 않습니다. 첫 VESPA 요청에는 다운로드 시간이 포함될 수 있으므로 운영 전 사전 준비/연결 확인이 필요합니다.
+각 모델/데이터의 라이선스와 사용 조건은 원본 링크를 따릅니다. VESPA 설정은 `/opt/vespa/configs/vlm/p_final.yaml`이며 실제 설정은 DINOv2 **register variant**입니다. 로컬 Compose의 모델 캐시는 컨테이너 재생성 시 유지됩니다. AWS의 `gpu-stop`/`stop`은 GPU 호스트와 캐시 디스크를 제거하므로 다시 켤 때 모델을 다운로드합니다. 가중치를 이미지 layer에 굽지 않습니다. 첫 VESPA 요청에는 다운로드 시간이 포함될 수 있으므로 운영 전 사전 준비/연결 확인이 필요합니다.
 
 ## 6. Environment Variables
 
@@ -165,6 +167,7 @@ backend·ai-server·db 호스트 포트는 각각 `APP_PORT`·`AI_PORT`·`DB_POR
 |model_cache → /models|ai-server|CLIP/Hugging Face/torch hub caches|
 |vespa_results → /results|ai-server|run별 최종 JSON, 로그, intermediate NPZ|
 |rerun_recordings → /recordings|ai-server(rw), backend(ro)|recording별 `.rrd`, 요청 JSON, exporter 로그|
+|uploaded_datasets → /uploads|backend, ai-server|업로드 ZIP과 추출 데이터. AWS에서는 S3 원본으로 각 서버의 캐시를 복원|
 |dataset bind → /data/nuscenes:ro|backend, ai-server|동일 원본 센서/metadata 파일|
 
 Spring은 최종 결과를 HTTP JSON으로 받으므로 `/results`를 공유하지 않습니다. DB에는 artifact storageKey/relativePath만 저장합니다. artifact download API는 아직 없습니다.
@@ -210,7 +213,7 @@ auto_label_job → auto_label_job_sample → predicted_annotation
 ```
 
 토큰 FK는 dataset_id와 묶어 데이터셋 간 충돌을 방지합니다. `image_embedding` unique는 dataset/sample_data/model/preprocess, 예측 unique는 job/sample/box_index입니다. 원본 이미지는 파일에 유지하고 vector/metadata/box만 DB 저장합니다.
-Flyway V1 catalog, V2 pgvector, V3 scene flags, V4 auto-label을 startup 시 적용합니다. 이미 배포된 migration을 수정하지 말고 새 migration을 추가하세요. GT와 pseudo-label 모두 world 좌표, sizeWLH, quaternionWXYZ. VESPA score1.0은 고정값입니다.
+Flyway가 V1 catalog, V2 pgvector, V3 scene flags, V4 auto-label, V5 recording, V6 DB 식별·데이터 출처, V7 라벨 문서·수정 이력, V8 배포 maintenance gate를 startup 시 적용합니다. 이미 배포된 migration을 수정하지 말고 새 migration을 추가하세요. GT와 pseudo-label 모두 world 좌표, sizeWLH, quaternionWXYZ. VESPA score1.0은 고정값입니다.
 
 ## 12. Development / Tests
 
@@ -286,6 +289,109 @@ docker compose down
 docker compose down -v
 ```
 
-### 실제 통합 검증
+### 기존 로컬 통합 검증
 
 nuScenes mini scene-0061의 실제 VESPA 8class 결과 39 sample/985 boxes를 Spring으로 반환하고 PostgreSQL에 저장하여 COMPLETED 상태와 GT 분리를 확인했다. CPU/GPU CLIP 저장·Scene 검색도 확인했다. 설치 호환 수정과 캐시 재사용을 포함한 검증 방법·범위는 [Docker 검증 기록](docs/docker-integration.md)을 참고한다.
+
+## 15. release-version 변경사항
+
+자동 라벨을 만든 뒤 사람이 잘못된 클래스·위치·크기를 고치고 결과를 전달할 수 있도록, **업로드 → UI 편집 → 수정본 저장 → 재조회 → 다운로드** 흐름을 추가했습니다.
+
+|추가·수정|동작과 이유|
+|---|---|
+|`/labels` 편집 화면|라벨 JSON 업로드, 객체 선택, 클래스·XYZ 위치·크기·quaternion 회전 편집, 이동/회전 버튼, 객체 추가·삭제|
+|원본과 수정본 분리|업로드 원문과 GT/예측 원본을 유지하고, 저장할 때마다 새 revision 추가. 잘못 수정해도 이전 버전을 다시 열 수 있음|
+|서버 저장 + 다운로드|수정 메모·버전 이력 조회, 원본 JSON·지정 버전 JSON 다운로드. 새로고침 후에도 서버의 저장본을 다시 읽음|
+|동시 저장 충돌|문서 `@Version`과 `expectedVersion` 검사. 다른 창의 저장을 덮어쓰지 않고 HTTP 409로 충돌 전달|
+|자동 라벨 결과 편집|완료된 job의 결과를 편집 문서로 복사. 원래 job 결과와 GT는 유지|
+|nuScenes ZIP 업로드|파일 경로·압축 해제 크기·필수 metadata·참조 센서 파일을 검증한 뒤 별도 dataset 등록. 원본 ZIP 다운로드 지원|
+|S3 저장과 캐시 복원|원본 ZIP을 비공개 S3에 저장. ECS/EKS/AI 서버가 교체돼도 필요한 원본을 다시 받아 사용|
+|안전한 환경 종료|신규 쓰기와 작업 선점을 막고 진행 중 작업을 기다린 뒤 DB 스냅샷 생성. 복구 기록 확인 전에는 DB 삭제 금지|
+
+라벨 JSON은 최대 **20 MiB**, ZIP은 **512 MiB**, ZIP 압축 해제 총량은 **4 GiB**입니다. 현재 원본 업로드는 nuScenes 형식 ZIP을 지원합니다. 일반 JPG/MP4를 nuScenes로 변환하는 기능, 업로드 데이터의 CLIP 인덱스 자동 생성, 업로드 데이터 Rerun 생성은 후속 범위입니다. 편집 화면은 WORLD XY 평면이며 카메라 위 드래그 편집은 포함하지 않습니다. [파일 형식과 API 예제](docs/label-editing.md).
+
+### JPA와 JDBC를 나눈 이유
+
+라벨 문서와 수정 이력을 entity로 관리하고 CRUD·트랜잭션·버전 충돌 처리를 일관되게 구현하기 위해 **Spring Data JPA**를 선택했습니다. 일반 catalog repository 5개와 라벨 문서 저장에 적용했습니다. `open-in-view=false`, `ddl-auto=validate`로 설정하고 스키마 변경은 Flyway가 담당합니다. 목록은 큰 라벨 payload를 읽지 않는 DTO projection을 사용합니다.
+
+|업무|선택|이유|
+|---|---|---|
+|catalog 조회·라벨 문서·수정 이력|JPA|entity 매핑과 repository를 통한 CRUD, 수정 이력 추가와 문서 version 갱신을 한 트랜잭션으로 처리|
+|pgvector 유사도 검색|JdbcClient/SQL|`<=>` 연산자와 검색 집계 쿼리를 명시적으로 제어|
+|metadata 대량 import|JdbcClient/SQL|기존 batch insert와 검증 흐름 유지|
+|작업 선점|JdbcClient/SQL|`FOR UPDATE SKIP LOCKED`로 중복 claim을 방지하는 기존 동작 유지|
+
+JPA가 JDBC보다 항상 빠르다는 판단은 아닙니다. Spring Data JDBC도 트랜잭션과 `@Version`을 지원하며 단순 aggregate 모델에서는 더 간단할 수 있습니다. 이번 선택은 기존 catalog와 편집 이력의 유지보수 편의를 기준으로 했습니다. [JPA 선택 근거와 참고 자료](docs/label-editing.md#jpa-선택-근거).
+
+## 16. AWS 배포와 구성 이유
+
+프로젝트 계정 `189750306426`의 **서울 `ap-northeast-2`**를 사용합니다. ECS와 EKS에 같은 웹/API 이미지를 배포하고 데이터와 GPU는 공유합니다. 두 배포 경로를 함께 검증하기 위한 구성이며, ECS와 EKS 모두 실행 중에는 각각 실행 비용이 발생합니다.
+
+```mermaid
+flowchart LR
+ PC[내 PC] -->|SSM 터널| ECS[ECS Fargate 웹/API]
+ PC -->|kubectl port-forward| EKS[EKS 웹/API]
+ ECS --> RDS[(RDS PostgreSQL + pgvector)]
+ EKS --> RDS
+ ECS --> S3[(S3 원본 ZIP)]
+ EKS --> S3
+ ECS --> GPU[ECS EC2 GPU 1대 - VESPA + CLIP]
+ EKS --> GPU
+ GPU --> S3
+ GH[GitHub Actions - release-version] --> ECR[ECR 이미지 digest]
+ ECR --> ECS
+ ECR --> EKS
+ ECR --> GPU
+```
+
+|구성|사용 목적·선택 이유|전체 stop 이후|
+|---|---|---|
+|ECS Fargate|웹/API 실행. EC2 호스트를 직접 관리하지 않고 Docker 이미지로 배포. 자동 라벨 worker의 단일 실행 위치|태스크·서비스 제거|
+|EKS + CPU EC2 1대|동일 이미지의 Kubernetes 배포 검증, ClusterIP 서비스, Pod Identity. CPU 노드는 SSM 접속 경유지로도 사용|노드와 클러스터 제거|
+|ECS EC2 `g6.2xlarge` 1대|VESPA와 CLIP이 NVIDIA GPU를 공유해 GPU 중복 할당 방지. 초기 크기는 L4 24 GiB / 8 vCPU이며 성능은 실측 필요|인스턴스와 캐시 디스크 제거|
+|RDS PostgreSQL 16 + pgvector|catalog·작업·원본 라벨·수정 이력·벡터를 같은 DB에서 관리. `db.t4g.small`, 사설·암호화·TLS 인증서 검증|검증된 수동 스냅샷과 복구 정보 보존 후 인스턴스 제거|
+|S3|원본 ZIP을 서버 수명과 분리하고 서버별 캐시를 복원. 버전 관리·외부 공개 차단·HTTPS 강제|파일과 이전 버전 유지|
+|ECR|검증된 앱/AI Docker 이미지를 immutable tag와 digest로 관리. ECS/EKS가 동일 버전을 참조|이미지 유지|
+|Secrets Manager|DB 자격 증명과 내부 운영 토큰 관리. 저장소·workflow 변수에 실제 비밀번호를 넣지 않음|유지|
+|GitHub OIDC|장기 AWS access key 없이 이 저장소의 production environment에서 단기 인증|IAM/OIDC 설정 유지|
+|CloudFormation|영구 리소스와 실행 리소스를 분리하고 같은 설정으로 재생성|foundation 스택 유지|
+
+**Redis·Kafka·SQS·Elasticsearch는 추가하지 않았습니다.** 현재 작업 상태·선점은 PostgreSQL이 처리하고 벡터 검색은 pgvector가 처리합니다. 작은 단일 GPU worker 구성에서 같은 역할의 운영 서비스를 추가하지 않기 위한 선택입니다. EKS에서는 자동 라벨 worker를 끄고, GPU를 끄면 ECS worker도 비활성화해 대기 작업을 DB에 남깁니다.
+
+앱·DB·GPU 포트는 인터넷에 공개하지 않습니다. EC2/Fargate 공인 IP는 패키지·모델 다운로드용 outbound 경로로 사용하며 보안 그룹은 필요한 내부 트래픽만 허용합니다. PC 접속은 SSM 터널 또는 Kubernetes port-forward를 사용합니다. 공개 Load Balancer와 NAT Gateway는 생성하지 않습니다. AWS의 recording worker는 공유 `.rrd` 저장 구성이 없으므로 비활성화했습니다.
+
+### CI/CD 실행
+
+1. 프로젝트 계정의 서울 CloudShell에서 [bootstrap 절차](docs/aws-ecs-cicd.md#최초-준비)로 foundation을 준비합니다.
+2. GitHub `production` environment의 배포 허용 브랜치를 `release-version`으로 설정합니다. Repository Variable `AWS_ROLE_ARN`에 bootstrap의 GitHub 역할 ARN, `AWS_DEPLOY_ENABLED=true`를 지정합니다. 단기 인증은 OIDC를 사용합니다.
+3. PR 검사는 `release-version` 대상이며, 해당 브랜치 push는 백엔드·프런트엔드·브라우저 흐름·인프라 안전장치 테스트 및 Docker 빌드를 실행합니다.
+4. 통과한 이미지를 ECR에 발행합니다. 실행 중인 환경은 쓰기와 작업을 잠시 멈추고 같은 digest를 ECS/EKS에 배포한 뒤 확인합니다. **환경이 꺼져 있으면 이미지만 준비하며 push가 서버를 켜지 않습니다.**
+5. GPU 모델 이미지는 `Release images and deploy ECS + EKS` → Run workflow → `component=ai`로 수동 빌드합니다. 이미지 빌드와 실행 환경 변경을 별도 job으로 나눠 긴 모델 빌드가 환경 stop을 막지 않게 했습니다.
+
+수동 운영은 GitHub Actions → **AWS environment** → Run workflow → `release-version`에서 실행합니다.
+
+|action|동작|
+|---|---|
+|status|실행 리소스·스택·복구 스냅샷·GPU 한도 확인|
+|start|DB 생성/복원 → EKS·GPU·ECS 구성 → 앱 준비 확인. GPU 승인 전에는 `gpu=false`로 CPU 환경만 검증|
+|stop|쓰기 차단 → 작업 종료 대기 → 스냅샷·S3 복구 기록 검증 → 실행 리소스 제거|
+|gpu-start / gpu-stop|공유 GPU와 ECS worker만 켜거나 끄기|
+|verify|두 환경에서 브라우저 업로드·버튼 편집·저장·다운로드 검사. stop/start 후 `restore_check=true`로 이전 문서·이력·다운로드 일치 확인|
+
+원본 파일·수정 라벨·스냅샷·이미지를 **최소 한 달 보관하고, 한 달 이후에도 자동 삭제하지 않습니다.** 서버를 꺼도 S3·ECR·스냅샷·Secrets Manager·DNS 등의 보관 비용은 남습니다. CloudWatch 진단 로그만 30일 보관합니다. RDS는 단순 정지 시 7일 후 자동 시작되므로 장기 미사용에는 스냅샷 보존 후 인스턴스를 제거합니다. EKS도 제어 영역 요금을 줄이기 위해 클러스터 자체를 제거합니다. 다시 켜려면 재생성·복원·모델 로딩 시간이 필요합니다. [운영 명령·접속 방법·장애 복구](docs/aws-ecs-cicd.md).
+
+### 검증 상태 (2026-11-09)
+
+|검사|결과|
+|---|---|
+|실제 PostgreSQL 백엔드 테스트|45개 통과|
+|프런트엔드 단위 테스트·프로덕션 빌드|61개 및 빌드 통과|
+|UI fixture / 실제 Spring 라벨 저장·다운로드|2개 / 1개 통과|
+|AI 업로드 계약 / 배포 안전장치|11개 / 15개 통과|
+|Docker 전체 빌드·CloudFormation 템플릿 검사|통과|
+|GitHub 원격 CI·OIDC·ECR 발행|[성공 실행](https://github.com/DriveScene2Label-Team/DriveScene2Label/actions/runs/42579817011)|
+|서울 S3/ECR/배포 권한·암호화 비공개 RDS|생성 확인|
+|서울 ECS/EKS 실제 UI·stop/start 복구|검증 진행 중. 완료 결과로 갱신 예정|
+|서울 GPU 추론·임베딩|G/VT On-Demand 한도 0→8 vCPU 요청 승인 대기. 승인 전에는 실측하지 않음|
+
+`/health` 성공은 CLIP 로딩을 의미하며 VESPA 전체 추론 성공을 대신하지 않습니다. 기존 로컬 GPU 검증과 이번 AWS 배포 검증은 구분합니다. 새로 확인되는 결과와 제한은 이 표와 [AWS 운영 문서](docs/aws-ecs-cicd.md)에 기록합니다.

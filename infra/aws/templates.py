@@ -212,6 +212,8 @@ def foundation():
                    arn("rds", "subgrp:*"), arn("rds", "pg:*")]),
         statement(["iam:PassRole", "iam:GetRole", "iam:ListAttachedRolePolicies", "iam:ListRolePolicies", "iam:GetRolePolicy"], runtime_roles),
         statement(["iam:GetInstanceProfile"], att("GpuProfile")),
+        statement(["iam:GetRole"], [arn("iam", f"role/aws-service-role/{service}/*", region="")
+                  for service in ["eks.amazonaws.com", "eks-nodegroup.amazonaws.com", "ecs.amazonaws.com", "rds.amazonaws.com", "autoscaling.amazonaws.com"]]),
         statement(["iam:CreateServiceLinkedRole"], "*",
                   Condition={"StringEquals": {"iam:AWSServiceName": ["eks.amazonaws.com", "eks-nodegroup.amazonaws.com", "ecs.amazonaws.com", "rds.amazonaws.com", "autoscaling.amazonaws.com"]}}),
         statement(["secretsmanager:GetSecretValue"], ref("AdminSecret")),

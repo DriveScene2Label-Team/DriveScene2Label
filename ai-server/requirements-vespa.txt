@@ -1,5 +1,7 @@
 # VESPA-Direct inference imports, isolated from CLIP's NumPy 2 environment.
 numpy==1.26.4
+# PyArrow 26 requires NumPy 2; VESPA/Rerun 0.21 uses the isolated NumPy 1 environment.
+pyarrow==23.0.1
 pillow==11.3.0
 opencv-python==4.11.0.86
 nuscenes-devkit==1.2.0
