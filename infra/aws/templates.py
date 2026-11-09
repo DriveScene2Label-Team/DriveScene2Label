@@ -285,6 +285,8 @@ def foundation():
         statement(["secretsmanager:GetSecretValue", "secretsmanager:PutSecretValue"], ref("WebSecret")),
         statement(["cognito-idp:DescribeUserPoolClient", "cognito-idp:UpdateUserPoolClient"], att("TeamUsers")),
         statement(["ecs:UpdateService"], arn("ecs", join("service/", name("ecs"), "/", name("web")))),
+        statement(["elasticloadbalancing:ModifyLoadBalancerAttributes"],
+                  arn("elasticloadbalancing", "loadbalancer/app/ecs-express-gateway-alb-*/*")),
         statement(["ec2:DescribeInstances", "ec2:DescribeAvailabilityZones", "ec2:DescribeInstanceTypeOfferings",
                    "ec2:DescribeInstanceTypes", "eks:DescribeCluster", "eks:DescribeClusterVersions",
                    "eks:DescribeAddonVersions", "eks:DescribeNodegroup", "eks:ListNodegroups",
@@ -305,7 +307,7 @@ def foundation():
     resources["GithubRole"] = resource("IAM::Role", {
         "RoleName": name("github"), "AssumeRolePolicyDocument": github_trust, "MaxSessionDuration": 14400,
         "Policies": [{"PolicyName": "project-orchestration", "PolicyDocument": policy(github_permissions)}], "Tags": tags()},
-        "Only this repository's protected production environment may orchestrate project stacks.",
+        "Only this repository's protected production environment may orchestrate project stacks; the managed gateway timeout covers full mini import.",
         ["GitHub production environment permits release-version only."])
     for key in ["Vpc", "PublicA", "PublicB", "PrivateA", "PrivateB", "NodeSecurityGroup", "AppSecurityGroup",
                 "GpuSecurityGroup", "DatabaseSecurityGroup", "DatabaseSubnets", "DatabaseParameters",
@@ -452,6 +454,7 @@ def app():
          "WorkerEnabled": {"Type": "String", "Default": "false", "AllowedValues": ["true", "false"]}})
     body["Resources"]["Task"] = resource("ECS::TaskDefinition", {
         "Family": name("app"), "NetworkMode": "awsvpc", "RequiresCompatibilities": ["FARGATE"], "Cpu": "1024", "Memory": "2048",
+        "EphemeralStorage": {"SizeInGiB": 40},
         "RuntimePlatform": {"CpuArchitecture": "X86_64", "OperatingSystemFamily": "LINUX"},
         "TaskRoleArn": ref("AppRole"), "ExecutionRoleArn": ref("ExecutionRole"),
         "ContainerDefinitions": [{
@@ -468,7 +471,7 @@ def app():
                             "Interval": 30, "Timeout": 5, "Retries": 5, "StartPeriod": 120},
             "LogConfiguration": {"LogDriver": "awslogs", "Options": {
                 "awslogs-group": ref("AppLogs"), "awslogs-region": ref("AWS::Region"), "awslogs-stream-prefix": "app"}}}]},
-        "Same image digest as EKS, without exposing a public application port.")
+        "Same image digest as EKS, without exposing a public application port; temporary space holds multipart data, ZIP and expanded mini together.")
     body["Resources"]["Service"] = resource("ECS::Service", {
         "ServiceName": name("app"), "Cluster": ref("Cluster"), "TaskDefinition": ref("Task"),
         "LaunchType": "FARGATE", "DesiredCount": 1,

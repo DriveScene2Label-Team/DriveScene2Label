@@ -44,7 +44,10 @@ class DatasetUploadTests {
  }
  @Test void uploadCatalogMediaAndDownloadOriginal() throws Exception {
   byte[] archive=zip(fixture());
-  var response=mvc.perform(multipart("/api/dataset-uploads").file(new MockMultipartFile("file","data.zip","application/zip",archive)))
+  var large=new MockMultipartFile("file","data.zip","application/zip",archive) {
+   @Override public long getSize() { return 600L*1024*1024; }
+  };
+  var response=mvc.perform(multipart("/api/dataset-uploads").file(large))
    .andExpect(status().isCreated()).andExpect(jsonPath("$.sceneCount").value(1)).andReturn().getResponse().getContentAsString();
   long id=json.readTree(response).path("datasetId").asLong();
   mvc.perform(get("/api/datasets/{id}/scenes",id)).andExpect(status().isOk());
@@ -55,7 +58,7 @@ class DatasetUploadTests {
  @Test void traversalMissingFilesAndExpandedLimitLeaveNoDataset() throws Exception {
   long before=jdbc.sql("SELECT count(*) FROM dataset").query(Long.class).single();
   var oversized=new MockMultipartFile("file","large.zip","application/zip",new byte[]{1}) {
-   @Override public long getSize() { return 512L*1024*1024+1; }
+   @Override public long getSize() { return 5_000_000_001L; }
   };
   mvc.perform(multipart("/api/dataset-uploads").file(oversized)).andExpect(status().isPayloadTooLarge());
   Files.createDirectories(ROOT.resolve("datasets"));

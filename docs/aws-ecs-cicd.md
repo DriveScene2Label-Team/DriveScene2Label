@@ -139,6 +139,6 @@ CI는 백엔드, 프런트엔드, 업로드/라벨 브라우저 흐름, AI 업�
 
 `verify`는 저장소의 테스트 metadata와 합성 미디어로 작은 nuScenes ZIP을 만들고 양쪽 앱에 올린다. 다운로드 SHA-256과 라벨 원문·revision을 S3 `control/verification.json`에 기록해 재생성 뒤 대조한다. 이 합성 ZIP은 저장·복구 검사용이며 GPU 추론 검사용 데이터가 아니다. 검사 문서는 실제 DB에 남는다.
 
-업로드 지원은 라벨 JSON과 유효한 nuScenes ZIP이다. 임의 이미지·MP4를 nuScenes로 변환하는 기능은 포함하지 않는다. 업로드 ZIP 최대 512 MiB, 압축 해제 최대 4 GiB이며 필요한 메타데이터와 참조 미디어를 포함해야 한다. 현재 업로드 데이터셋의 자동 CLIP 인덱싱과 Rerun 생성은 별도 후속 작업이다. 라벨 JSON 업로드·UI 수정·수정본 저장/다운로드에는 GPU가 필요 없다. 자세한 JSON 형식은 [라벨 편집 문서](label-editing.md)를 참조한다.
+업로드 지원은 라벨 JSON과 유효한 nuScenes ZIP이다. 임의 이미지·MP4를 nuScenes로 변환하는 기능은 포함하지 않는다. 업로드 ZIP 최대 5,000,000,000바이트, 압축 해제 최대 8GiB이며 필요한 메타데이터와 참조 미디어를 포함해야 한다. 전체 mini를 위해 Spring·S3 복원·GPU 캐시 한도를 일치시키고, Fargate 임시 공간을 40GiB로 지정했다. ALB idle timeout은 배포 및 web-start 시 로그인 프록시와 같은 600초로 설정해 압축 해제·S3 보존·DB 등록 중 응답을 기다릴 수 있게 한다. S3 단일 PUT 한도 안에서 처리하며 중단된 업로드의 이어받기는 지원하지 않는다. 현재 업로드 데이터셋의 자동 CLIP 인덱싱과 Rerun 생성은 별도 후속 작업이다. 라벨 JSON 업로드·UI 수정·수정본 저장/다운로드에는 GPU가 필요 없다. 자세한 JSON 형식은 [라벨 편집 문서](label-editing.md)를 참조한다.
 
 참고: [EKS 요금](https://aws.amazon.com/eks/pricing/), [RDS 정지 후 재시작](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_StopInstance.html), [Secrets Manager Pod Identity](https://docs.aws.amazon.com/secretsmanager/latest/userguide/ascp-pod-identity-integration.html), [GitHub OIDC](https://docs.github.com/en/actions/reference/security/oidc).

@@ -97,6 +97,15 @@ class LifecycleSafetyTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Persistent foundation"):
             self.environment.delete_stack("foundation")
 
+    def test_upload_timeout_updates_only_an_existing_gateway(self):
+        load_balancer = Mock()
+        self.environment.clients["elbv2"] = load_balancer
+        self.environment.configure_web_upload_timeout({})
+        load_balancer.modify_load_balancer_attributes.assert_not_called()
+        self.environment.configure_web_upload_timeout({"LoadBalancer": "managed-gateway-arn"})
+        load_balancer.modify_load_balancer_attributes.assert_called_once_with(
+            LoadBalancerArn="managed-gateway-arn", Attributes=[{"Key": "idle_timeout.timeout_seconds", "Value": "600"}])
+
     def test_gateway_waits_for_new_canary_deployment_and_rejects_rollback(self):
         ecs = Mock()
         self.environment.clients["ecs"] = ecs

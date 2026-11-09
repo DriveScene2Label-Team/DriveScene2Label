@@ -16,7 +16,7 @@ public class DatasetStorage {
  private final UploadArchiveStore archives;
  private final long maxExpanded;
  public DatasetStorage(DatasetFiles original,@Value("${uploads.root}") String uploads,UploadArchiveStore archives,
-   @Value("${uploads.max-expanded-bytes:4294967296}") long maxExpanded) {
+   @Value("${uploads.max-expanded-bytes:8589934592}") long maxExpanded) {
   this.original=original; this.uploads=Path.of(uploads).toAbsolutePath().normalize();
   this.archives=archives;this.maxExpanded=maxExpanded;
  }

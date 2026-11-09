@@ -118,7 +118,7 @@ def test_s3_cache_downloads_once_and_publishes_only_complete_directory(tmp_path,
     class Client:
         def head_object(self, **kwargs):
             assert kwargs == {"Bucket": "contract-test-bucket", "Key": f"uploads/{key}.zip"}
-            return {"ContentLength": archive.stat().st_size}
+            return {"ContentLength": 600 * 1024 ** 2}
         def download_file(self, bucket, object_key, filename, **kwargs):
             calls.append(object_key)
             shutil.copyfile(archive, filename)
@@ -128,6 +128,21 @@ def test_s3_cache_downloads_once_and_publishes_only_complete_directory(tmp_path,
     assert (target / "samples/image.jpg").read_bytes() == b"fixture-image"
     assert cache.ensure(key) == target
     assert calls == [f"uploads/{key}.zip"]
+
+
+def test_s3_archive_over_five_gb_is_rejected_before_download(tmp_path, monkeypatch):
+    monkeypatch.setenv("UPLOAD_ROOT", str(tmp_path / "cache"))
+    monkeypatch.setenv("UPLOAD_S3_BUCKET", "contract-test-bucket")
+    class Client:
+        def head_object(self, **kwargs):
+            return {"ContentLength": 5_000_000_001}
+        def download_file(self, *args, **kwargs):
+            pytest.fail("Oversized archives must not be downloaded")
+    cache = UploadedDatasetCache()
+    cache.client = Client()
+    with pytest.raises(ValueError, match="5GB"):
+        cache.ensure(str(uuid4()))
+    assert not (cache.root / "datasets").exists()
 
 
 @pytest.mark.parametrize("name,size,limit", [("../outside", 1, 100), ("file.bin", 101, 100)])

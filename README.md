@@ -310,7 +310,7 @@ nuScenes mini scene-0061의 실제 VESPA 8class 결과 39 sample/985 boxes를 Sp
 |S3 저장과 캐시 복원|원본 ZIP을 비공개 S3에 저장. ECS/EKS/AI 서버가 교체돼도 필요한 원본을 다시 받아 사용|
 |안전한 환경 종료|신규 쓰기와 작업 선점을 막고 진행 중 작업을 기다린 뒤 DB 스냅샷 생성. 복구 기록 확인 전에는 DB 삭제 금지|
 
-라벨 JSON은 최대 **20 MiB**, ZIP은 **512 MiB**, ZIP 압축 해제 총량은 **4 GiB**입니다. 현재 원본 업로드는 nuScenes 형식 ZIP을 지원합니다. 일반 JPG/MP4를 nuScenes로 변환하는 기능, 업로드 데이터의 CLIP 인덱스 자동 생성, 업로드 데이터 Rerun 생성은 후속 범위입니다. 편집 화면은 WORLD XY 평면이며 카메라 위 드래그 편집은 포함하지 않습니다. [파일 형식과 API 예제](docs/label-editing.md).
+라벨 JSON은 최대 **20 MiB**, ZIP은 **5 GB (5,000,000,000바이트)**, ZIP 압축 해제 총량은 **8 GiB**입니다. 전체 nuScenes mini를 업로드할 수 있도록 브라우저·Spring·S3 복원·GPU 캐시의 한도를 함께 맞췄습니다. 원본 ZIP 업로드에는 별도 라벨 JSON이 필요하지 않으며, 업로드한 씬에서 자동 라벨링을 실행하면 생성됩니다. 현재 원본 업로드는 nuScenes 형식 ZIP을 지원합니다. 일반 JPG/MP4를 nuScenes로 변환하는 기능, 업로드 데이터의 CLIP 인덱스 자동 생성, 업로드 데이터 Rerun 생성은 후속 범위입니다. 편집 화면은 WORLD XY 평면이며 카메라 위 드래그 편집은 포함하지 않습니다. [파일 형식과 API 예제](docs/label-editing.md).
 
 ### JPA와 JDBC를 나눈 이유
 

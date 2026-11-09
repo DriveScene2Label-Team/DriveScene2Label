@@ -12,12 +12,13 @@ import boto3
 from boto3.s3.transfer import TransferConfig
 from botocore.config import Config
 
+MAX_ARCHIVE_BYTES = 5_000_000_000
 
 class UploadedDatasetCache:
     def __init__(self):
         self.root = Path(os.environ.get("UPLOAD_ROOT", "/uploads")).resolve()
         self.bucket = os.environ.get("UPLOAD_S3_BUCKET", "").strip()
-        self.max_expanded = int(os.environ.get("UPLOAD_MAX_EXPANDED_BYTES", str(4 * 1024 ** 3)))
+        self.max_expanded = int(os.environ.get("UPLOAD_MAX_EXPANDED_BYTES", str(8 * 1024 ** 3)))
         self.lock = Lock()
         self.client = None
 
@@ -39,14 +40,14 @@ class UploadedDatasetCache:
                 self.client = boto3.client("s3", config=Config(connect_timeout=5, read_timeout=60,
                                             retries={"total_max_attempts": 3, "mode": "standard"}))
             object_key = f"uploads/{key}.zip"
-            if self.client.head_object(Bucket=self.bucket, Key=object_key)["ContentLength"] > 512 * 1024 ** 2:
-                raise ValueError("Upload archive exceeds 512MB")
+            if self.client.head_object(Bucket=self.bucket, Key=object_key)["ContentLength"] > MAX_ARCHIVE_BYTES:
+                raise ValueError("Upload archive exceeds 5GB")
             parent.mkdir(parents=True, exist_ok=True)
             with tempfile.TemporaryDirectory(prefix=".fetch-", dir=parent) as temporary:
                 archive = Path(temporary) / "archive.zip"
                 self.client.download_file(self.bucket, object_key, str(archive), Config=TransferConfig(use_threads=False))
-                if archive.stat().st_size > 512 * 1024 ** 2:
-                    raise ValueError("Upload archive exceeds 512MB")
+                if archive.stat().st_size > MAX_ARCHIVE_BYTES:
+                    raise ValueError("Upload archive exceeds 5GB")
                 extracted = Path(temporary) / "data"
                 extracted.mkdir()
                 extract_archive(archive, extracted, self.max_expanded)

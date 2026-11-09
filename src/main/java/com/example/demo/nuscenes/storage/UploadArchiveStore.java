@@ -13,6 +13,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 /** Optional durable archive storage. Credentials come from the ECS task role/default SDK chain. */
 @Component
 public class UploadArchiveStore {
+ public static final long MAX_ARCHIVE_BYTES=5_000_000_000L;
  private final String bucket;
  private final S3Client s3;
  public UploadArchiveStore(@Value("${uploads.s3-bucket:}") String bucket) {
@@ -36,7 +37,7 @@ public class UploadArchiveStore {
       var output=Files.newOutputStream(target,StandardOpenOption.CREATE_NEW)) {
    long total=0;byte[] buffer=new byte[65536];int count;
    while((count=input.read(buffer))!=-1) {
-    total+=count;if(total>512L*1024*1024) throw new IOException("S3 upload archive exceeds 512MB");
+    total+=count;if(total>MAX_ARCHIVE_BYTES) throw new IOException("S3 upload archive exceeds 5GB");
     output.write(buffer,0,count);
    }
   }

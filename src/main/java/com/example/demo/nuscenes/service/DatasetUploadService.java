@@ -20,13 +20,13 @@ public class DatasetUploadService {
  private final NuscenesImporter importer;
  private final long maxExpanded;
  private final UploadArchiveStore archives;
- public DatasetUploadService(DatasetStorage storage,NuscenesImporter importer,UploadArchiveStore archives,@Value("${uploads.max-expanded-bytes:4294967296}") long maxExpanded) {
+ public DatasetUploadService(DatasetStorage storage,NuscenesImporter importer,UploadArchiveStore archives,@Value("${uploads.max-expanded-bytes:8589934592}") long maxExpanded) {
   this.storage=storage;this.importer=importer;this.maxExpanded=maxExpanded;this.archives=archives;
  }
  public record Uploaded(long datasetId,String version,int sceneCount) {}
  public Uploaded upload(MultipartFile file) throws IOException {
   if(file.isEmpty()) throw bad("비어 있지 않은 nuScenes ZIP 파일을 선택해 주세요.");
-  if(file.getSize()>512L*1024*1024) throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE,"nuScenes ZIP은 512MB 이하만 지원합니다.");
+  if(file.getSize()>UploadArchiveStore.MAX_ARCHIVE_BYTES) throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE,"nuScenes ZIP은 5GB 이하만 지원합니다.");
   String key=UUID.randomUUID().toString();
   Path root=storage.uploads().resolve("datasets").resolve(key), archive=storage.uploads().resolve("archives").resolve(key+".zip");
   Files.createDirectories(root); Files.createDirectories(archive.getParent());

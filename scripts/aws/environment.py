@@ -482,6 +482,7 @@ class Environment:
                 self.deploy_application_stack(image)
                 self.install_application(image)
                 self.verify_application_image(image)
+                self.configure_web_upload_timeout(self.outputs("web"))
             else:
                 self.gpu_start(image)
         except Exception:
@@ -502,12 +503,18 @@ class Environment:
         state[component + "_image"] = image
         self.write_control("state", state, IfMatch=etag)
 
+    def configure_web_upload_timeout(self, web):
+        if web:
+            self.clients["elbv2"].modify_load_balancer_attributes(LoadBalancerArn=web["LoadBalancer"],
+                Attributes=[{"Key": "idle_timeout.timeout_seconds", "Value": "600"}])
+
     def web_start(self):
         if not self.stack("app"):
             raise RuntimeError("Start the private application before enabling its public gateway.")
         if "TeamUsers" not in self.foundation:
             raise RuntimeError("Run bootstrap to provision the persistent Cognito team directory first.")
         web = self.deploy_stack("web", self.foundation)
+        self.configure_web_upload_timeout(web)
         endpoint = web["Endpoint"]
         endpoint = endpoint if endpoint.startswith("https://") else "https://" + endpoint
         endpoint = endpoint.rstrip("/")
