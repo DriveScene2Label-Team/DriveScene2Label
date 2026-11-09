@@ -104,6 +104,8 @@ kubectl -n drivescene port-forward service/backend 18081:8080 --address=127.0.0.
 
 ## 검증과 현재 기능 범위
 
+2026-11-09 서울에서 [CPU 환경 start](https://github.com/DriveScene2Label-Team/DriveScene2Label/actions/runs/42595122060)와 [ECS/EKS 실제 UI·원본 ZIP 검증](https://github.com/DriveScene2Label-Team/DriveScene2Label/actions/runs/42595393497)이 성공했다. 같은 이미지 digest를 확인하고 양쪽 브라우저에서 라벨 수정본 저장·재조회·다운로드를 검사했으며, 두 환경에서 원본 라벨과 ZIP 해시가 일치했다. GPU는 한도 승인 대기이며 전체 stop/start 스냅샷 복원은 아직 검증하지 않았다. 검증 후 CPU 환경은 실행 중이므로 사용 종료 시 `stop`을 실행한다.
+
 ```bash
 python -m unittest discover -s scripts/aws/tests -v
 python infra/aws/templates.py

@@ -382,6 +382,10 @@ flowchart LR
 
 ### 검증 상태 (2026-11-09)
 
+이번 계정에서는 서울 리전이 계정 수준에서 이미 활성화돼 있었지만 콘솔의 표시 리전에서 숨겨져 있었습니다. 콘솔 표시와 기본 리전을 서울로 맞췄고, 사용자가 조직 정책의 서울 허용을 반영한 뒤 프로젝트 계정 CloudShell/API 접근을 확인했습니다. 조직의 보안 정책을 전체 해제하지 않았습니다.
+
+GitHub 기본 브랜치와 `production` 배포 허용 브랜치를 `release-version`으로 설정하고 OIDC 인증을 실제 실행에서 확인했습니다. 첫 EKS 노드 생성에서 필요한 프로젝트 역할·AWS 서비스 연결 역할 조회 권한을 보완했습니다. AI 이미지는 VESPA의 NumPy 1 환경에 맞는 PyArrow를 별도로 고정해 빌드 import 검사와 ECR 발행을 통과했습니다. GPU 한도 상향은 별도 AWS 승인 절차이므로 이미지 준비 완료와 GPU 실행 완료를 구분합니다.
+
 |검사|결과|
 |---|---|
 |실제 PostgreSQL 백엔드 테스트|45개 통과|
@@ -390,8 +394,13 @@ flowchart LR
 |AI 업로드 계약 / 배포 안전장치|11개 / 15개 통과|
 |Docker 전체 빌드·CloudFormation 템플릿 검사|통과|
 |GitHub 원격 CI·OIDC·ECR 발행|[성공 실행](https://github.com/DriveScene2Label-Team/DriveScene2Label/actions/runs/42579817011)|
+|AI Docker 빌드·VESPA import·ECR 발행|[성공 실행](https://github.com/DriveScene2Label-Team/DriveScene2Label/actions/runs/42586236337)|
 |서울 S3/ECR/배포 권한·암호화 비공개 RDS|생성 확인|
-|서울 ECS/EKS 실제 UI·stop/start 복구|검증 진행 중. 완료 결과로 갱신 예정|
+|서울 ECS/EKS 앱 배포·동일 이미지 확인|[start 성공](https://github.com/DriveScene2Label-Team/DriveScene2Label/actions/runs/42595122060)|
+|ECS/EKS 실제 UI 저장·다운로드·ZIP 교차 조회|양쪽 브라우저 검사 통과, 원본 라벨·revision·ZIP SHA-256 일치. [검증 실행](https://github.com/DriveScene2Label-Team/DriveScene2Label/actions/runs/42595393497)|
+|전체 stop/start 후 DB 스냅샷 복원·무잔여 검사|아직 실환경 검증하지 않음. 종료 안전장치 단위 테스트와 구분|
 |서울 GPU 추론·임베딩|G/VT On-Demand 한도 0→8 vCPU 요청 승인 대기. 승인 전에는 실측하지 않음|
+
+검증 직후에는 ECS 앱, EKS 클러스터·CPU 노드 1대, RDS가 **실행 중**이며 비용이 발생합니다. GPU는 꺼져 있습니다. 사용을 마치면 `AWS environment → stop`을 실행합니다. PC의 기존 CLI 로그인은 만료됐으므로 직접 SSM/kubectl 접속 전에 프로젝트 계정으로 재인증해야 합니다.
 
 `/health` 성공은 CLIP 로딩을 의미하며 VESPA 전체 추론 성공을 대신하지 않습니다. 기존 로컬 GPU 검증과 이번 AWS 배포 검증은 구분합니다. 새로 확인되는 결과와 제한은 이 표와 [AWS 운영 문서](docs/aws-ecs-cicd.md)에 기록합니다.
