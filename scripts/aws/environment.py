@@ -524,15 +524,35 @@ class Environment:
         request.update(CallbackURLs=[endpoint + "/oauth2/callback"], LogoutURLs=[endpoint + "/"], DefaultRedirectURI=endpoint + "/oauth2/callback")
         cognito.update_user_pool_client(**request)
         ecs = self.clients["ecs"]
+        previous = {item["serviceDeploymentArn"] for item in self.web_deployments(web["WebService"])}
         ecs.update_service(cluster=self.foundation["Cluster"], service=web["WebService"], forceNewDeployment=True)
-        def healthy():
-            service = ecs.describe_services(cluster=self.foundation["Cluster"], services=[web["WebService"]])["services"][0]
-            return len(service["deployments"]) == 1 and service["runningCount"] == service["desiredCount"] and service["runningCount"] > 0
-        wait_until("authenticated HTTPS gateway", healthy, timeout=1200)
+        wait_until("authenticated HTTPS gateway", lambda: self.web_deployment_ready(web["WebService"], previous), timeout=1200)
         state, etag = self.read_control("state")
         state.update(web_enabled=True, public_url=endpoint, web_load_balancer=web["LoadBalancer"])
         self.write_control("state", state, IfMatch=etag)
         log("Team login URL: " + endpoint)
+
+    def web_deployment_ready(self, service_arn, previous):
+        ecs = self.clients["ecs"]
+        created = [item for item in self.web_deployments(service_arn) if item["serviceDeploymentArn"] not in previous]
+        if not created:
+            return False
+        current = max(created, key=lambda item: item["createdAt"])["serviceDeploymentArn"]
+        deployment = ecs.describe_service_deployments(serviceDeploymentArns=[current])["serviceDeployments"][0]
+        status = deployment["status"]
+        if status in ["ROLLBACK_REQUESTED", "ROLLBACK_IN_PROGRESS", "ROLLBACK_SUCCESSFUL", "ROLLBACK_FAILED", "STOPPED"]:
+            raise RuntimeError("Public gateway deployment did not succeed: " + status)
+        return status == "SUCCESSFUL" and deployment["targetServiceRevision"]["runningTaskCount"] > 0
+
+    def web_deployments(self, service_arn):
+        request = {"cluster": self.foundation["Cluster"], "service": service_arn}
+        deployments = []
+        while True:
+            page = self.clients["ecs"].list_service_deployments(**request)
+            deployments.extend(page["serviceDeployments"])
+            if not page.get("nextToken"):
+                return deployments
+            request["nextToken"] = page["nextToken"]
 
     def running_resources(self):
         instances = [instance["InstanceId"] for page in self.clients["ec2"].get_paginator("describe_instances").paginate(Filters=[

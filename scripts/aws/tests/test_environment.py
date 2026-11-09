@@ -97,6 +97,20 @@ class LifecycleSafetyTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Persistent foundation"):
             self.environment.delete_stack("foundation")
 
+    def test_gateway_waits_for_new_canary_deployment_and_rejects_rollback(self):
+        ecs = Mock()
+        self.environment.clients["ecs"] = ecs
+        self.environment.foundation["Cluster"] = "cluster"
+        ecs.list_service_deployments.return_value = {"serviceDeployments": [{"serviceDeploymentArn": "old", "createdAt": 1}]}
+        self.assertFalse(self.environment.web_deployment_ready("gateway", {"old"}))
+        ecs.describe_service_deployments.assert_not_called()
+        ecs.list_service_deployments.return_value = {"serviceDeployments": [{"serviceDeploymentArn": "new", "createdAt": 2}]}
+        ecs.describe_service_deployments.return_value = {"serviceDeployments": [{"status": "ROLLBACK_SUCCESSFUL"}]}
+        with self.assertRaisesRegex(RuntimeError, "did not succeed"):
+            self.environment.web_deployment_ready("gateway", {"old"})
+        ecs.describe_service_deployments.return_value = {"serviceDeployments": [{"status": "SUCCESSFUL", "targetServiceRevision": {"runningTaskCount": 1}}]}
+        self.assertTrue(self.environment.web_deployment_ready("gateway", {"old"}))
+
     def test_cpu_start_and_gpu_stop_keep_pending_jobs_unclaimed(self):
         self.environment.stack = Mock(return_value={"Parameters": [{"ParameterKey": "AppImage", "ParameterValue": "current-image"}]})
         self.environment.outputs = Mock(return_value={"DatabaseHost": "private-database"})
@@ -131,6 +145,31 @@ class LifecycleSafetyTests(unittest.TestCase):
 
 
 class InfrastructureContractTests(unittest.TestCase):
+    def test_gpu_registers_with_cloud_map_instead_of_editing_its_managed_zone(self):
+        foundation = BUILDERS["foundation"]()
+        gpu = BUILDERS["gpu"]()
+        service = foundation["Resources"]["AiDiscovery"]["Properties"]
+        self.assertEqual(service["Name"], "ai")
+        self.assertEqual(service["NamespaceId"], {"Ref": "Namespace"})
+        self.assertEqual(service["DnsConfig"]["DnsRecords"][0]["Type"], "A")
+        instance = gpu["Resources"]["AiDns"]
+        self.assertEqual(instance["Type"], "AWS::ServiceDiscovery::Instance")
+        self.assertEqual(instance["Properties"]["ServiceId"], {"Ref": "AiDiscovery"})
+        self.assertEqual(instance["Properties"]["InstanceAttributes"]["AWS_INSTANCE_IPV4"], {"Fn::GetAtt": ["Host", "PrivateIp"]})
+        self.assertFalse(any(value["Type"] == "AWS::Route53::RecordSet" for value in gpu["Resources"].values()))
+
+    def test_express_security_group_arn_is_converted_to_an_ec2_group_id(self):
+        value = BUILDERS["web"]()["Resources"]["AppFromWeb"]["Properties"]["SourceSecurityGroupId"]
+        def resolve(expression):
+            if "Fn::GetAtt" in expression:
+                return ["arn:aws:ec2:ap-northeast-2:189750306426:security-group/sg-0123456789abcdef0"]
+            if "Fn::Split" in expression:
+                separator, source = expression["Fn::Split"]
+                return resolve(source).split(separator)
+            index, source = expression["Fn::Select"]
+            return resolve(source)[index]
+        self.assertEqual(resolve(value), "sg-0123456789abcdef0")
+
     def test_public_gateway_requires_invited_team_members_and_secure_sessions(self):
         foundation = BUILDERS["foundation"]()["Resources"]
         self.assertTrue(foundation["TeamUsers"]["Properties"]["AdminCreateUserConfig"]["AllowAdminCreateUserOnly"])

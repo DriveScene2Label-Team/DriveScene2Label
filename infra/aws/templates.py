@@ -151,6 +151,11 @@ def foundation():
         "Name": "app", "NamespaceId": ref("Namespace"),
         "DnsConfig": {"DnsRecords": [{"Type": "A", "TTL": 10}], "RoutingPolicy": "MULTIVALUE"},
         "HealthCheckCustomConfig": {"FailureThreshold": 1}}, "Private discovery for the Fargate application.")
+    resources["AiDiscovery"] = resource("ServiceDiscovery::Service", {
+        "Name": "ai", "NamespaceId": ref("Namespace"),
+        "DnsConfig": {"DnsRecords": [{"Type": "A", "TTL": 10}], "RoutingPolicy": "MULTIVALUE"}},
+        "Cloud Map owns the private DNS zone; register the disposable GPU through its service.",
+        ["Do not write Route 53 records directly in the Cloud Map managed zone."])
 
     def role(key, principal, managed=(), statements=(), actions=None):
         props = {"RoleName": name(key.lower()), "AssumeRolePolicyDocument": trust(principal, actions), "Tags": tags()}
@@ -219,7 +224,8 @@ def foundation():
         statement(["ecs:CreateService", "ecs:UpdateService", "ecs:DeleteService", "ecs:DescribeServices",
                    "ecs:DescribeTaskDefinition", "ecs:RegisterTaskDefinition", "ecs:DeregisterTaskDefinition",
                    "ecs:TagResource", "ecs:UntagResource", "ecs:ListTagsForResource", "ecs:CreateExpressGatewayService",
-                   "ecs:UpdateExpressGatewayService", "ecs:DeleteExpressGatewayService", "ecs:DescribeExpressGatewayService"], "*",
+                   "ecs:UpdateExpressGatewayService", "ecs:DeleteExpressGatewayService", "ecs:DescribeExpressGatewayService",
+                   "ecs:ListServiceDeployments", "ecs:DescribeServiceDeployments", "ecs:DescribeServiceRevisions"], "*",
                   Condition={"StringEquals": {"aws:RequestedRegion": ref("AWS::Region")}}),
         statement(["eks:CreateCluster", "eks:DeleteCluster", "eks:DescribeCluster", "eks:UpdateClusterConfig",
                    "eks:UpdateClusterVersion", "eks:DescribeUpdate", "eks:TagResource", "eks:UntagResource",
@@ -253,8 +259,8 @@ def foundation():
                    "cognito-idp:UpdateManagedLoginBranding", "cognito-idp:DeleteManagedLoginBranding"], att("TeamUsers")),
         statement(["ssm:GetParameters", "ssm:GetParameter"], arn("ssm", "parameter/aws/service/ecs/optimized-ami/*", account="")),
         statement(["servicediscovery:GetService", "servicediscovery:GetNamespace", "servicediscovery:ListInstances"], "*"),
-        statement(["route53:ChangeResourceRecordSets", "route53:ListResourceRecordSets"], arn("route53", join("hostedzone/", att("Namespace", "HostedZoneId")), account="", region="")),
-        statement(["route53:GetChange"], arn("route53", "change/*", account="", region=""))
+        statement(["servicediscovery:RegisterInstance", "servicediscovery:DeregisterInstance", "servicediscovery:GetInstance"], att("AiDiscovery")),
+        statement(["servicediscovery:GetOperation"], "*", Condition={"StringEquals": {"aws:RequestedRegion": ref("AWS::Region")}})
     ])
     resources["GithubProvider"] = resource("IAM::OIDCProvider", {
         "Url": "https://token.actions.githubusercontent.com", "ClientIdList": ["sts.amazonaws.com"]},
@@ -278,11 +284,13 @@ def foundation():
         statement(["secretsmanager:GetSecretValue"], [ref("AdminSecret"), ref("AppSecret"), ref("OperationsSecret")]),
         statement(["secretsmanager:GetSecretValue", "secretsmanager:PutSecretValue"], ref("WebSecret")),
         statement(["cognito-idp:DescribeUserPoolClient", "cognito-idp:UpdateUserPoolClient"], att("TeamUsers")),
+        statement(["ecs:UpdateService"], arn("ecs", join("service/", name("ecs"), "/", name("web")))),
         statement(["ec2:DescribeInstances", "ec2:DescribeAvailabilityZones", "ec2:DescribeInstanceTypeOfferings",
                    "ec2:DescribeInstanceTypes", "eks:DescribeCluster", "eks:DescribeClusterVersions",
                    "eks:DescribeAddonVersions", "eks:DescribeNodegroup", "eks:ListNodegroups",
                    "eks:ListPodIdentityAssociations", "eks:DescribePodIdentityAssociation",
                    "ecs:ListTasks", "ecs:DescribeTasks", "ecs:DescribeServices", "ecs:DescribeTaskDefinition",
+                   "ecs:ListServiceDeployments", "ecs:DescribeServiceDeployments",
                    "rds:DescribeDBInstances", "rds:DescribeDBSnapshots", "rds:DescribeDBEngineVersions",
                    "rds:DescribeOrderableDBInstanceOptions", "rds:ListTagsForResource", "ssm:DescribeInstanceInformation",
                    "servicequotas:GetServiceQuota", "elasticloadbalancing:DescribeLoadBalancers", "elasticloadbalancing:DescribeTags"], "*",
@@ -301,7 +309,7 @@ def foundation():
         ["GitHub production environment permits release-version only."])
     for key in ["Vpc", "PublicA", "PublicB", "PrivateA", "PrivateB", "NodeSecurityGroup", "AppSecurityGroup",
                 "GpuSecurityGroup", "DatabaseSecurityGroup", "DatabaseSubnets", "DatabaseParameters",
-                "DataBucket", "AdminSecret", "AppSecret", "OperationsSecret", "Cluster", "AppDiscovery", "AppLogs", "AiLogs", "TeamUsers", "WebSecret", "LoginDomain"]:
+                "DataBucket", "AdminSecret", "AppSecret", "OperationsSecret", "Cluster", "AppDiscovery", "AiDiscovery", "AppLogs", "AiLogs", "TeamUsers", "WebSecret", "LoginDomain"]:
         output(body, key, ref(key))
     for key in ["AppRole", "AiRole", "ExecutionRole", "EksControlRole", "EksNodeRole", "EksAppRole", "FormationRole", "GithubRole",
                 "WebExecutionRole", "WebInfrastructureRole", "WebTaskRole"]:
@@ -391,7 +399,7 @@ def eks():
 
 def gpu():
     body = template("Disposable ECS GPU host with stable private DNS; caches may be downloaded again.",
-        {**parameters("Cluster", "PublicA", "GpuSecurityGroup", "GpuProfile", "HostedZone", "AiImage", "AiRole", "ExecutionRole", "AiLogs", "DataBucket"),
+        {**parameters("Cluster", "PublicA", "GpuSecurityGroup", "GpuProfile", "AiDiscovery", "AiImage", "AiRole", "ExecutionRole", "AiLogs", "DataBucket"),
          "GpuAmi": {"Type": "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
                     "Default": "/aws/service/ecs/optimized-ami/amazon-linux-2023/gpu/recommended/image_id"}})
     resources = body["Resources"]
@@ -404,9 +412,11 @@ def gpu():
             "printf 'ECS_CLUSTER=", ref("Cluster"), "\\nECS_ENABLE_GPU_SUPPORT=true\\nECS_ENABLE_TASK_IAM_ROLE_NETWORK_HOST=true\\n' >> /etc/ecs/ecs.config\n")},
         "Tags": tags()}, "Host networking permits outbound model downloads without a NAT gateway.",
         ["Root disk contains caches only; uploads are durable in S3."])
-    resources["AiDns"] = resource("Route53::RecordSet", {
-        "HostedZoneId": ref("HostedZone"), "Name": join("ai.", ref("Project"), ".internal"),
-        "Type": "A", "TTL": "10", "ResourceRecords": [att("Host", "PrivateIp")]}, "Keep the model URL stable across GPU recreation.")
+    resources["AiDns"] = resource("ServiceDiscovery::Instance", {
+        "ServiceId": ref("AiDiscovery"), "InstanceId": ref("Host"),
+        "InstanceAttributes": {"AWS_INSTANCE_IPV4": att("Host", "PrivateIp"), "AWS_INSTANCE_PORT": "8000"}},
+        "Register the current GPU host in Cloud Map and deregister it when the GPU stack is removed.",
+        ["The stable private model URL must resolve to the current GPU host only."])
     resources["Task"] = resource("ECS::TaskDefinition", {
         "Family": name("ai"), "NetworkMode": "host", "RequiresCompatibilities": ["EC2"],
         "RuntimePlatform": {"CpuArchitecture": "X86_64", "OperatingSystemFamily": "LINUX"},
@@ -519,7 +529,8 @@ def web():
                 ("OAUTH2_PROXY_CLIENT_SECRET", "client_secret"), ("OAUTH2_PROXY_COOKIE_SECRET", "cookie_secret")]]}},
         "Every application request requires a signed login session and team membership; /ping exposes no application data.")
     resources["AppFromWeb"] = resource("EC2::SecurityGroupIngress", {
-        "GroupId": ref("AppSecurityGroup"), "SourceSecurityGroupId": {"Fn::Select": [0, att("Gateway", "ECSManagedResourceArns.ServiceSecurityGroups")]},
+        "GroupId": ref("AppSecurityGroup"), "SourceSecurityGroupId": {"Fn::Select": [1, {"Fn::Split": ["/",
+            {"Fn::Select": [0, att("Gateway", "ECSManagedResourceArns.ServiceSecurityGroups")]}]}]},
         "IpProtocol": "tcp", "FromPort": 8080, "ToPort": 8080}, "Only the authenticated gateway can reach the private backend.")
     output(body, "Endpoint", att("Gateway", "Endpoint"))
     output(body, "WebService", att("Gateway", "ServiceArn"))

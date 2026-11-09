@@ -83,6 +83,8 @@ GitHub 배포와 lifecycle은 같은 concurrency group과 `queue: max`를 써서
 
 ## 팀 로그인과 외부 HTTPS 주소
 
+2026-11-09 생성한 서울 주소: **https://ds-0b9e41d7414848af9d6a29b538031aa6.ecs.ap-northeast-2.on.aws**. `/scenes?dataset=3`에 실제 nuScenes `scene-0061` 39개 프레임을 업로드했습니다. `/labels`는 라벨 JSON 편집 화면입니다. 공개 주소와 로그인 리디렉션·최초 비밀번호 변경 화면을 확인했으며, 인증 후 전체 흐름 검증과 구분합니다. 환경 재생성 시 아래 `status` 결과가 최신 주소입니다.
+
 최초 관리자가 갱신된 `bootstrap`을 적용한 뒤 `AWS environment → web-start`를 실행한다. `status`의 `recovery.public_url`이 실제 외부 접속 주소다. Express Mode가 AWS 도메인과 TLS 인증서를 제공하므로 도메인 구매와 로컬 터널이 필요 없다. `/scenes`에서 씬을 탐색하고 `/labels`에서 파일 업로드·편집·수정본 저장·다운로드를 사용한다. 새 방문은 최신 업로드 데이터셋을 선택하고 기존 dataset 링크는 보존한다.
 
 Cognito는 관리자 생성 계정만 허용하며 `team` 그룹 회원만 프록시를 통과한다. 코드 교환에는 PKCE와 nonce를 사용하고, 로그인 쿠키는 Secure·HttpOnly·SameSite=Lax다. DB·S3·GPU는 공개하지 않는다. `/ping`은 앱 데이터가 없는 상태 확인 경로다. 그룹에서 제거한 사용자의 기존 세션은 갱신/만료 시 차단되므로 긴급 접근 회수 시 Cognito 계정 비활성화와 프록시 세션 키 교체를 함께 검토한다.
@@ -122,7 +124,9 @@ kubectl -n drivescene port-forward service/backend 18081:8080 --address=127.0.0.
 
 ## 검증과 현재 기능 범위
 
-2026-11-09 서울에서 [CPU 환경 start](https://github.com/DriveScene2Label-Team/DriveScene2Label/actions/runs/42595122060)와 [ECS/EKS 실제 UI·원본 ZIP 검증](https://github.com/DriveScene2Label-Team/DriveScene2Label/actions/runs/42595393497)이 성공했다. 같은 이미지 digest를 확인하고 양쪽 브라우저에서 라벨 수정본 저장·재조회·다운로드를 검사했으며, 두 환경에서 원본 라벨과 ZIP 해시가 일치했다. GPU는 한도 승인 대기이며 전체 stop/start 스냅샷 복원은 아직 검증하지 않았다. 검증 후 CPU 환경은 실행 중이므로 사용 종료 시 `stop`을 실행한다.
+2026-11-09 서울에서 [CPU 환경 start](https://github.com/DriveScene2Label-Team/DriveScene2Label/actions/runs/42595122060)와 [ECS/EKS 실제 UI·원본 ZIP 검증](https://github.com/DriveScene2Label-Team/DriveScene2Label/actions/runs/42595393497)이 성공했다. 같은 이미지 digest를 확인하고 양쪽 브라우저에서 라벨 수정본 저장·재조회·다운로드를 검사했으며, 두 환경에서 원본 라벨과 ZIP 해시가 일치했다. [공개 게이트웨이 추가 릴리스](https://github.com/DriveScene2Label-Team/DriveScene2Label/actions/runs/42603725024)의 검사·이미지 발행·앱 배포도 성공했다. GPU 한도는 8 vCPU로 승인됐으며 실제 추론과 전체 stop/start 스냅샷 복원은 별도 검증해야 한다. 사용 종료 시 `stop`을 실행한다.
+
+GPU의 `ai.ds2l.internal`은 Cloud Map 서비스와 `AWS::ServiceDiscovery::Instance`로 관리한다. Cloud Map이 소유한 DNS 영역에 Route 53 레코드를 직접 쓰면 거부되므로 해당 방식은 사용하지 않는다. GPU 생성 시 현재 사설 IP를 등록하고 제거 시 등록도 해제한다. 배포 역할은 이 AI 서비스에 대한 등록·해제 권한만 갖는다. 공개 게이트웨이는 ECS가 반환하는 보안 그룹 ARN에서 그룹 ID를 추출하고, secret 갱신 후 시작한 새 배포가 성공했는지 확인한다.
 
 ```bash
 python -m unittest discover -s scripts/aws/tests -v

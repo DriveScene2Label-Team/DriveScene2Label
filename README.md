@@ -4,6 +4,8 @@ nuScenes 기반 **3D Auto-Labeling + 자연어 Scene Retrieval + 라벨 편집**
 
 배포 기준 브랜치는 **`release-version`**, AWS 리전은 **서울 `ap-northeast-2`**입니다. [이번 릴리스 변경사항과 JPA 선택 이유](#15-release-version-변경사항), [AWS 구성·선택 이유·배포 방법](#16-aws-배포와-구성-이유)을 먼저 확인하세요.
 
+현재 서울 배포: **[팀 로그인 / 씬 탐색](https://ds-0b9e41d7414848af9d6a29b538031aa6.ecs.ap-northeast-2.on.aws/scenes?dataset=3)** · **[라벨 업로드·편집](https://ds-0b9e41d7414848af9d6a29b538031aa6.ecs.ap-northeast-2.on.aws/labels)**. 관리자에게 받은 앱 계정으로 로그인합니다. 최초 로그인은 비밀번호 변경이 필요합니다. 전체 환경을 제거하고 재생성하면 URL이 바뀔 수 있으므로 `status`의 `recovery.public_url`을 확인하세요.
+
 - [프론트엔드 REST API 명세](README_API.md)
 - [파일 업로드·라벨 수정본 저장·다운로드](docs/label-editing.md)
 - [서울 AWS ECS·EKS·GPU 켜기/끄기와 release-version 배포](docs/aws-ecs-cicd.md)
@@ -394,7 +396,7 @@ GitHub 기본 브랜치와 `production` 배포 허용 브랜치를 `release-vers
 |프런트엔드 단위 테스트·프로덕션 빌드|61개 및 빌드 통과|
 |UI fixture / 실제 Spring 라벨 저장·다운로드|2개 / 1개 통과|
 |AI 업로드 계약 / 배포 안전장치|11개 / 15개 통과|
-|팀 로그인 인프라 보안 조건|배포 안전장치 총 16개 통과. cfn-lint 및 cfn-guard의 적용 가능한 저장소·DB·계정 규칙 통과|
+|팀 로그인·GPU DNS 인프라 조건|배포 안전장치 총 19개 통과. cfn-lint 및 cfn-guard의 적용 가능한 저장소·DB·계정 규칙 통과|
 |실제 nuScenes 센서 데이터|scene-0061 ZIP 업로드, dataset 3 / scene 3, 39개 프레임·6개 카메라 이미지·GT 박스 표시 확인. 기존 합성 테스트 fixture와 구분|
 |Docker 전체 빌드·CloudFormation 템플릿 검사|통과|
 |GitHub 원격 CI·OIDC·ECR 발행|[성공 실행](https://github.com/DriveScene2Label-Team/DriveScene2Label/actions/runs/42579817011)|
@@ -403,8 +405,8 @@ GitHub 기본 브랜치와 `production` 배포 허용 브랜치를 `release-vers
 |서울 ECS/EKS 앱 배포·동일 이미지 확인|[start 성공](https://github.com/DriveScene2Label-Team/DriveScene2Label/actions/runs/42595122060)|
 |ECS/EKS 실제 UI 저장·다운로드·ZIP 교차 조회|양쪽 브라우저 검사 통과, 원본 라벨·revision·ZIP SHA-256 일치. [검증 실행](https://github.com/DriveScene2Label-Team/DriveScene2Label/actions/runs/42595393497)|
 |전체 stop/start 후 DB 스냅샷 복원·무잔여 검사|아직 실환경 검증하지 않음. 종료 안전장치 단위 테스트와 구분|
-|서울 GPU 추론·임베딩|G/VT On-Demand 한도 0→8 vCPU 요청 승인 대기. 승인 전에는 실측하지 않음|
+|서울 GPU 추론·임베딩|G/VT On-Demand 한도 8 vCPU 승인 확인. GPU DNS 등록을 Cloud Map 방식으로 수정했으며 실제 추론 성공은 별도 검증 필요|
 
-검증 직후에는 ECS 앱, EKS 클러스터·CPU 노드 1대, RDS가 **실행 중**이며 비용이 발생합니다. GPU는 꺼져 있습니다. 팀 로그인 게이트웨이는 구성 코드를 추가했으며 실제 배포·로그인 검증 완료 전에는 공개 주소가 준비됐다고 안내하지 않습니다. 사용을 마치면 `AWS environment → stop`을 실행합니다. 관리자 SSM/kubectl 접속에는 유효한 프로젝트 계정 로그인이 필요합니다.
+ECS 앱, EKS 클러스터·CPU 노드 1대, RDS와 공개 로그인 게이트웨이가 **실행 중**입니다. 공개 HTTPS에서 Cognito 로그인과 최초 비밀번호 변경 화면까지 확인했습니다. 본인 앱 계정은 생성했으며 인증 후 편집 전체 흐름 검증은 별도 기록합니다. GPU의 실행 상태는 `status`에서 확인합니다. 사용을 마치면 `AWS environment → stop`을 실행합니다. 관리자 SSM/kubectl 접속에는 유효한 프로젝트 계정 로그인이 필요합니다.
 
 `/health` 성공은 CLIP 로딩을 의미하며 VESPA 전체 추론 성공을 대신하지 않습니다. 기존 로컬 GPU 검증과 이번 AWS 배포 검증은 구분합니다. 새로 확인되는 결과와 제한은 이 표와 [AWS 운영 문서](docs/aws-ecs-cicd.md)에 기록합니다.
