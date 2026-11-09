@@ -11,6 +11,31 @@ const original = {
   },
 };
 
+test('배포 후 이전 화면 모듈 실패 시 같은 주소에서 한 번 새로고침한다', async ({ page }) => {
+  await installMockApi(page);
+  let moduleRequests = 0;
+  await page.route('**/assets/SceneWorkspacePage-*.js', async (route) => {
+    moduleRequests += 1;
+    if (moduleRequests === 1) return route.abort('failed');
+    return route.continue();
+  });
+  await page.goto('/scenes/21?dataset=3&view=split');
+  await expect(page.getByRole('heading', { name: 'scene-0061', exact: true })).toBeVisible();
+  expect(moduleRequests).toBe(2);
+  expect(new URL(page.url()).searchParams.get('dataset')).toBe('3');
+});
+
+test('화면 모듈이 계속 실패해도 무한 새로고침 대신 복구 버튼을 제공한다', async ({ page }) => {
+  await installMockApi(page);
+  let moduleRequests = 0;
+  await page.route('**/assets/SceneWorkspacePage-*.js', (route) => { moduleRequests += 1; return route.abort('failed'); });
+  await page.goto('/scenes/21?dataset=3&view=split');
+  await expect(page.getByRole('button', { name: '새로고침', exact: true })).toBeVisible();
+  await expect.poll(() => moduleRequests).toBe(2);
+  await expect(page.getByRole('heading', { name: '화면을 다시 불러와 주세요' })).toBeVisible();
+  expect(moduleRequests).toBe(2);
+});
+
 test('라벨 업로드 → UI 수정 → 저장 → 다시 열기 → 다운로드', async ({ page }) => {
   await installMockApi(page);
   let document: Record<string, unknown> | null = null;

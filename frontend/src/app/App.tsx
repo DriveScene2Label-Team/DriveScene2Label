@@ -6,6 +6,7 @@ import { InstanceWatcher } from '@/features/system/InstanceWatcher';
 import { bindQueryClient } from '@/lib/jobs/submissions';
 import { createQueryClient } from './queryClient';
 import { SceneSearchPage } from '@/pages/SceneSearchPage';
+import { RouteErrorPage } from './RouteErrorPage';
 
 // Workspace pages carry the camera grid and the Rerun viewer; load them only when needed.
 const SceneWorkspacePage = lazy(() => import('@/pages/SceneWorkspacePage'));
@@ -14,14 +15,14 @@ const LabelEditorPage = lazy(() => import('@/pages/LabelEditorPage'));
 
 const loading = <div className="page-state" role="status"><span className="spin" aria-hidden="true" /></div>;
 
-const router = createBrowserRouter([
+const router = createBrowserRouter([{ errorElement: <RouteErrorPage />, children: [
   { path: '/', element: <Navigate to="/scenes" replace /> },
   { path: '/scenes', element: <SceneSearchPage /> },
   { path: '/scenes/:sceneId', element: <Suspense fallback={loading}><SceneWorkspacePage /></Suspense> },
   { path: '/compare', element: <Suspense fallback={loading}><SceneComparePage /></Suspense> },
   { path: '/labels', element: <Suspense fallback={loading}><LabelEditorPage /></Suspense> },
   { path: '*', element: <Navigate to="/scenes" replace /> },
-]);
+]}]);
 
 export function App() {
   const [client] = useState(() => {
