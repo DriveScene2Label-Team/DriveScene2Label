@@ -1,4 +1,4 @@
-"""Private, on-demand AWS environment. Run only with short-lived AWS credentials.
+"""On-demand AWS environment with a team-authenticated public gateway. Use short-lived AWS credentials.
 
 All mutations share a conditional S3 lock. Stop never deletes a database before
 both an available encrypted snapshot and a durable recovery record exist.
@@ -63,7 +63,8 @@ class Environment:
         session = boto3.Session(region_name=region)
         config = Config(retries={"mode": "standard", "max_attempts": 5}, connect_timeout=10, read_timeout=60)
         self.clients = {name: session.client(name, config=config) for name in
-                        ["sts", "cloudformation", "s3", "rds", "ec2", "ecs", "eks", "ssm", "secretsmanager", "iam", "service-quotas"]}
+                        ["sts", "cloudformation", "s3", "rds", "ec2", "ecs", "eks", "ssm", "secretsmanager", "iam", "service-quotas",
+                         "cognito-idp", "elbv2"]}
         identity = self.clients["sts"].get_caller_identity()
         self.identity_arn = identity["Arn"]
         if identity["Account"] != ACCOUNT:
@@ -99,12 +100,12 @@ class Environment:
             request["RoleARN"] = self.foundation["FormationRole"]
         client = self.clients["cloudformation"]
         current = self.stack(component)
-        if current and current["StackStatus"] == "ROLLBACK_COMPLETE" and component in ["app", "eks", "gpu"]:
+        if current and current["StackStatus"] == "ROLLBACK_COMPLETE" and component in ["app", "eks", "gpu", "web"]:
             # A failed first create has already rolled back all disposable resources.
             # Never automatically clear a database/foundation stack with retained data.
             self.delete_stack(component)
             current = None
-        if current and current["StackStatus"] not in ["CREATE_COMPLETE", "UPDATE_COMPLETE", "UPDATE_ROLLBACK_COMPLETE"]:
+        if current and current["StackStatus"] not in ["CREATE_COMPLETE", "UPDATE_COMPLETE", "UPDATE_ROLLBACK_COMPLETE", "IMPORT_COMPLETE"]:
             raise RuntimeError(f"{component}: {current['StackStatus']}; resolve the stack failure before retrying.")
         try:
             if not current:
@@ -127,7 +128,7 @@ class Environment:
         return self.outputs(component)
 
     def delete_stack(self, component):
-        if component not in ["app", "gpu", "eks", "database"]:
+        if component not in ["app", "gpu", "eks", "database", "web"]:
             raise ValueError("Persistent foundation cannot be deleted by lifecycle commands.")
         if not self.stack(component):
             return
@@ -434,6 +435,8 @@ class Environment:
         self.install_application(images["app"])
         self.verify_application_image(images["app"])
         self.resume()
+        if state.get("web_enabled"):
+            self.web_start()
         state, etag = self.read_control("state")
         state.update(phase="running", app_image=images["app"], ai_image=images.get("ai") if with_gpu else None)
         self.write_control("state", state, IfMatch=etag)
@@ -442,6 +445,7 @@ class Environment:
     def stop(self):
         if self.stack("app") or self.stack("eks"):
             self.drain()
+        self.delete_stack("web")
         self.delete_stack("app")
         if self.stack("eks"):
             self.kubeconfig()
@@ -498,18 +502,56 @@ class Environment:
         state[component + "_image"] = image
         self.write_control("state", state, IfMatch=etag)
 
+    def web_start(self):
+        if not self.stack("app"):
+            raise RuntimeError("Start the private application before enabling its public gateway.")
+        if "TeamUsers" not in self.foundation:
+            raise RuntimeError("Run bootstrap to provision the persistent Cognito team directory first.")
+        web = self.deploy_stack("web", self.foundation)
+        endpoint = web["Endpoint"]
+        endpoint = endpoint if endpoint.startswith("https://") else "https://" + endpoint
+        endpoint = endpoint.rstrip("/")
+        cognito = self.clients["cognito-idp"]
+        client = cognito.describe_user_pool_client(UserPoolId=self.foundation["TeamUsers"], ClientId=web["WebClient"])["UserPoolClient"]
+        secret_client = self.clients["secretsmanager"]
+        secret = json.loads(secret_client.get_secret_value(SecretId=self.foundation["WebSecret"])["SecretString"])
+        if secret.get("client_secret") != client["ClientSecret"]:
+            secret["client_secret"] = client["ClientSecret"]
+            secret_client.put_secret_value(SecretId=self.foundation["WebSecret"], SecretString=json.dumps(secret))
+        # This API replaces omitted fields. Preserve every writable field from Describe.
+        writable = set(cognito.meta.service_model.operation_model("UpdateUserPoolClient").input_shape.members)
+        request = {key: value for key, value in client.items() if key in writable}
+        request.update(CallbackURLs=[endpoint + "/oauth2/callback"], LogoutURLs=[endpoint + "/"], DefaultRedirectURI=endpoint + "/oauth2/callback")
+        cognito.update_user_pool_client(**request)
+        ecs = self.clients["ecs"]
+        ecs.update_service(cluster=self.foundation["Cluster"], service=web["WebService"], forceNewDeployment=True)
+        def healthy():
+            service = ecs.describe_services(cluster=self.foundation["Cluster"], services=[web["WebService"]])["services"][0]
+            return len(service["deployments"]) == 1 and service["runningCount"] == service["desiredCount"] and service["runningCount"] > 0
+        wait_until("authenticated HTTPS gateway", healthy, timeout=1200)
+        state, etag = self.read_control("state")
+        state.update(web_enabled=True, public_url=endpoint, web_load_balancer=web["LoadBalancer"])
+        self.write_control("state", state, IfMatch=etag)
+        log("Team login URL: " + endpoint)
+
     def running_resources(self):
         instances = [instance["InstanceId"] for page in self.clients["ec2"].get_paginator("describe_instances").paginate(Filters=[
             {"Name": "tag:Project", "Values": [self.project]},
             {"Name": "instance-state-name", "Values": ["pending", "running", "stopping", "stopped", "shutting-down"]}])
             for reservation in page["Reservations"] for instance in reservation["Instances"]]
         tasks = self.clients["ecs"].list_tasks(cluster=self.foundation["Cluster"])["taskArns"] if self.foundation else []
-        return {"instances": instances, "tasks": tasks, "database": bool(self.database()), "eks": bool(self.stack("eks"))}
+        state, _ = self.read_control("state")
+        load_balancers = []
+        if state.get("web_load_balancer"):
+            load_balancers = [item["LoadBalancerArn"] for page in self.clients["elbv2"].get_paginator("describe_load_balancers").paginate()
+                             for item in page["LoadBalancers"] if item["LoadBalancerArn"] == state["web_load_balancer"]]
+        return {"instances": instances, "tasks": tasks, "database": bool(self.database()), "eks": bool(self.stack("eks")),
+                "web": bool(self.stack("web")), "load_balancers": load_balancers}
 
     def status(self):
         result = {"account": ACCOUNT, "region": self.region, "foundation": bool(self.foundation),
                   "resources": self.running_resources(),
-                  "stacks": {key: (self.stack(key) or {}).get("StackStatus", "absent") for key in ["app", "gpu", "database", "eks"]},
+                  "stacks": {key: (self.stack(key) or {}).get("StackStatus", "absent") for key in ["app", "gpu", "database", "eks", "web"]},
                   "gpu_vcpu_quota": self.clients["service-quotas"].get_service_quota(ServiceCode="ec2", QuotaCode="L-DB2E81BA")["Quota"]["Value"]}
         if self.foundation:
             result["recovery"], _ = self.read_control("state")
@@ -518,7 +560,7 @@ class Environment:
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action", choices=["bootstrap", "start", "stop", "status", "gpu-start", "gpu-stop", "publish"])
+    parser.add_argument("action", choices=["bootstrap", "start", "stop", "status", "gpu-start", "gpu-stop", "publish", "web-start"])
     parser.add_argument("--project", default=os.environ.get("DS2L_PROJECT", "ds2l"))
     parser.add_argument("--region", default=os.environ.get("AWS_REGION", REGION))
     parser.add_argument("--without-gpu", action="store_true")
@@ -534,7 +576,9 @@ def main():
         if not environment.foundation:
             raise RuntimeError("Run bootstrap in the project account before lifecycle actions.")
         with environment.lock(args.action):
-            if args.action == "start":
+            if args.action == "web-start":
+                environment.web_start()
+            elif args.action == "start":
                 environment.start(with_gpu=not args.without_gpu)
             elif args.action == "stop":
                 environment.stop()

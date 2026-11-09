@@ -169,6 +169,31 @@ def foundation():
     role("AiRole", "ecs-tasks.amazonaws.com", statements=[statement(["s3:GetObject"], uploads)])
     role("ExecutionRole", "ecs-tasks.amazonaws.com", ["service-role/AmazonECSTaskExecutionRolePolicy"], [
         statement(["secretsmanager:GetSecretValue"], [ref("AppSecret"), ref("OperationsSecret")])])
+    resources["TeamUsers"] = resource("Cognito::UserPool", {
+        "UserPoolName": name("team"), "UserPoolTier": "ESSENTIALS", "DeletionProtection": "ACTIVE",
+        "AdminCreateUserConfig": {"AllowAdminCreateUserOnly": True}, "UsernameConfiguration": {"CaseSensitive": False},
+        "Policies": {"PasswordPolicy": {"MinimumLength": 14, "RequireLowercase": True, "RequireUppercase": True,
+                    "RequireNumbers": True, "RequireSymbols": True, "TemporaryPasswordValidityDays": 7}},
+        "MfaConfiguration": "OPTIONAL", "EnabledMfas": ["SOFTWARE_TOKEN_MFA"],
+        "UserPoolTags": {"Project": ref("Project")}},
+        "Only administrator-created team accounts can access the public site.",
+        DeletionPolicy="Retain", UpdateReplacePolicy="Retain")
+    resources["TeamGroup"] = resource("Cognito::UserPoolGroup", {
+        "UserPoolId": ref("TeamUsers"), "GroupName": "team", "Description": "Authorized DriveScene2Label team members"},
+        "A valid account also needs explicit team membership.")
+    resources["LoginDomain"] = resource("Cognito::UserPoolDomain", {
+        "UserPoolId": ref("TeamUsers"), "Domain": join(ref("Project"), "-", ref("AWS::AccountId"), "-seoul"),
+        "ManagedLoginVersion": 2}, "AWS-hosted HTTPS login; no purchased domain is required.")
+    resources["WebSecret"] = resource("SecretsManager::Secret", {
+        "Name": name("websecret"), "Tags": tags(), "GenerateSecretString": {
+            "SecretStringTemplate": '{"client_secret":"not-configured"}', "GenerateStringKey": "cookie_secret",
+            "PasswordLength": 32, "ExcludePunctuation": True}},
+        "Session signing key and confidential OAuth client secret never enter Git or logs.",
+        DeletionPolicy="Retain", UpdateReplacePolicy="Retain")
+    role("WebExecutionRole", "ecs-tasks.amazonaws.com", ["service-role/AmazonECSTaskExecutionRolePolicy"], [
+        statement(["secretsmanager:GetSecretValue"], ref("WebSecret"))])
+    role("WebInfrastructureRole", "ecs.amazonaws.com", ["service-role/AmazonECSInfrastructureRoleforExpressGatewayServices"])
+    role("WebTaskRole", "ecs-tasks.amazonaws.com")
     role("GpuHostRole", "ec2.amazonaws.com",
          ["service-role/AmazonEC2ContainerServiceforEC2Role", "AmazonSSMManagedInstanceCore"])
     resources["GpuProfile"] = resource("IAM::InstanceProfile", {"Roles": [ref("GpuHostRole")]},
@@ -184,15 +209,17 @@ def foundation():
         "StringEquals": {"aws:RequestTag/kubernetes-namespace": "drivescene",
                          "aws:RequestTag/kubernetes-service-account": "backend"}}
     # CloudFormation YAML/JSON is infrastructure, not runtime source. Keep provisioning separate from SDK task permissions.
-    runtime_roles = [att(key) for key in ["AppRole", "AiRole", "ExecutionRole", "GpuHostRole", "EksControlRole", "EksNodeRole", "EksAppRole"]]
+    runtime_roles = [att(key) for key in ["AppRole", "AiRole", "ExecutionRole", "GpuHostRole", "EksControlRole", "EksNodeRole", "EksAppRole",
+                                        "WebExecutionRole", "WebInfrastructureRole", "WebTaskRole"]]
     role("FormationRole", "cloudformation.amazonaws.com", statements=[
         statement(["ec2:Describe*", "ec2:RunInstances", "ec2:TerminateInstances", "ec2:CreateTags", "ec2:DeleteTags",
                    "ec2:CreateLaunchTemplate", "ec2:DeleteLaunchTemplate", "ec2:CreateLaunchTemplateVersion",
                    "ec2:DeleteLaunchTemplateVersions", "ec2:ModifyLaunchTemplate", "ec2:AuthorizeSecurityGroupIngress",
-                   "ec2:RevokeSecurityGroupIngress"], "*", Condition={"StringEquals": {"aws:RequestedRegion": ref("AWS::Region")}}),
+                   "ec2:RevokeSecurityGroupIngress", "ec2:CreateSecurityGroup", "ec2:DeleteSecurityGroup"], "*", Condition={"StringEquals": {"aws:RequestedRegion": ref("AWS::Region")}}),
         statement(["ecs:CreateService", "ecs:UpdateService", "ecs:DeleteService", "ecs:DescribeServices",
                    "ecs:DescribeTaskDefinition", "ecs:RegisterTaskDefinition", "ecs:DeregisterTaskDefinition",
-                   "ecs:TagResource", "ecs:UntagResource", "ecs:ListTagsForResource"], "*",
+                   "ecs:TagResource", "ecs:UntagResource", "ecs:ListTagsForResource", "ecs:CreateExpressGatewayService",
+                   "ecs:UpdateExpressGatewayService", "ecs:DeleteExpressGatewayService", "ecs:DescribeExpressGatewayService"], "*",
                   Condition={"StringEquals": {"aws:RequestedRegion": ref("AWS::Region")}}),
         statement(["eks:CreateCluster", "eks:DeleteCluster", "eks:DescribeCluster", "eks:UpdateClusterConfig",
                    "eks:UpdateClusterVersion", "eks:DescribeUpdate", "eks:TagResource", "eks:UntagResource",
@@ -221,6 +248,9 @@ def foundation():
         statement(["iam:CreateServiceLinkedRole"], "*",
                   Condition={"StringEquals": {"iam:AWSServiceName": ["eks.amazonaws.com", "eks-nodegroup.amazonaws.com", "ecs.amazonaws.com", "rds.amazonaws.com", "autoscaling.amazonaws.com"]}}),
         statement(["secretsmanager:GetSecretValue"], ref("AdminSecret")),
+        statement(["cognito-idp:CreateUserPoolClient", "cognito-idp:DescribeUserPoolClient", "cognito-idp:UpdateUserPoolClient",
+                   "cognito-idp:DeleteUserPoolClient", "cognito-idp:CreateManagedLoginBranding", "cognito-idp:DescribeManagedLoginBranding",
+                   "cognito-idp:UpdateManagedLoginBranding", "cognito-idp:DeleteManagedLoginBranding"], att("TeamUsers")),
         statement(["ssm:GetParameters", "ssm:GetParameter"], arn("ssm", "parameter/aws/service/ecs/optimized-ami/*", account="")),
         statement(["servicediscovery:GetService", "servicediscovery:GetNamespace", "servicediscovery:ListInstances"], "*"),
         statement(["route53:ChangeResourceRecordSets", "route53:ListResourceRecordSets"], arn("route53", join("hostedzone/", att("Namespace", "HostedZoneId")), account="", region="")),
@@ -246,6 +276,8 @@ def foundation():
         statement(["s3:GetObject", "s3:PutObject"], join(att("DataBucket"), "/control/*")),
         statement(["s3:ListBucket"], att("DataBucket"), Condition={"StringLike": {"s3:prefix": "control/*"}}),
         statement(["secretsmanager:GetSecretValue"], [ref("AdminSecret"), ref("AppSecret"), ref("OperationsSecret")]),
+        statement(["secretsmanager:GetSecretValue", "secretsmanager:PutSecretValue"], ref("WebSecret")),
+        statement(["cognito-idp:DescribeUserPoolClient", "cognito-idp:UpdateUserPoolClient"], att("TeamUsers")),
         statement(["ec2:DescribeInstances", "ec2:DescribeAvailabilityZones", "ec2:DescribeInstanceTypeOfferings",
                    "ec2:DescribeInstanceTypes", "eks:DescribeCluster", "eks:DescribeClusterVersions",
                    "eks:DescribeAddonVersions", "eks:DescribeNodegroup", "eks:ListNodegroups",
@@ -253,7 +285,7 @@ def foundation():
                    "ecs:ListTasks", "ecs:DescribeTasks", "ecs:DescribeServices", "ecs:DescribeTaskDefinition",
                    "rds:DescribeDBInstances", "rds:DescribeDBSnapshots", "rds:DescribeDBEngineVersions",
                    "rds:DescribeOrderableDBInstanceOptions", "rds:ListTagsForResource", "ssm:DescribeInstanceInformation",
-                   "servicequotas:GetServiceQuota"], "*",
+                   "servicequotas:GetServiceQuota", "elasticloadbalancing:DescribeLoadBalancers", "elasticloadbalancing:DescribeTags"], "*",
                   Condition={"StringEquals": {"aws:RequestedRegion": ref("AWS::Region")}}),
         statement(["rds:CreateDBSnapshot", "rds:DeleteDBInstance", "rds:AddTagsToResource"],
                   [arn("rds", join("db:", name("database"))), arn("rds", join("snapshot:", name("*")))]),
@@ -269,9 +301,10 @@ def foundation():
         ["GitHub production environment permits release-version only."])
     for key in ["Vpc", "PublicA", "PublicB", "PrivateA", "PrivateB", "NodeSecurityGroup", "AppSecurityGroup",
                 "GpuSecurityGroup", "DatabaseSecurityGroup", "DatabaseSubnets", "DatabaseParameters",
-                "DataBucket", "AdminSecret", "AppSecret", "OperationsSecret", "Cluster", "AppDiscovery", "AppLogs", "AiLogs"]:
+                "DataBucket", "AdminSecret", "AppSecret", "OperationsSecret", "Cluster", "AppDiscovery", "AppLogs", "AiLogs", "TeamUsers", "WebSecret", "LoginDomain"]:
         output(body, key, ref(key))
-    for key in ["AppRole", "AiRole", "ExecutionRole", "EksControlRole", "EksNodeRole", "EksAppRole", "FormationRole", "GithubRole"]:
+    for key in ["AppRole", "AiRole", "ExecutionRole", "EksControlRole", "EksNodeRole", "EksAppRole", "FormationRole", "GithubRole",
+                "WebExecutionRole", "WebInfrastructureRole", "WebTaskRole"]:
         output(body, key, att(key))
     output(body, "GpuProfile", ref("GpuProfile"))
     output(body, "OperatorRole", ref("OperatorRole"))
@@ -439,7 +472,63 @@ def app():
     return body
 
 
-BUILDERS = {"foundation": foundation, "database": database, "eks": eks, "gpu": gpu, "app": app}
+def web():
+    body = template("Public HTTPS gateway with mandatory Cognito team login; backend and database remain private.",
+        parameters("Cluster", "PublicA", "PublicB", "AppSecurityGroup", "AppLogs", "TeamUsers", "WebSecret",
+                   "WebExecutionRole", "WebInfrastructureRole", "WebTaskRole"))
+    resources = body["Resources"]
+    resources["Client"] = resource("Cognito::UserPoolClient", {
+        "UserPoolId": ref("TeamUsers"), "ClientName": name("web"), "GenerateSecret": True,
+        "SupportedIdentityProviders": ["COGNITO"], "AllowedOAuthFlowsUserPoolClient": True,
+        "AllowedOAuthFlows": ["code"], "AllowedOAuthScopes": ["openid"],
+        "CallbackURLs": ["https://localhost/oauth2/callback"], "LogoutURLs": ["https://localhost/"],
+        "AccessTokenValidity": 60, "IdTokenValidity": 60, "RefreshTokenValidity": 1,
+        "TokenValidityUnits": {"AccessToken": "minutes", "IdToken": "minutes", "RefreshToken": "days"},
+        "EnableTokenRevocation": True, "PreventUserExistenceErrors": "ENABLED",
+        "ExplicitAuthFlows": ["ALLOW_USER_SRP_AUTH", "ALLOW_REFRESH_TOKEN_AUTH"]},
+        "Callback is set to the generated HTTPS endpoint by web-start before login becomes usable.")
+    resources["Branding"] = resource("Cognito::ManagedLoginBranding", {
+        "UserPoolId": ref("TeamUsers"), "ClientId": ref("Client"), "UseCognitoProvidedValues": True},
+        "Managed login needs branding even when default styling is used.")
+    resources["Gateway"] = resource("ECS::ExpressGatewayService", {
+        "Cluster": ref("Cluster"), "ServiceName": name("web"), "Cpu": "256", "Memory": "512",
+        "ExecutionRoleArn": ref("WebExecutionRole"), "InfrastructureRoleArn": ref("WebInfrastructureRole"),
+        "TaskRoleArn": ref("WebTaskRole"), "HealthCheckPath": "/ping",
+        "NetworkConfiguration": {"Subnets": [ref("PublicA"), ref("PublicB")]},
+        "ScalingTarget": {"MinTaskCount": 1, "MaxTaskCount": 1}, "Tags": tags(),
+        "PrimaryContainer": {
+            "Image": "quay.io/oauth2-proxy/oauth2-proxy@sha256:8498b0d0ef0a7b29686414000a08aee467f02d0299c9ed1e006a8f33fc017916",
+            "ContainerPort": 4180,
+            "AwsLogsConfiguration": {"LogGroup": ref("AppLogs"), "LogStreamPrefix": "web"},
+            "Environment": [{"Name": key, "Value": value} for key, value in {
+                "OAUTH2_PROXY_HTTP_ADDRESS": "0.0.0.0:4180", "OAUTH2_PROXY_PROVIDER": "oidc",
+                "OAUTH2_PROXY_CLIENT_ID": ref("Client"),
+                "OAUTH2_PROXY_OIDC_ISSUER_URL": join("https://cognito-idp.", ref("AWS::Region"), ".amazonaws.com/", ref("TeamUsers")),
+                "OAUTH2_PROXY_UPSTREAMS": join("http://app.", ref("Project"), ".internal:8080/"),
+                "OAUTH2_PROXY_REVERSE_PROXY": "true", "OAUTH2_PROXY_EMAIL_DOMAINS": "*",
+                "OAUTH2_PROXY_OIDC_EMAIL_CLAIM": "cognito:username", "OAUTH2_PROXY_OIDC_GROUPS_CLAIM": "cognito:groups",
+                "OAUTH2_PROXY_ALLOWED_GROUPS": "team", "OAUTH2_PROXY_SCOPE": "openid",
+                "OAUTH2_PROXY_SKIP_CLAIMS_FROM_PROFILE_URL": "true", "OAUTH2_PROXY_CODE_CHALLENGE_METHOD": "S256",
+                "OAUTH2_PROXY_INSECURE_OIDC_SKIP_NONCE": "false", "OAUTH2_PROXY_SKIP_PROVIDER_BUTTON": "true",
+                "OAUTH2_PROXY_COOKIE_NAME": "__Host-ds2l", "OAUTH2_PROXY_COOKIE_SECURE": "true",
+                "OAUTH2_PROXY_COOKIE_HTTPONLY": "true", "OAUTH2_PROXY_COOKIE_SAMESITE": "lax",
+                "OAUTH2_PROXY_COOKIE_EXPIRE": "8h", "OAUTH2_PROXY_COOKIE_REFRESH": "30m",
+                "OAUTH2_PROXY_PASS_ACCESS_TOKEN": "false", "OAUTH2_PROXY_PASS_BASIC_AUTH": "false",
+                "OAUTH2_PROXY_PROXY_TIMEOUT": "600s", "OAUTH2_PROXY_REQUEST_LOGGING": "false"}.items()],
+            "Secrets": [{"Name": key, "ValueFrom": join(ref("WebSecret"), ":", field, "::")} for key, field in [
+                ("OAUTH2_PROXY_CLIENT_SECRET", "client_secret"), ("OAUTH2_PROXY_COOKIE_SECRET", "cookie_secret")]]}},
+        "Every application request requires a signed login session and team membership; /ping exposes no application data.")
+    resources["AppFromWeb"] = resource("EC2::SecurityGroupIngress", {
+        "GroupId": ref("AppSecurityGroup"), "SourceSecurityGroupId": {"Fn::Select": [0, att("Gateway", "ECSManagedResourceArns.ServiceSecurityGroups")]},
+        "IpProtocol": "tcp", "FromPort": 8080, "ToPort": 8080}, "Only the authenticated gateway can reach the private backend.")
+    output(body, "Endpoint", att("Gateway", "Endpoint"))
+    output(body, "WebService", att("Gateway", "ServiceArn"))
+    output(body, "WebClient", ref("Client"))
+    output(body, "LoadBalancer", att("Gateway", "ECSManagedResourceArns.IngressPath.LoadBalancerArn"))
+    return body
+
+
+BUILDERS = {"foundation": foundation, "database": database, "eks": eks, "gpu": gpu, "app": app, "web": web}
 
 
 def main():

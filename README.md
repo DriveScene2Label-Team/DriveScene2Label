@@ -329,7 +329,9 @@ JPA가 JDBC보다 항상 빠르다는 판단은 아닙니다. Spring Data JDBC�
 
 ```mermaid
 flowchart LR
- PC[내 PC] -->|SSM 터널| ECS[ECS Fargate 웹/API]
+ TEAM[팀원] -->|HTTPS| WEB[로그인 프록시 / Cognito]
+ WEB --> ECS[ECS Fargate 웹/API]
+ PC[관리자 PC] -->|SSM 진단 터널| ECS
  PC -->|kubectl port-forward| EKS[EKS 웹/API]
  ECS --> RDS[(RDS PostgreSQL + pgvector)]
  EKS --> RDS
@@ -358,7 +360,7 @@ flowchart LR
 
 **Redis·Kafka·SQS·Elasticsearch는 추가하지 않았습니다.** 현재 작업 상태·선점은 PostgreSQL이 처리하고 벡터 검색은 pgvector가 처리합니다. 작은 단일 GPU worker 구성에서 같은 역할의 운영 서비스를 추가하지 않기 위한 선택입니다. EKS에서는 자동 라벨 worker를 끄고, GPU를 끄면 ECS worker도 비활성화해 대기 작업을 DB에 남깁니다.
 
-앱·DB·GPU 포트는 인터넷에 공개하지 않습니다. EC2/Fargate 공인 IP는 패키지·모델 다운로드용 outbound 경로로 사용하며 보안 그룹은 필요한 내부 트래픽만 허용합니다. PC 접속은 SSM 터널 또는 Kubernetes port-forward를 사용합니다. 공개 Load Balancer와 NAT Gateway는 생성하지 않습니다. AWS의 recording worker는 공유 `.rrd` 저장 구성이 없으므로 비활성화했습니다.
+앱·DB·GPU의 직접 접속 포트는 인터넷에 공개하지 않습니다. 팀 접속을 위한 `web-start`는 AWS HTTPS 주소와 ALB, Cognito 로그인 프록시를 추가합니다. 관리자가 생성한 `team` 그룹 계정만 이용할 수 있습니다. 실제 주소는 환경 `status`의 `recovery.public_url`에서 확인합니다. SSM 터널 또는 Kubernetes port-forward는 관리자 진단에 사용합니다. NAT Gateway는 생성하지 않습니다. AWS의 recording worker는 공유 `.rrd` 저장 구성이 없으므로 비활성화했습니다. [팀 계정 생성과 외부 접속](docs/aws-ecs-cicd.md#팀-로그인과-외부-https-주소).
 
 ### CI/CD 실행
 
@@ -392,6 +394,8 @@ GitHub 기본 브랜치와 `production` 배포 허용 브랜치를 `release-vers
 |프런트엔드 단위 테스트·프로덕션 빌드|61개 및 빌드 통과|
 |UI fixture / 실제 Spring 라벨 저장·다운로드|2개 / 1개 통과|
 |AI 업로드 계약 / 배포 안전장치|11개 / 15개 통과|
+|팀 로그인 인프라 보안 조건|배포 안전장치 총 16개 통과. cfn-lint 및 cfn-guard의 적용 가능한 저장소·DB·계정 규칙 통과|
+|실제 nuScenes 센서 데이터|scene-0061 ZIP 업로드, dataset 3 / scene 3, 39개 프레임·6개 카메라 이미지·GT 박스 표시 확인. 기존 합성 테스트 fixture와 구분|
 |Docker 전체 빌드·CloudFormation 템플릿 검사|통과|
 |GitHub 원격 CI·OIDC·ECR 발행|[성공 실행](https://github.com/DriveScene2Label-Team/DriveScene2Label/actions/runs/42579817011)|
 |AI Docker 빌드·VESPA import·ECR 발행|[성공 실행](https://github.com/DriveScene2Label-Team/DriveScene2Label/actions/runs/42586236337)|
@@ -401,6 +405,6 @@ GitHub 기본 브랜치와 `production` 배포 허용 브랜치를 `release-vers
 |전체 stop/start 후 DB 스냅샷 복원·무잔여 검사|아직 실환경 검증하지 않음. 종료 안전장치 단위 테스트와 구분|
 |서울 GPU 추론·임베딩|G/VT On-Demand 한도 0→8 vCPU 요청 승인 대기. 승인 전에는 실측하지 않음|
 
-검증 직후에는 ECS 앱, EKS 클러스터·CPU 노드 1대, RDS가 **실행 중**이며 비용이 발생합니다. GPU는 꺼져 있습니다. 사용을 마치면 `AWS environment → stop`을 실행합니다. PC의 기존 CLI 로그인은 만료됐으므로 직접 SSM/kubectl 접속 전에 프로젝트 계정으로 재인증해야 합니다.
+검증 직후에는 ECS 앱, EKS 클러스터·CPU 노드 1대, RDS가 **실행 중**이며 비용이 발생합니다. GPU는 꺼져 있습니다. 팀 로그인 게이트웨이는 구성 코드를 추가했으며 실제 배포·로그인 검증 완료 전에는 공개 주소가 준비됐다고 안내하지 않습니다. 사용을 마치면 `AWS environment → stop`을 실행합니다. 관리자 SSM/kubectl 접속에는 유효한 프로젝트 계정 로그인이 필요합니다.
 
 `/health` 성공은 CLIP 로딩을 의미하며 VESPA 전체 추론 성공을 대신하지 않습니다. 기존 로컬 GPU 검증과 이번 AWS 배포 검증은 구분합니다. 새로 확인되는 결과와 제한은 이 표와 [AWS 운영 문서](docs/aws-ecs-cicd.md)에 기록합니다.

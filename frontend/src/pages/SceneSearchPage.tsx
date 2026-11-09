@@ -32,9 +32,12 @@ export function SceneSearchPage() {
 
   const datasets = useQuery(datasetsQuery());
   const dataset = datasets.data?.find((d) => d.id === datasetParam);
-  // No dataset in the URL: use the first dataset the server lists (never a hard-coded id).
+  // A fresh visit opens the latest upload; explicit dataset links remain stable.
   useEffect(() => {
-    if (datasetParam == null && datasets.data?.[0]) setSp((p) => { p.set('dataset', String(datasets.data[0]!.id)); return p; }, { replace: true });
+    if (datasetParam == null && datasets.data?.length) {
+      const latest = datasets.data.reduce((a, b) => a.id > b.id ? a : b);
+      setSp((p) => { p.set('dataset', String(latest.id)); return p; }, { replace: true });
+    }
   }, [datasetParam, datasets.data, setSp]);
 
   const datasetId = dataset?.id ?? null;

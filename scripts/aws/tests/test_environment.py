@@ -131,6 +131,21 @@ class LifecycleSafetyTests(unittest.TestCase):
 
 
 class InfrastructureContractTests(unittest.TestCase):
+    def test_public_gateway_requires_invited_team_members_and_secure_sessions(self):
+        foundation = BUILDERS["foundation"]()["Resources"]
+        self.assertTrue(foundation["TeamUsers"]["Properties"]["AdminCreateUserConfig"]["AllowAdminCreateUserOnly"])
+        self.assertEqual(foundation["TeamUsers"]["DeletionPolicy"], "Retain")
+        gateway = BUILDERS["web"]()["Resources"]["Gateway"]["Properties"]["PrimaryContainer"]
+        settings = {item["Name"]: item["Value"] for item in gateway["Environment"]}
+        self.assertEqual(settings["OAUTH2_PROXY_ALLOWED_GROUPS"], "team")
+        self.assertEqual(settings["OAUTH2_PROXY_INSECURE_OIDC_SKIP_NONCE"], "false")
+        self.assertEqual(settings["OAUTH2_PROXY_CODE_CHALLENGE_METHOD"], "S256")
+        self.assertEqual(settings["OAUTH2_PROXY_COOKIE_SECURE"], "true")
+        self.assertNotIn("OAUTH2_PROXY_SKIP_AUTH_ROUTES", settings)
+        self.assertNotIn("OAUTH2_PROXY_CLIENT_SECRET", settings)
+        self.assertNotIn("OAUTH2_PROXY_COOKIE_SECRET", settings)
+        self.assertEqual(len(gateway["Secrets"]), 2)
+
     def test_data_resources_survive_stack_deletion_and_have_no_expiration(self):
         foundation = BUILDERS["foundation"]()["Resources"]
         for key in ["DataBucket", "AdminSecret", "AppSecret", "OperationsSecret", "AppRepository", "AiRepository"]:

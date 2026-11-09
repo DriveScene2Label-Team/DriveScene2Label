@@ -1,0 +1,27 @@
+let buckets = Resources.*[ Type == 'AWS::S3::Bucket' ]
+let databases = Resources.*[ Type == 'AWS::RDS::DBInstance' ]
+let pools = Resources.*[ Type == 'AWS::Cognito::UserPool' ]
+
+rule private_object_storage when %buckets !empty {
+    %buckets.Properties.PublicAccessBlockConfiguration {
+        BlockPublicAcls == true
+        BlockPublicPolicy == true
+        IgnorePublicAcls == true
+        RestrictPublicBuckets == true
+    }
+    %buckets.Properties.BucketEncryption exists
+    %buckets.DeletionPolicy == 'Retain'
+}
+
+rule private_encrypted_database when %databases !empty {
+    %databases.Properties.PubliclyAccessible == false
+    %databases.Properties.StorageEncrypted == true
+    %databases.DeletionPolicy == 'Retain'
+}
+
+rule invited_team_accounts when %pools !empty {
+    %pools.Properties.AdminCreateUserConfig.AllowAdminCreateUserOnly == true
+    %pools.Properties.DeletionProtection == 'ACTIVE'
+    %pools.Properties.Policies.PasswordPolicy.MinimumLength >= 14
+    %pools.DeletionPolicy == 'Retain'
+}

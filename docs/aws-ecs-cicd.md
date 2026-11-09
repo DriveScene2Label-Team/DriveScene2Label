@@ -4,7 +4,7 @@
 
 ## 구성과 보관
 
-`infra/aws/templates.py`가 일반 CloudFormation JSON 5개를 생성한다. CDK, Terraform, Kafka, Redis, Elasticsearch, SQS는 필요하지 않다. 작업 큐는 기존 PostgreSQL claim/locking을 사용한다.
+`infra/aws/templates.py`가 일반 CloudFormation JSON 6개를 생성한다. CDK, Terraform, Kafka, Redis, Elasticsearch, SQS는 필요하지 않다. 작업 큐는 기존 PostgreSQL claim/locking을 사용한다.
 
 | 스택 | 역할 | stop 이후 |
 |---|---|---|
@@ -13,6 +13,7 @@
 | ds2l-eks | EKS 클러스터와 CPU EC2 t3.large 1대 | 노드·클러스터 삭제 |
 | ds2l-app | 프런트엔드와 Spring API, ECS Fargate 1 vCPU / 2 GiB | 서비스·태스크 삭제 |
 | ds2l-gpu | ECS용 EC2 g6.2xlarge 1대, VESPA + CLIP | EC2·캐시 디스크·서비스 삭제 |
+| ds2l-web | AWS 제공 HTTPS 주소, ALB, 0.25 vCPU / 512 MiB 로그인 프록시 | ALB·프록시 제거, Cognito 사용자와 세션 키는 foundation에 보존 |
 
 EKS와 Fargate는 같은 앱 이미지 digest, RDS, S3, GPU를 사용한다. 자동 라벨 worker는 **ECS만** 실행한다. EKS는 업로드·수정·다운로드 API를 제공한다. GPU EC2는 EKS 노드가 아니다.
 
@@ -61,6 +62,7 @@ GitHub Actions → **AWS environment** → Run workflow → `release-version`:
 | stop | 쓰기 차단, 실행 작업 종료 대기, 스냅샷 확인, 런타임 전체 제거 |
 | gpu-start | 공유 GPU만 생성하고 CLIP 로딩 확인 |
 | gpu-stop | 작업 종료 대기 후 GPU 제거, 앱 쓰기 재허용 |
+| web-start | 실행 중인 ECS 앞에 팀 로그인 필수 HTTPS 주소 생성. 이후 start에서 함께 복원 |
 | verify | 두 환경에서 실제 브라우저 라벨 업로드·수정·저장·다운로드 및 ZIP 업로드/API 다운로드 검사. restore_check=true면 이전 문서와 ZIP의 복구 여부만 확인 |
 
 GPU 승인 전에는 `start`에서 `gpu=false`를 선택해 업로드·수정·저장·다운로드를 검증할 수 있다. 자동 라벨과 임베딩은 GPU가 준비된 뒤 검증한다. `/health`는 CLIP 로딩 상태다. VESPA 실제 추론 성공 여부는 유효한 업로드 데이터셋으로 작업을 실행해 별도 확인해야 한다.
@@ -71,7 +73,7 @@ push는 테스트·Docker 빌드·ECR 업로드 후 **이미 실행 중인** 환
 
 1. 토큰으로 보호된 내부 운영 API가 DB 공통 maintenance gate를 켠다. 신규 업로드·수정·작업 생성을 막고 다운로드는 유지한다.
 2. 모든 앱 프로세스의 진행 중 쓰기와 DB의 RUNNING 작업이 0이 될 때까지 기다린다. 시간 초과나 확인 실패면 DB를 삭제하지 않는다.
-3. ECS/EKS 앱과 GPU를 제거하고 암호화 수동 DB 스냅샷을 생성한다.
+3. 공개 게이트웨이와 ALB, ECS/EKS 앱과 GPU를 제거하고 암호화 수동 DB 스냅샷을 생성한다.
 4. 스냅샷이 `available`이고 이 DB에서 생성됐는지 확인한다. S3의 버전 관리되는 복구 기록을 저장하고 다시 읽어 확인한다.
 5. 검증이 모두 성공한 경우에만 DB를 삭제한다. 이어 EKS 노드·클러스터를 제거하고 남은 실행 리소스를 검사한다.
 
@@ -79,9 +81,25 @@ push는 테스트·Docker 빌드·ECR 업로드 후 **이미 실행 중인** 환
 
 GitHub 배포와 lifecycle은 같은 concurrency group과 `queue: max`를 써서 대기 중인 수동 작업이 새 push로 취소되지 않게 하며, S3 조건부 쓰기 lock도 공유한다. 실행이 강제로 중단되면 lock이 남을 수 있다. 자동으로 만료시키지 않는다. 기존 실행이 종료됐고 스냅샷·스택 상태를 검토한 관리자가 `control/lock.json`의 현재 버전을 보존한 채 조건부 갱신으로 `{"owner":null}`로 복구해야 한다. 실행 중인 작업의 lock을 해제하지 않는다.
 
-## 내 PC에서 접속
+## 팀 로그인과 외부 HTTPS 주소
 
-앱·DB·GPU에는 인터넷 인바운드 포트를 열지 않는다. CPU/GPU와 Fargate의 공인 IP는 다운로드용 outbound 경로이며 보안 그룹이 public inbound를 허용하지 않는다. NAT Gateway와 공개 로드밸런서는 생성하지 않는다. EKS API는 IAM 인증을 요구한다.
+최초 관리자가 갱신된 `bootstrap`을 적용한 뒤 `AWS environment → web-start`를 실행한다. `status`의 `recovery.public_url`이 실제 외부 접속 주소다. Express Mode가 AWS 도메인과 TLS 인증서를 제공하므로 도메인 구매와 로컬 터널이 필요 없다. `/scenes`에서 씬을 탐색하고 `/labels`에서 파일 업로드·편집·수정본 저장·다운로드를 사용한다. 새 방문은 최신 업로드 데이터셋을 선택하고 기존 dataset 링크는 보존한다.
+
+Cognito는 관리자 생성 계정만 허용하며 `team` 그룹 회원만 프록시를 통과한다. 코드 교환에는 PKCE와 nonce를 사용하고, 로그인 쿠키는 Secure·HttpOnly·SameSite=Lax다. DB·S3·GPU는 공개하지 않는다. `/ping`은 앱 데이터가 없는 상태 확인 경로다. 그룹에서 제거한 사용자의 기존 세션은 갱신/만료 시 차단되므로 긴급 접근 회수 시 Cognito 계정 비활성화와 프록시 세션 키 교체를 함께 검토한다.
+
+프로젝트 관리자 자격 증명으로 팀 계정을 만든다. 아래 명령은 이메일을 보내지 않으며 임시 비밀번호를 터미널에 출력하지 않는다. 파일은 저장소 밖에 생성하고 본인에게만 전달한다. 첫 로그인에서 사용자가 비밀번호를 변경한다.
+
+```bash
+python scripts/aws/team_user.py TEAM_USERNAME --credentials-file /secure/local/path/team-login.txt
+```
+
+인증 프록시는 `oauth2-proxy v7.15.5`의 검증한 이미지 digest를 고정한다. 앱 자체에 비밀번호 처리 코드를 추가하지 않기 위해 사용한다. 인증 client secret과 쿠키 키는 Secrets Manager에서 주입한다. `stop` 뒤 `start` 시 OAuth client/callback을 다시 구성하며, 재생성된 서비스의 URL은 `status`에서 확인한다. 코드 push는 꺼진 공개 게이트웨이를 켜지 않는다. 실행 중 ALB와 프록시 비용이 추가된다.
+
+`cfn-lint` 및 `infra/aws/security.guard`로 비공개 S3·암호화 DB·관리자 초대 전용 계정을 검사했다. 이는 전체 보안 감사가 아니다. 현재 계정에 별도 CloudTrail trail은 없으며 장기 감사 로그 보관은 별도 구성 사항이다.
+
+## 관리자 PC에서 직접 접속
+
+앱·DB·GPU의 직접 인터넷 인바운드 포트는 열지 않는다. 공개 접속은 로그인 게이트웨이를 사용한다. 아래 터널은 관리자의 진단용이며 팀원에게 배포 주소로 안내하지 않는다. NAT Gateway는 생성하지 않는다. EKS API는 IAM 인증을 요구한다.
 
 PC에 AWS CLI, Session Manager plugin, kubectl을 설치하고 bootstrap에 사용한 프로젝트 관리자 역할의 단기 자격 증명으로 로그인한다. 해당 실제 IAM 역할 ARN을 확인해 EKS 운영자 Access Entry로 등록한다. 사람의 역할을 GitHub OIDC 역할로 가장하지 않는다. 다른 팀원은 별도 EKS Access Entry와 SSM 권한이 필요하다.
 

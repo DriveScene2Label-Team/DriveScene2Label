@@ -55,10 +55,11 @@ jobs:
       - name: Infrastructure safety tests and CloudFormation validation
         run: |
           python3 -m venv /tmp/infra-tests
-          /tmp/infra-tests/bin/pip install -r scripts/aws/requirements.txt cfn-lint==1.60.0
+          /tmp/infra-tests/bin/pip install -r scripts/aws/requirements.txt cfn-lint==1.60.0 guardpycfn==0.1.0
           /tmp/infra-tests/bin/python -m unittest discover -s scripts/aws/tests -v
           /tmp/infra-tests/bin/python infra/aws/templates.py
           /tmp/infra-tests/bin/cfn-lint build/cloudformation/*.json
+          /tmp/infra-tests/bin/python scripts/aws/check_templates.py build/cloudformation
       - name: Frontend dependencies
         working-directory: frontend
         run: npm ci

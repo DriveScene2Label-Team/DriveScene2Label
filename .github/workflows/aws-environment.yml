@@ -7,7 +7,7 @@ on:
         description: Environment action (Seoul)
         required: true
         type: choice
-        options: [status, start, stop, gpu-start, gpu-stop, verify]
+        options: [status, start, stop, gpu-start, gpu-stop, web-start, verify]
         default: status
       gpu:
         description: Include GPU when starting (requires approved 8 vCPU quota and a published AI image)
