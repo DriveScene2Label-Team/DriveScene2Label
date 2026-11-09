@@ -99,6 +99,11 @@ class Environment:
             request["RoleARN"] = self.foundation["FormationRole"]
         client = self.clients["cloudformation"]
         current = self.stack(component)
+        if current and current["StackStatus"] == "ROLLBACK_COMPLETE" and component in ["app", "eks", "gpu"]:
+            # A failed first create has already rolled back all disposable resources.
+            # Never automatically clear a database/foundation stack with retained data.
+            self.delete_stack(component)
+            current = None
         if current and current["StackStatus"] not in ["CREATE_COMPLETE", "UPDATE_COMPLETE", "UPDATE_ROLLBACK_COMPLETE"]:
             raise RuntimeError(f"{component}: {current['StackStatus']}; resolve the stack failure before retrying.")
         try:

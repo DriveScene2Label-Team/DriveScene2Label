@@ -210,7 +210,7 @@ def foundation():
                    "rds:ModifyDBInstance", "rds:AddTagsToResource", "rds:RemoveTagsFromResource", "rds:ListTagsForResource"],
                   [arn("rds", join("db:", name("*"))), arn("rds", join("snapshot:", name("*"))),
                    arn("rds", "subgrp:*"), arn("rds", "pg:*")]),
-        statement(["iam:PassRole", "iam:GetRole"], runtime_roles),
+        statement(["iam:PassRole", "iam:GetRole", "iam:ListAttachedRolePolicies", "iam:ListRolePolicies", "iam:GetRolePolicy"], runtime_roles),
         statement(["iam:GetInstanceProfile"], att("GpuProfile")),
         statement(["iam:CreateServiceLinkedRole"], "*",
                   Condition={"StringEquals": {"iam:AWSServiceName": ["eks.amazonaws.com", "eks-nodegroup.amazonaws.com", "ecs.amazonaws.com", "rds.amazonaws.com", "autoscaling.amazonaws.com"]}}),
