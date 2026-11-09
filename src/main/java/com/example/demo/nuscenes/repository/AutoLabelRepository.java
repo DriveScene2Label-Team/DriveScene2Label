@@ -5,12 +5,12 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 @Repository
 public class AutoLabelRepository {
- public record Target(long id,long datasetId,String token,String name,String version) {}
+ public record Target(long id,long datasetId,String token,String name,String version,String storageKey) {}
  public record Existing(long id,String mappingName,String sceneToken) {}
  private final JdbcClient jdbc;
  public AutoLabelRepository(JdbcClient jdbc) { this.jdbc=jdbc; }
  public List<Target> targets(String token,Long dataset) {
-  return jdbc.sql("SELECT s.id,s.dataset_id,s.token,s.name,d.version FROM scene s JOIN dataset d ON d.id=s.dataset_id WHERE s.token=:t AND (CAST(:d AS bigint) IS NULL OR s.dataset_id=:d)").param("t",token).param("d",dataset).query(Target.class).list();
+  return jdbc.sql("SELECT s.id,s.dataset_id,s.token,s.name,d.version,d.storage_key FROM scene s JOIN dataset d ON d.id=s.dataset_id WHERE s.token=:t AND (CAST(:d AS bigint) IS NULL OR s.dataset_id=:d)").param("t",token).param("d",dataset).query(Target.class).list();
  }
  public List<String> sceneSamples(Target t) { return jdbc.sql("SELECT token FROM sample WHERE dataset_id=:d AND scene_token=:t ORDER BY timestamp_us,token").param("d",t.datasetId()).param("t",t.token()).query(String.class).list(); }
  public Optional<Long> insert(Target t,String key,int mode,String classes,String version,String config) {
@@ -25,18 +25,22 @@ public class AutoLabelRepository {
  public Existing existing(long dataset,String key) { return findExisting(dataset,key).orElseThrow(); }
  public void target(long job,long dataset,String token) { jdbc.sql("INSERT INTO auto_label_job_sample(job_id,dataset_id,sample_token) VALUES(:j,:d,:t)").param("j",job).param("d",dataset).param("t",token).update(); }
  public Optional<Work> claim() {
+  if(jdbc.sql("SELECT maintenance FROM deployment_control WHERE id=1 FOR SHARE").query(Boolean.class).single()) return Optional.empty();
   var pending=jdbc.sql("""
-   SELECT j.id,j.dataset_id,s.name AS scene_name,j.mapping_name,j.execution_token
+   SELECT j.id,j.dataset_id,s.name AS scene_name,j.mapping_name,j.execution_token,
+    CASE WHEN d.storage_key='uploads' THEN d.root_relative_path END AS dataset_key,
+    CASE WHEN d.storage_key='uploads' THEN d.version END AS dataset_version
    FROM auto_label_job j JOIN scene s ON s.dataset_id=j.dataset_id AND s.token=j.requested_targets->>0
+   JOIN dataset d ON d.id=j.dataset_id
    WHERE j.status='PENDING' AND j.target_type='SCENE' AND jsonb_array_length(j.requested_targets)=1
    ORDER BY j.created_at,j.id LIMIT 1 FOR UPDATE OF j SKIP LOCKED
    """).query(Work.class).optional();
   if(pending.isEmpty()) return Optional.empty();
   Work p=pending.get(); UUID token=UUID.randomUUID();
   jdbc.sql("UPDATE auto_label_job SET status='RUNNING',started_at=now(),execution_token=:t WHERE id=:j AND status='PENDING'").param("t",token).param("j",p.id()).update();
-  return Optional.of(new Work(p.id(),p.datasetId(),p.sceneName(),p.mappingName(),token));
+  return Optional.of(new Work(p.id(),p.datasetId(),p.sceneName(),p.mappingName(),token,p.datasetKey(),p.datasetVersion()));
  }
- public Work lock(long job) { return jdbc.sql("SELECT id,dataset_id,'' AS scene_name,mapping_name,execution_token FROM auto_label_job WHERE id=:j AND status='RUNNING' FOR UPDATE").param("j",job).query(Work.class).optional().orElseThrow(()->new IllegalStateException("Job is no longer running")); }
+ public Optional<Work> lock(long job) { return jdbc.sql("SELECT id,dataset_id,'' AS scene_name,mapping_name,execution_token,NULL AS dataset_key,NULL AS dataset_version FROM auto_label_job WHERE id=:j AND status='RUNNING' FOR UPDATE").param("j",job).query(Work.class).optional(); }
  public Set<String> samples(long job) { return new HashSet<>(jdbc.sql("SELECT sample_token FROM auto_label_job_sample WHERE job_id=:j").param("j",job).query(String.class).list()); }
  public void box(Work job,String token,int index,Box b,String raw) {
   jdbc.sql("""

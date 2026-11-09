@@ -160,3 +160,18 @@
 3. 화면에서 VESPA job 1회 실행(GPU, 장시간) 또는 기존 완료 job(`DS2L_LIVE_JOB_ID`)으로 결과 표시·예측 투영 확인.
 4. 같은 scene의 GT·예측 투영을 nuScenes devkit `render_sample_data` 결과와 비교(M4 마지막 항목), recording 생성 후 실제 점군·GT·예측·시간/선택 확인(M5 마지막 항목).
 5. reduced-motion·스크린리더·실기기 375 검수, 성능 측정 후 M6 마지막 두 항목 판정.
+
+## 2026-11-09 업로드·편집·저장 추가
+
+- [x] 라벨 JSON 업로드, 원본 보존, 버전 저장·재열기·다운로드 UI/API.
+- [x] WORLD XY 박스 선택, 클래스·위치·크기·회전 수정, 추가·삭제.
+- [x] 완료된 자동 라벨 결과를 별도 편집 문서로 복사. 예측 원본·GT 보존.
+- [x] nuScenes ZIP 검증·원본 보관·catalog 등록·GPU 요청 데이터 경로 연결.
+- [x] JPA 일반 repository 및 수정 이력, 동시 저장 충돌 처리.
+- [x] 선택적 S3 원본 ZIP 저장 및 backend/AI cache 복원.
+- [x] PostgreSQL 통합 테스트, frontend unit/build, 브라우저 fixture E2E, AI 업로드 계약 검사.
+- [x] 실제 Spring + 임시 PostgreSQL에서 브라우저 업로드·버튼 수정·저장·새로고침·수정본 다운로드·원본 보존 검증.
+- [ ] 실제 AWS S3/RDS/ECS 배포·GPU 메모리/추론 검증.
+- [ ] 일반 이미지/영상 변환, 업로드 데이터 CLIP indexing 자동화, 업로드 데이터 Rerun.
+
+사용법과 범위: [라벨 편집](label-editing.md), [AWS CI/CD](aws-ecs-cicd.md).

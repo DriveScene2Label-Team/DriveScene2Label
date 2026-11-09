@@ -1,12 +1,25 @@
 package com.example.demo.nuscenes.domain;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Table;
-@Table("dataset")
-public record Dataset(
-    @Id Long id,
-    String name,
-    String version,
-    String storageKey,
-    String rootRelativePath,
-    String sourceChecksum
-) {}
+
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
+
+@Entity
+@Table(name="dataset")
+@Getter
+@Accessors(fluent=true)
+@NoArgsConstructor(access=AccessLevel.PROTECTED)
+@JsonAutoDetect(fieldVisibility=JsonAutoDetect.Visibility.ANY, getterVisibility=JsonAutoDetect.Visibility.NONE, isGetterVisibility=JsonAutoDetect.Visibility.NONE)
+public class Dataset {
+ @Id private Long id;
+ private String name;
+ private String version;
+ private String storageKey;
+ private String rootRelativePath;
+ private String sourceChecksum;
+}

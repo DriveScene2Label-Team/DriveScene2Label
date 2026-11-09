@@ -1,20 +1,33 @@
 package com.example.demo.nuscenes.domain;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Table;
-@Table("sample_data")
-public record SampleData(
-    @Id Long id,
-    Long datasetId,
-    String token,
-    String sampleToken,
-    String egoPoseToken,
-    String calibratedSensorToken,
-    String relativePath,
-    String fileformat,
-    Long timestampUs,
-    Boolean isKeyFrame,
-    Integer width,
-    Integer height,
-    String prevToken,
-    String nextToken
-) {}
+
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
+
+@Entity
+@Table(name="sample_data")
+@Getter
+@Accessors(fluent=true)
+@NoArgsConstructor(access=AccessLevel.PROTECTED)
+@JsonAutoDetect(fieldVisibility=JsonAutoDetect.Visibility.ANY, getterVisibility=JsonAutoDetect.Visibility.NONE, isGetterVisibility=JsonAutoDetect.Visibility.NONE)
+public class SampleData {
+ @Id private Long id;
+ private Long datasetId;
+ private String token;
+ private String sampleToken;
+ private String egoPoseToken;
+ private String calibratedSensorToken;
+ private String relativePath;
+ private String fileformat;
+ private Long timestampUs;
+ private Boolean isKeyFrame;
+ private Integer width;
+ private Integer height;
+ private String prevToken;
+ private String nextToken;
+}

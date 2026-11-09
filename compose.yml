@@ -45,11 +45,15 @@ services:
       VESPA_MODEL_VERSION: ${VESPA_MODEL_VERSION:-acb2b6e8683363795528f049fe0444ef9f3efdb9}
       VESPA_ARTIFACT_STORAGE_KEY: ${VESPA_ARTIFACT_STORAGE_KEY:-vespa-results}
       RECORDING_ROOT: /recordings
+      UPLOAD_ROOT: /uploads
+      UPLOAD_S3_BUCKET: ${UPLOAD_S3_BUCKET:-}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
       RECORDING_WORKER_ENABLED: ${RECORDING_WORKER_ENABLED:-true}
       RECORDING_READ_TIMEOUT: ${RECORDING_READ_TIMEOUT:-660s}
     ports:
       - "127.0.0.1:${APP_PORT:-8080}:8080"
     volumes:
+      - uploaded_datasets:/uploads
       - type: bind
         source: ${NUSCENES_HOST_PATH:?Set NUSCENES_HOST_PATH in .env}
         target: /data/nuscenes
@@ -78,9 +82,13 @@ services:
       VESPA_NUM_THREADS: ${VESPA_NUM_THREADS:-1}
       VESPA_TIMEOUT_SECONDS: ${VESPA_TIMEOUT_SECONDS:-7200}
       RECORDING_TIMEOUT_SECONDS: ${RECORDING_TIMEOUT_SECONDS:-600}
+      UPLOAD_ROOT: /uploads
+      UPLOAD_S3_BUCKET: ${UPLOAD_S3_BUCKET:-}
+      AWS_DEFAULT_REGION: ${AWS_REGION:-us-east-1}
     ports:
       - "127.0.0.1:${AI_PORT:-8000}:8000"
     volumes:
+      - uploaded_datasets:/uploads:ro
       - type: bind
         source: ${NUSCENES_HOST_PATH:?Set NUSCENES_HOST_PATH in .env}
         target: /data/nuscenes
@@ -97,3 +105,4 @@ volumes:
   vespa_results:
   postgres_data:
   rerun_recordings:
+  uploaded_datasets:

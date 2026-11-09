@@ -9,11 +9,15 @@ class AutoLabelRequest(BaseModel):
     class_mode: Literal[1, 3, 8] = 8
     job_id: int | None = Field(default=None, gt=0)
     execution_token: UUID | None = None
+    dataset_key: str | None = Field(default=None, pattern=r"^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$")
+    dataset_version: Literal["v1.0-mini", "v1.0-trainval"] | None = None
 
     @model_validator(mode="after")
     def paired_identity(self):
         if (self.job_id is None) != (self.execution_token is None):
             raise ValueError("job_id and execution_token must be supplied together")
+        if (self.dataset_key is None) != (self.dataset_version is None):
+            raise ValueError("dataset_key and dataset_version must be supplied together")
         return self
 
 class PredictedBox(BaseModel):

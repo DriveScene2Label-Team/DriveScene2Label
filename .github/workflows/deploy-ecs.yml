@@ -1,0 +1,78 @@
+name: Release images and deploy ECS + EKS
+
+on:
+  push:
+    branches: [release-version]
+  workflow_dispatch:
+    inputs:
+      component:
+        description: 'app: frontend + API, ai: shared GPU model server (manual only)'
+        type: choice
+        options: [app, ai]
+        default: app
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    needs: checks
+    if: github.ref == 'refs/heads/release-version' && vars.AWS_DEPLOY_ENABLED == 'true'
+    runs-on: ${{ inputs.component == 'ai' && vars.AI_BUILD_RUNNER || 'ubuntu-24.04' }}
+    timeout-minutes: 240
+    environment: production
+    concurrency:
+      group: ds2l-production-mutations
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      COMPONENT: ${{ inputs.component || 'app' }}
+      AWS_REGION: ap-northeast-2
+      DS2L_PROJECT: ds2l
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Build tested source before obtaining AWS credentials
+        run: |
+          set -euo pipefail
+          dockerfile=Dockerfile
+          if [[ "$COMPONENT" == ai ]]; then dockerfile=ai-server/Dockerfile; fi
+          docker build --file "$dockerfile" --tag "drivescene2label:$GITHUB_SHA" .
+      - name: AWS credentials through OIDC
+        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ap-northeast-2
+          role-session-name: github-${{ github.run_id }}
+          role-duration-seconds: 14400
+          allowed-account-ids: '189750306426'
+      - name: Lifecycle tooling
+        run: bash scripts/aws/setup-tools.sh
+      - name: Publish immutable image
+        id: image
+        run: |
+          set -euo pipefail
+          repository="$DS2L_PROJECT-$COMPONENT"
+          repository_uri=$(aws ecr describe-repositories --repository-names "$repository" --query 'repositories[0].repositoryUri' --output text)
+          registry=${repository_uri%%/*}
+          aws ecr get-login-password | docker login --username AWS --password-stdin "$registry"
+          tag="$GITHUB_SHA-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          docker tag "drivescene2label:$GITHUB_SHA" "$repository_uri:$tag"
+          docker push "$repository_uri:$tag"
+          digest=$(aws ecr describe-images --repository-name "$repository" --image-ids imageTag="$tag" --query 'imageDetails[0].imageDigest' --output text)
+          [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]]
+          echo "uri=$repository_uri@$digest" >> "$GITHUB_OUTPUT"
+      - name: Record image and update only running environments
+        env:
+          IMAGE: ${{ steps.image.outputs.uri }}
+        run: |
+          python3 scripts/aws/environment.py publish --component "$COMPONENT" --image "$IMAGE"
+          echo "Image published: $IMAGE" >> "$GITHUB_STEP_SUMMARY"
+          echo 'Stopped environments stay stopped. A manual start is required to create compute.' >> "$GITHUB_STEP_SUMMARY"

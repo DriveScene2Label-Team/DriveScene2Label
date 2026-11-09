@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router';
+import { Link, useNavigate, useSearchParams } from 'react-router';
 import { describeError } from '@/api/http';
 import { datasetsQuery, scenesQuery, searchQuery } from '@/api/queries';
 import { compareUrl, parseId, searchUrl } from '@/app/urls';
@@ -89,6 +89,7 @@ export function SceneSearchPage() {
           )}
         </div>
         <DataOriginBadge datasetId={datasetId} />
+        <Link className="btn btn--primary topbar-end" to="/labels">파일 업로드 · 라벨 편집</Link>
       </header>
       <main className="search-main">
         <section className="search-head" aria-labelledby="search-title">

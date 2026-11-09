@@ -1,9 +1,6 @@
 package com.example.demo.nuscenes.domain;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Table;
-@Table("calibrated_sensor")
 public record CalibratedSensor(
-    @Id Long id,
+    Long id,
     Long datasetId,
     String token,
     String sensorToken,

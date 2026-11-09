@@ -3,6 +3,8 @@
 nuScenes 기반 **3D Auto-Labeling + 자연어 Scene Retrieval** 백엔드입니다. 카메라 이미지를 CLIP 벡터로 저장하고 자연어로 scene을 검색합니다. 선택한 scene은 VESPA로 3D pseudo-label을 생성하여 GT와 분리해 저장합니다.
 
 - [프론트엔드 REST API 명세](README_API.md)
+- [파일 업로드·라벨 수정본 저장·다운로드](docs/label-editing.md)
+- [서울 AWS ECS·EKS·GPU 켜기/끄기와 release-version 배포](docs/aws-ecs-cicd.md)
 - [DB / VESPA 결과 스키마](docs/auto-label-result-schema.md)
 - [통합 검증 및 테스트 범위](docs/integration-verification.md)
 - [Docker 검증 결과와 배포 제약](docs/docker-integration.md)
@@ -47,7 +49,7 @@ AI 컨테이너에서 CLIP은 기본 Python, VESPA는 `/opt/vespa-env/bin/python
 
 |구분|구성|
 |---|---|
-|Backend|Java21, Spring Boot4.1.1, Spring Data JDBC, JdbcClient, Flyway|
+|Backend|Java21, Spring Boot4.1.1, Spring Data JPA, JdbcClient, Flyway|
 |AI|Python3.12, FastAPI, PyTorch, OpenCLIP, VESPA-Direct|
 |DB|PostgreSQL16, pgvector vector(768)|
 |Infrastructure|Docker Engine/Desktop, Docker Compose v2|
@@ -128,7 +130,7 @@ cp .env.example .env
 ## 7. Quick Start
 
 ```bash
-git clone https://github.com/leehyeoksu/DriveScene2Label.git
+git clone https://github.com/DriveScene2Label-Team/DriveScene2Label.git
 cd DriveScene2Label
 cp .env.example .env
 # 실제 비밀번호와 NUSCENES_HOST_PATH를 .env에 입력하고 dataset 준비

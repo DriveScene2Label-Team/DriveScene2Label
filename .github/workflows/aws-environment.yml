@@ -1,0 +1,58 @@
+name: AWS environment
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: Environment action (Seoul)
+        required: true
+        type: choice
+        options: [status, start, stop, gpu-start, gpu-stop]
+        default: status
+      gpu:
+        description: Include GPU when starting (requires approved 8 vCPU quota and a published AI image)
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ds2l-production-mutations
+  cancel-in-progress: false
+
+jobs:
+  environment:
+    if: github.ref == 'refs/heads/release-version'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      AWS_REGION: ap-northeast-2
+      DS2L_PROJECT: ds2l
+      ACTION: ${{ inputs.action }}
+      GPU: ${{ inputs.gpu }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ap-northeast-2
+          role-duration-seconds: 14400
+          allowed-account-ids: '189750306426'
+      - name: Lifecycle tooling
+        run: bash scripts/aws/setup-tools.sh
+      - name: Run requested action
+        run: |
+          set -euo pipefail
+          options=()
+          if [[ "$ACTION" == start && "$GPU" != true ]]; then options+=(--without-gpu); fi
+          python3 scripts/aws/environment.py "$ACTION" "${options[@]}"
+      - name: Resource status after action
+        if: always()
+        run: python3 scripts/aws/environment.py status

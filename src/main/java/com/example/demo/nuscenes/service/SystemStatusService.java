@@ -4,6 +4,7 @@ import com.example.demo.nuscenes.client.AiCapabilitiesClient;
 import com.example.demo.nuscenes.client.AiCapabilitiesClient.Snapshot;
 import com.example.demo.nuscenes.dto.SystemDtos.*;
 import com.example.demo.nuscenes.storage.DatasetFiles;
+import com.example.demo.nuscenes.storage.DatasetStorage;
 import com.example.demo.nuscenes.storage.RecordingFiles;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -29,14 +30,14 @@ public class SystemStatusService {
  private static final Duration LOCAL_TTL=Duration.ofSeconds(30);
  private final JdbcClient jdbc;
  private final AiCapabilitiesClient ai;
- private final DatasetFiles media;
+ private final DatasetStorage media;
  private final RecordingFiles recordingFiles;
  private final String modelName,preprocess,vespaVersion,recordingSdk;
  private final boolean jobWorker,recordingWorker;
  private final Duration aiTtl;
  private final ReentrantLock aiLock=new ReentrantLock();
  private volatile Snapshot cached;
- public SystemStatusService(JdbcClient jdbc,AiCapabilitiesClient ai,DatasetFiles media,RecordingFiles recordingFiles,
+ public SystemStatusService(JdbcClient jdbc,AiCapabilitiesClient ai,DatasetStorage media,RecordingFiles recordingFiles,
    @Value("${embedding.model-name}") String modelName,@Value("${embedding.preprocess}") String preprocess,
    @Value("${auto-label.dataset-version:v1.0-trainval}") String vespaVersion,@Value("${recording.sdk-version:0.38.1}") String recordingSdk,
    @Value("${auto-label.worker.enabled:true}") boolean jobWorker,@Value("${recording.worker.enabled:true}") boolean recordingWorker,
@@ -51,13 +52,13 @@ public class SystemStatusService {
   if(datasetId!=null && datasetId<=0) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"datasetId must be positive");
   var now=OffsetDateTime.now();
   DatasetRow ds=datasetId==null?null:dataset(datasetId).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Dataset not found"));
-  Snapshot snap=aiSnapshot(refresh);
+  Snapshot snap=datasetSnapshot(ds,refresh);
   Map<String,Capability> caps=new LinkedHashMap<>();
   caps.put("catalog",new Capability("READY",true,null,null,now,now.plus(LOCAL_TTL),null));
   caps.put("media",media(ds,now));
   caps.put("search",search(ds,snap,now));
   caps.put("vespa",vespa(ds,snap,now));
-  caps.put("recording",recording(snap,now));
+  caps.put("recording",ds!=null && "uploads".equals(ds.storageKey())?cap("UNAVAILABLE",false,"UPLOADED_RECORDING_UNSUPPORTED",now,LOCAL_TTL):recording(snap,now));
   DatasetStatus dataset=ds==null?null:new DatasetStatus(ds.id(),ds.version(),ds.origin(),ds.sourceChecksum(),ds.mediaValidation());
   return new SystemStatus(SCHEMA_VERSION,instanceId(),now,dataset,caps);
  }
@@ -68,12 +69,17 @@ public class SystemStatusService {
  private void require(long datasetId,String key) {
   var ds=dataset(datasetId).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Dataset not found"));
   var now=OffsetDateTime.now();
-  Capability c=evaluate(key,ds,aiSnapshot(false),now);
-  if(!c.canExecute() && ("CONFIGURED".equals(c.state()) || "UNKNOWN".equals(c.state()))) c=evaluate(key,ds,aiSnapshot(true),now);
+  if("recording".equals(key) && "uploads".equals(ds.storageKey())) throw new CodedError(HttpStatus.SERVICE_UNAVAILABLE,"UPLOADED_RECORDING_UNSUPPORTED","업로드 데이터셋은 라벨 편집기를 사용해 주세요. Rerun 내보내기는 아직 지원하지 않습니다.");
+  Capability c=evaluate(key,ds,datasetSnapshot(ds,false),now);
+  if(!c.canExecute() && ("CONFIGURED".equals(c.state()) || "UNKNOWN".equals(c.state()))) c=evaluate(key,ds,datasetSnapshot(ds,true),now);
   if(!c.canExecute()) throw new CodedError(HttpStatus.SERVICE_UNAVAILABLE,c.reasonCode()==null?"CAPABILITY_NOT_READY":c.reasonCode(),c.message()==null?"Feature is not ready":c.message());
  }
  private Capability evaluate(String key,DatasetRow ds,Snapshot snap,OffsetDateTime now) {
   return "vespa".equals(key)?vespa(ds,snap,now):recording(snap,now);
+ }
+ private Snapshot datasetSnapshot(DatasetRow ds,boolean refresh) {
+  // Uploaded datasets must be checked against their own metadata; never reuse the default dataset's readiness.
+  return ds!=null && "uploads".equals(ds.storageKey())?ai.fetch(refresh,ds.rootRelativePath(),ds.version()):aiSnapshot(refresh);
  }
 
  // ---------------- AI snapshot cache (single flight) ----------------
@@ -99,15 +105,17 @@ public class SystemStatusService {
  // ---------------- capabilities ----------------
  private Capability media(DatasetRow ds,OffsetDateTime now) {
   if(ds==null) return cap("UNKNOWN",false,"DATASET_NOT_SELECTED",now,LOCAL_TTL);
-  if(!"nuscenes".equals(ds.storageKey()) || !".".equals(ds.rootRelativePath())) return cap("UNAVAILABLE",false,"MEDIA_NOT_SERVED",now,LOCAL_TTL);
-  if(!Files.isDirectory(media.root())) return cap("UNAVAILABLE",false,"MEDIA_ROOT_UNAVAILABLE",now,LOCAL_TTL);
+  DatasetFiles source;
+  try { source=media.files(ds.storageKey(),ds.rootRelativePath()); }
+  catch(IOException e) { return cap("UNAVAILABLE",false,"MEDIA_NOT_SERVED",now,LOCAL_TTL); }
+  if(!Files.isDirectory(source.root())) return cap("UNAVAILABLE",false,"MEDIA_ROOT_UNAVAILABLE",now,LOCAL_TTL);
   // Spot check: the first keyframe sample's files (cameras + lidar). Not a full validation.
   var paths=jdbc.sql("""
    SELECT sd.relative_path FROM sample_data sd JOIN sample s ON s.dataset_id=sd.dataset_id AND s.token=sd.sample_token
    WHERE sd.dataset_id=:d AND sd.is_key_frame AND s.id=(SELECT min(id) FROM sample WHERE dataset_id=:d)
    """).param("d",ds.id()).query(String.class).list();
   if(paths.isEmpty()) return cap("UNAVAILABLE",false,"DATA_NOT_READY",now,LOCAL_TTL);
-  long missing=paths.stream().filter(p->{ try { media.resolve(p); return false; } catch(IOException e) { return true; } }).count();
+  long missing=paths.stream().filter(p->{ try { source.resolve(p); return false; } catch(IOException e) { return true; } }).count();
   if(missing==paths.size()) return cap("UNAVAILABLE",false,"MEDIA_FILES_MISSING",now,LOCAL_TTL);
   if(missing>0) return cap("CONFIGURED",true,"MEDIA_FILES_MISSING",now,LOCAL_TTL);
   if("VERIFIED".equals(ds.mediaValidation())) return cap("READY",true,null,now,LOCAL_TTL);
@@ -137,7 +145,7 @@ public class SystemStatusService {
  private Capability vespa(DatasetRow ds,Snapshot snap,OffsetDateTime now) {
   if(!jobWorker) return cap("UNAVAILABLE",false,"VESPA_WORKER_DISABLED",now,LOCAL_TTL);
   if(ds!=null && "SYNTHETIC".equals(ds.origin())) return cap("UNAVAILABLE",false,"SYNTHETIC_DATASET",now,LOCAL_TTL);
-  if(ds!=null && !vespaVersion.equals(ds.version())) return cap("UNAVAILABLE",false,"DATASET_MISMATCH",now,LOCAL_TTL);
+  if(ds!=null && !"uploads".equals(ds.storageKey()) && !vespaVersion.equals(ds.version())) return cap("UNAVAILABLE",false,"DATASET_MISMATCH",now,LOCAL_TTL);
   var unreach=unreachable(snap,now); if(unreach!=null) return unreach;
   if(snap.legacy()) {
    JsonNode inf=snap.body().path("inference");
@@ -152,6 +160,8 @@ public class SystemStatusService {
   OffsetDateTime checked=time(v,"checkedAt",snap.fetchedAt()), expires=time(v,"expiresAt",snap.fetchedAt().plus(aiTtl));
   if(ds!=null) {
    String aiVersion=text(v,"datasetVersion",null), aiChecksum=text(v,"metadataChecksum",null);
+   if("uploads".equals(ds.storageKey()) && (!ds.rootRelativePath().equals(text(v,"datasetKey",null)) || aiChecksum==null && "READY".equals(state)))
+    return withExecutor(cap("UNAVAILABLE",false,"DATASET_MISMATCH",snap.fetchedAt(),aiTtl),executor);
    if(aiVersion!=null && !aiVersion.equals(ds.version())) return withExecutor(cap("UNAVAILABLE",false,"DATASET_MISMATCH",snap.fetchedAt(),aiTtl),executor);
    if(aiChecksum!=null && !aiChecksum.equals(ds.sourceChecksum())) return withExecutor(cap("UNAVAILABLE",false,"DATASET_MISMATCH",snap.fetchedAt(),aiTtl),executor);
   }

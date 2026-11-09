@@ -17,7 +17,7 @@ public class AutoLabelClient {
  }
  public AiResponse run(Work job) {
   return client.post().uri("/auto-label").contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
-   .body(new AiRequest(job.sceneName(),Integer.parseInt(job.mappingName().replace("class","")),job.id(),job.executionToken()))
+   .body(new AiRequest(job.sceneName(),Integer.parseInt(job.mappingName().replace("class","")),job.id(),job.executionToken(),job.datasetKey(),job.datasetVersion()))
    .retrieve().body(AiResponse.class);
  }
 }

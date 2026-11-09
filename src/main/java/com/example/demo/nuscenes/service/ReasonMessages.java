@@ -4,6 +4,7 @@ import java.util.Map;
 public final class ReasonMessages {
  private ReasonMessages() {}
  private static final Map<String,String> KO=Map.ofEntries(
+  Map.entry("UPLOADED_RECORDING_UNSUPPORTED","업로드 데이터셋은 라벨 편집기를 사용해 주세요. Rerun 내보내기는 아직 지원하지 않습니다."),
   Map.entry("DATASET_NOT_SELECTED","데이터셋을 선택하면 확인할 수 있어요."),
   Map.entry("DATA_NOT_READY","데이터셋 메타데이터나 프레임이 준비되지 않았어요."),
   Map.entry("DATASET_MISMATCH","AI 서버의 데이터셋 버전·메타데이터가 선택한 데이터셋과 달라요."),

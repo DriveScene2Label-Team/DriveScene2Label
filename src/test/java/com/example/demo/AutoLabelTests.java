@@ -57,6 +57,7 @@ class AutoLabelTests {
   for(String token:List.of("sample-a","sample-empty")) jdbc.sql("INSERT INTO sample(dataset_id,token,scene_token,timestamp_us,raw_payload) VALUES(:d,:t,'scene-token',1,'{}')").param("d",dataset).param("t",token).update();
  }
  @AfterEach void cleanup() {
+  jdbc.sql("DELETE FROM label_document WHERE dataset_id=:d").param("d",dataset).update();
   jdbc.sql("DROP TRIGGER IF EXISTS test_reject_completed ON auto_label_job").update();
   jdbc.sql("DROP FUNCTION IF EXISTS test_reject_completed()").update();
   jdbc.sql("DELETE FROM auto_label_job WHERE dataset_id=:d").param("d",dataset).update();
@@ -72,6 +73,18 @@ class AutoLabelTests {
   return JSON.readTree(response).path("jobId").asLong();
  }
  long boxes(long job) { return jdbc.sql("SELECT count(*) FROM predicted_annotation WHERE job_id=:j").param("j",job).query(Long.class).single(); }
+ @Test void completedJobBecomesAnEditableCopyWithoutChangingPredictions() throws Exception {
+  long job=create("editable");new AutoLabelWorker(jobs,client).runNextJob();
+  var response=mvc.perform(post("/api/label-documents/from-job/{id}",job)).andExpect(status().isOk())
+   .andExpect(jsonPath("$.data.results.sample-empty").isEmpty()).andReturn().getResponse().getContentAsString();
+  var document=JSON.readTree(response);long id=document.path("document").path("id").asLong();
+  var data=(tools.jackson.databind.node.ObjectNode)document.path("data").deepCopy();
+  ((tools.jackson.databind.node.ObjectNode)data.path("results")).putArray("sample-a");
+  mvc.perform(post("/api/label-documents/{id}/revisions",id).contentType("application/json")
+   .content(JSON.writeValueAsString(Map.of("expectedVersion",0,"data",data)))).andExpect(status().isCreated());
+  assertThat(boxes(job)).isEqualTo(2);
+  mvc.perform(post("/api/label-documents/from-job/{id}",job)).andExpect(jsonPath("$.document.id").value(id)).andExpect(jsonPath("$.revision").value(1));
+ }
  @Test void pendingThenHttpResultCompletedAndEmptySample() throws Exception {
   long gt=jdbc.sql("SELECT count(*) FROM gt_annotation").query(Long.class).single();
   long job=create("success"); assertThat(jobs.status(job).status()).isEqualTo("PENDING");

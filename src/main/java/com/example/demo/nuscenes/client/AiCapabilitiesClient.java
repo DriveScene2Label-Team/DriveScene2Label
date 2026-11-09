@@ -31,14 +31,22 @@ public class AiCapabilitiesClient {
   return RestClient.builder().baseUrl(url).requestFactory(factory).build();
  }
  public Snapshot fetch(boolean doRefresh) {
+  return fetch(doRefresh,null,null);
+ }
+ public Snapshot fetch(boolean doRefresh,String datasetKey,String datasetVersion) {
   var now=OffsetDateTime.now();
   try {
-   String body=(doRefresh?refresh:normal).get().uri("/capabilities?refresh={r}",doRefresh).retrieve().body(String.class);
+   String body=(doRefresh?refresh:normal).get().uri(builder->{
+    builder.path("/capabilities").queryParam("refresh",doRefresh);
+    if(datasetKey!=null) builder.queryParam("dataset_key",datasetKey).queryParam("dataset_version",datasetVersion);
+    return builder.build();
+   }).retrieve().body(String.class);
    return new Snapshot(JSON.readTree(body),false,null,now,doRefresh);
   } catch(RestClientResponseException e) {
    if(e.getStatusCode().value()!=404) return new Snapshot(null,false,AiErrors.code(e),now,doRefresh);
   } catch(RestClientException e) { return new Snapshot(null,false,AiErrors.code(e),now,doRefresh); }
   catch(RuntimeException e) { return new Snapshot(null,false,"AI_HTTP_ERROR",now,doRefresh); }
+  if(datasetKey!=null) return new Snapshot(null,false,"AI_ENDPOINT_UNSUPPORTED",now,doRefresh);
   // Older AI: /health answers 200 (CLIP ready) or 503 (not ready) with the same JSON shape.
   try {
    String body=normal.get().uri("/health").retrieve().onStatus(s->s.value()==503,(req,res)->{}).body(String.class);

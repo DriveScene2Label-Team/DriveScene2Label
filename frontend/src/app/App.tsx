@@ -10,6 +10,7 @@ import { SceneSearchPage } from '@/pages/SceneSearchPage';
 // Workspace pages carry the camera grid and the Rerun viewer; load them only when needed.
 const SceneWorkspacePage = lazy(() => import('@/pages/SceneWorkspacePage'));
 const SceneComparePage = lazy(() => import('@/pages/SceneComparePage'));
+const LabelEditorPage = lazy(() => import('@/pages/LabelEditorPage'));
 
 const loading = <div className="page-state" role="status"><span className="spin" aria-hidden="true" /></div>;
 
@@ -18,6 +19,7 @@ const router = createBrowserRouter([
   { path: '/scenes', element: <SceneSearchPage /> },
   { path: '/scenes/:sceneId', element: <Suspense fallback={loading}><SceneWorkspacePage /></Suspense> },
   { path: '/compare', element: <Suspense fallback={loading}><SceneComparePage /></Suspense> },
+  { path: '/labels', element: <Suspense fallback={loading}><LabelEditorPage /></Suspense> },
   { path: '*', element: <Navigate to="/scenes" replace /> },
 ]);
 

@@ -14,9 +14,12 @@ public final class AutoLabelDtos {
  public record Prediction(long id,String sampleToken,int boxIndex,String detectionName,double centerX,double centerY,double centerZ,double sizeW,double sizeL,double sizeH,double rotationW,double rotationX,double rotationY,double rotationZ,double velocityX,double velocityY,double detectionScore,String attributeName) {}
  public record Artifact(long id,String artifactType,String storageKey,String relativePath,String checksum,String contentType) {}
  public record Header(String mappingName,String coordinateFrame,String scoreType) {}
- public record Work(long id,long datasetId,String sceneName,String mappingName,UUID executionToken) {}
+ public record Work(long id,long datasetId,String sceneName,String mappingName,UUID executionToken,String datasetKey,String datasetVersion) {
+  public Work(long id,long datasetId,String sceneName,String mappingName,UUID executionToken) { this(id,datasetId,sceneName,mappingName,executionToken,null,null); }
+ }
  public record AiRequest(@JsonProperty("scene_name") String sceneName,@JsonProperty("class_mode") int classMode,
-   @JsonProperty("job_id") long jobId,@JsonProperty("execution_token") UUID executionToken) {}
+   @JsonProperty("job_id") long jobId,@JsonProperty("execution_token") UUID executionToken,
+   @JsonProperty("dataset_key") String datasetKey,@JsonProperty("dataset_version") String datasetVersion) {}
  public record Box(@JsonProperty("sample_token") String sampleToken,List<Double> translation,List<Double> size,List<Double> rotation,List<Double> velocity,
    @JsonProperty("detection_name") String detectionName,@JsonProperty("detection_score") Double detectionScore,@JsonProperty("attribute_name") String attributeName) {}
  public record AiResponse(@JsonProperty("run_id") UUID runId,@JsonProperty("scene_name") String sceneName,@JsonProperty("class_mode") int classMode,

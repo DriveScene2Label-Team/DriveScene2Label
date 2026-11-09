@@ -126,6 +126,7 @@ export default function SceneWorkspacePage() {
         <SinglePaneView scene={scene} data={{ frames, pred }} view={params.view} />
         <aside className="inspector" aria-label="자동 라벨링과 객체 정보">
           <JobPanel paneId="single" scene={scene} samples={frames.samples} />
+          {pane.resultJobId != null && <Link className="btn btn--primary" to={`/labels?job=${pane.resultJobId}`}>이 결과 수정 · 저장 · 다운로드</Link>}
           <ObjectInspector paneId="single" bundle={frames.displayed} frameNumber={frameNumber} pred={pred} />
         </aside>
       </main>

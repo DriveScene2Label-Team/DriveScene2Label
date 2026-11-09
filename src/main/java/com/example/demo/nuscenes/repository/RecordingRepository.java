@@ -33,6 +33,7 @@ public class RecordingRepository {
  public Optional<Content> content(long id) { return jdbc.sql("SELECT status,relative_path FROM scene_recording WHERE id=:id").param("id",id).query(Content.class).optional(); }
  /** Call inside a transaction: row lock is held until commit. */
  public Optional<Work> claim() {
+  if(jdbc.sql("SELECT maintenance FROM deployment_control WHERE id=1 FOR SHARE").query(Boolean.class).single()) return Optional.empty();
   var pending=jdbc.sql("SELECT id,dataset_id,scene_token,job_id,sdk_version,export_version,execution_token FROM scene_recording WHERE status='PENDING' ORDER BY created_at,id LIMIT 1 FOR UPDATE SKIP LOCKED")
    .query(Work.class).optional();
   if(pending.isEmpty()) return Optional.empty();

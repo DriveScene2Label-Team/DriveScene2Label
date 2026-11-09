@@ -10,6 +10,7 @@ import logging
 import os
 import subprocess
 import time
+from collections import OrderedDict
 from datetime import datetime, timezone
 from pathlib import Path
 from threading import Lock
@@ -52,9 +53,24 @@ class CapabilityService:
         self.vespa_check = None           # {"state","reasonCode","checkedAt","expiresAt"}
         self.recording_check = None
         self.checksum_cache = {}          # version dir -> (stamp, checksum)
+        self.dataset_services = OrderedDict()
+        self.dataset_lock = Lock()
 
     # ---------------- public ----------------
-    def snapshot(self, refresh=False):
+    def snapshot(self, refresh=False, dataset_key=None, dataset_version=None):
+        if dataset_key is not None:
+            with self.dataset_lock:
+                key = (dataset_key, dataset_version)
+                scoped = self.dataset_services.get(key)
+                if scoped is None:
+                    scoped = CapabilityService(self.clip, self.vespa.for_dataset(*key), None, self.clip_error)
+                    self.dataset_services[key] = scoped
+                self.dataset_services.move_to_end(key)
+                if len(self.dataset_services) > 32:
+                    self.dataset_services.popitem(last=False)
+            result = scoped.snapshot(refresh)
+            result["vespa"]["datasetKey"] = dataset_key
+            return result
         now = time.time()
         return {
             "schemaVersion": SCHEMA_VERSION,

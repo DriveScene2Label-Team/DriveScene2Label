@@ -1,4 +1,6 @@
 import hashlib
+import copy
+import re
 import json
 import logging
 import os
@@ -7,11 +9,14 @@ import signal
 import subprocess
 import sys
 import time
+import zipfile
 from pathlib import Path
 from threading import Lock
 from uuid import uuid4
 
 from schemas.auto_label import AutoLabelRequest, AutoLabelResponse
+from services.uploaded_dataset import UploadedDatasetCache
+from botocore.exceptions import BotoCoreError, ClientError
 
 # Child of uvicorn.error so INFO progress lines (slurm job id, state) reach the server log.
 logger = logging.getLogger("uvicorn.error").getChild("vespa")
@@ -68,6 +73,7 @@ class VespaService:
         if self.ssh_port and not self.ssh_port.isdigit():
             raise ValueError("VESPA_SSH_PORT must be a number")
         self.lock = Lock()
+        self.uploaded_datasets = UploadedDatasetCache()
 
     # ---------- configuration ----------
     def _metadata_ready(self):
@@ -98,7 +104,25 @@ class VespaService:
             raise VespaError(503, "VESPA_DATA_NOT_READY", "nuScenes metadata is unavailable or invalid.") from exc
 
     # ---------- entry point ----------
+    def for_dataset(self, key, version):
+        if self.executor != "local":
+            raise VespaError(422, "UPLOAD_EXECUTOR_UNSUPPORTED", "Uploaded datasets require the local GPU executor.")
+        if not re.fullmatch(r"[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}", key) or version not in ("v1.0-mini", "v1.0-trainval"):
+            raise VespaError(422, "INVALID_DATASET", "Invalid uploaded dataset key/version.")
+        try:
+            root = self.uploaded_datasets.ensure(key)
+        except (OSError, ValueError, zipfile.BadZipFile, BotoCoreError, ClientError) as error:
+            logger.exception("Uploaded dataset could not be prepared")
+            raise VespaError(503, "UPLOAD_STORAGE_UNAVAILABLE", "Check upload bucket, region, task role and local disk space.") from error
+        scoped = copy.copy(self)
+        scoped.data_root, scoped.version = root, version
+        # The shallow copy deliberately shares the worker's lock. Only one GPU run at a time.
+        return scoped
+
     def generate(self, request: AutoLabelRequest):
+        if request.dataset_key is not None:
+            scoped = self.for_dataset(request.dataset_key, request.dataset_version)
+            return scoped.generate(request.model_copy(update={"dataset_key": None, "dataset_version": None}))
         if not self.lock.acquire(blocking=False):
             raise VespaError(409, "VESPA_BUSY", "A VESPA run is already active on this AI worker.")
         try:

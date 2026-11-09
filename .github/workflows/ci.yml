@@ -1,0 +1,115 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [release-version]
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/release-version'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16-trixie
+        env:
+          POSTGRES_USER: drivescene
+          POSTGRES_PASSWORD: ci-only-password
+          POSTGRES_DB: drivescene_test
+        ports:
+          - 55432:5432
+        options: >-
+          --health-cmd "pg_isready -h 127.0.0.1 -U drivescene -d drivescene_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      TEST_DB_URL: jdbc:postgresql://localhost:55432/drivescene_test
+      TEST_DB_USERNAME: drivescene
+      TEST_DB_PASSWORD: ci-only-password
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Backend tests and executable JAR
+        run: bash gradlew --no-daemon test bootJar
+      - name: Infrastructure safety tests and CloudFormation validation
+        run: |
+          python3 -m venv /tmp/infra-tests
+          /tmp/infra-tests/bin/pip install -r scripts/aws/requirements.txt cfn-lint==1.60.0
+          /tmp/infra-tests/bin/python -m unittest discover -s scripts/aws/tests -v
+          /tmp/infra-tests/bin/python infra/aws/templates.py
+          /tmp/infra-tests/bin/cfn-lint build/cloudformation/*.json
+      - name: Frontend dependencies
+        working-directory: frontend
+        run: npm ci
+      - name: Frontend tests and production build
+        working-directory: frontend
+        run: |
+          npm test
+          npm run build
+      - name: Build deployable frontend and API image
+        run: docker build --tag drivescene2label:ci .
+      - name: Upload and editor browser flows
+        working-directory: frontend
+        run: |
+          npx playwright install --with-deps chromium
+          npm run test:e2e -- labels.spec.ts --project=desktop-1440
+      - name: AI upload contracts without GPU
+        run: |
+          python3 -m venv /tmp/ai-contract-tests
+          /tmp/ai-contract-tests/bin/pip install -r ai-server/requirements-contract-test.txt
+          /tmp/ai-contract-tests/bin/python -m pytest -q ai-server/tests/test_uploaded_datasets.py
+      - name: Live label save and download against Spring
+        env:
+          DB_URL: jdbc:postgresql://localhost:55432/drivescene_test
+          DB_USERNAME: drivescene
+          DB_PASSWORD: ci-only-password
+          SERVER_PORT: '18080'
+          AUTO_LABEL_WORKER_ENABLED: 'false'
+          RECORDING_WORKER_ENABLED: 'false'
+          NUSCENES_IMPORT_ENABLED: 'false'
+          DS2L_API: http://127.0.0.1:18080
+          DS2L_LIVE_ALLOW_LABEL_UPLOAD: '1'
+        run: |
+          set -euo pipefail
+          java -jar build/libs/*.jar > /tmp/label-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          ready=false
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:18080/api/datasets > /dev/null; then ready=true; break; fi
+            sleep 1
+          done
+          if [[ "$ready" != true ]]; then cat /tmp/label-server.log; exit 1; fi
+          cd frontend
+          npx playwright test -c playwright.live.config.ts labels.live.spec.ts
+      - name: Test reports
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: backend-test-reports
+          path: |
+            build/reports/tests/test/
+            frontend/playwright-report/
+          if-no-files-found: ignore
+          retention-days: 7

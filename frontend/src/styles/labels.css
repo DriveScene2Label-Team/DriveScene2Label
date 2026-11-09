@@ -1,0 +1,33 @@
+.labels-page { min-height: 100vh; background: var(--bg, #0b1020); color: var(--text, #e2e8f0); }
+.labels-page h1 { font-size: 18px; margin: 0; }
+.labels-page h2 { font-size: 16px; margin: 12px 0; }
+.labels-layout { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 24px; padding: 24px; }
+.labels-library, .labels-editor { min-width: 0; padding: 20px; border: 1px solid #334155; border-radius: 12px; }
+.labels-library { display: flex; flex-direction: column; gap: 12px; align-self: start; }
+.labels-page input, .labels-page select { min-width: 0; max-width: 100%; padding: 8px; border: 1px solid #475569; border-radius: 6px; background: #111827; color: #e2e8f0; }
+.labels-page label { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.labels-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 10px 0; }
+.labels-documents { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.labels-documents button { width: 100%; text-align: left; padding: 12px; background: #111827; border: 1px solid #334155; border-radius: 8px; color: inherit; cursor: pointer; overflow-wrap: anywhere; }
+.labels-documents button[aria-pressed=true] { border-color: #2dd4bf; }
+.labels-documents strong, .labels-documents span { display: block; }
+.labels-documents span { font-size: 12px; opacity: .7; margin-top: 6px; }
+.labels-canvas-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; }
+.labels-overview { width: 100%; min-height: 280px; max-height: 540px; aspect-ratio: 1; background: #080e1c; border: 1px solid #334155; border-radius: 8px; }
+.labels-overview polygon { cursor: pointer; }
+.labels-overview polygon:focus { outline: none; stroke: white; }
+.labels-controls, .labels-controls fieldset { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.labels-controls fieldset { border: 0; padding: 0; }
+.labels-controls legend { padding: 12px 0; font-size: 13px; }
+.labels-numbers { font-size: 12px; }
+.labels-numbers > div { display: flex; gap: 6px; margin-top: 6px; }
+.labels-numbers label { flex: 1; flex-direction: column; align-items: stretch; min-width: 0; }
+.labels-numbers input { width: 100%; }
+.labels-save { border-top: 1px solid #334155; margin-top: 20px; padding-top: 20px; }
+.labels-save input { flex: 1; }
+.labels-empty { padding: 70px 20px; text-align: center; line-height: 1.8; }
+.labels-error, .labels-success { padding: 12px; border-radius: 8px; overflow-wrap: anywhere; }
+.labels-error { background: #7f1d1d44; color: #fca5a5; }
+.labels-success { background: #064e3b55; color: #6ee7b7; }
+@media (max-width: 1100px) { .labels-canvas-layout { grid-template-columns: 1fr; } }
+@media (max-width: 760px) { .labels-layout { grid-template-columns: 1fr; padding: 12px; } .labels-page .topbar { flex-wrap: wrap; height: auto; padding: 12px; } }

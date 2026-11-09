@@ -257,3 +257,7 @@ Auto-label job_id/execution_token은 둘 다 생략하거나 둘 다 제공하�
 - RUNNING 도중 Spring 종료/네트워크 단절 후 자동 lease 복구, retry queue, 취소 API는 없다. 운영 전 복구 정책이 필요하다. 결과를 받지 못해 FAILED여도 AI 파일이 남을 수 있다.
 - VESPA 원본 main의 부분 scene 출력 제한을 외부 vespa_runner.py에서 우회하고 원본 writer 변환 함수를 재사용한다. 원본 저장소는 수정하지 않는다. 자세한 설정은 [VESPA wrapper](ai-server/VESPA.md).
 - 실행 절차/실제 mini 시나리오/발표 설명: [통합 검증](docs/integration-verification.md).
+
+## 업로드·라벨 편집 API 추가 (2026-11-09)
+
+새 `/api/label-documents`와 `/api/dataset-uploads` API, 요청·응답·제한·저장 의미는 [파일 업로드·라벨 편집 문서](docs/label-editing.md#api)를 참고하세요. 기존 자동 라벨 결과와 GT는 보존하고 별도 편집 버전을 저장합니다.
