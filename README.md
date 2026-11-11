@@ -4,9 +4,61 @@ nuScenes 기반 **3D Auto-Labeling + 자연어 Scene Retrieval + 라벨 편집**
 
 배포 기준 브랜치는 **`release-version`**, AWS 리전은 **서울 `ap-northeast-2`**입니다. [이번 릴리스 변경사항과 JPA 선택 이유](#15-release-version-변경사항), [AWS 구성·선택 이유·배포 방법](#16-aws-배포와-구성-이유)을 먼저 확인하세요.
 
-현재 서울 배포: **[팀 로그인 / 씬 탐색](https://ds-0b9e41d7414848af9d6a29b538031aa6.ecs.ap-northeast-2.on.aws/scenes?dataset=3)** · **[라벨 업로드·편집](https://ds-0b9e41d7414848af9d6a29b538031aa6.ecs.ap-northeast-2.on.aws/labels)**. 관리자에게 받은 앱 계정으로 로그인합니다. 최초 로그인은 비밀번호 변경이 필요합니다. 전체 환경을 제거하고 재생성하면 URL이 바뀔 수 있으므로 `status`의 `recovery.public_url`을 확인하세요.
+현재 MVP 주소: **[DriveScene2Label](https://drivescene2label.vercel.app)**. 프론트는 Vercel, 백엔드·GPU는 로컬 PC, 원본 저장소는 S3, 메타데이터·라벨 DB는 RDS를 사용합니다. 기존 ECS 공개 주소는 종료된 환경의 주소입니다. 아래 AWS 전체 배포 설명은 이전 구성의 참고 자료이며 현재 MVP 실행에 사용하지 않습니다.
+
+## 현재 MVP와 재부팅 후 재개 (2026-11-11)
+
+```mermaid
+flowchart LR
+  U[사용자] --> V[Vercel 프론트]
+  V --> T[Cloudflare HTTPS 터널]
+  T --> L[로컬 Cognito 로그인 게이트웨이]
+  L --> B[로컬 Spring 백엔드]
+  B --> G[로컬 FastAPI / RTX 5060 Ti]
+  B --> S[(S3 원본 ZIP)]
+  B --> D[(RDS PostgreSQL / 라벨)]
+```
+
+사용자는 Vercel 주소 하나로 접속합니다. `/api/*`와 `/oauth2/*`는 로컬 로그인 게이트웨이로 전달되며 기존 Cognito `team` 그룹만 API를 사용할 수 있습니다. EC2·ECS·EKS는 시작하지 않습니다.
+
+|항목|현재 확인 상태|
+|---|---|
+|Vercel|제품 빌드·배포 READY, 공개 홈페이지 200, 로그인 페이지 연결 확인|
+|RDS|보존 스냅샷에서 `ds2l-hybrid-database` 복원, 로컬 Spring TLS 인증서·호스트 검증 연결 성공, 기존 schema v8 유지|
+|접속 제한|현재 PC 공인 IPv4 `/32`의 TCP 5432만 허용. 집 IP 변경 시 해당 규칙 갱신 필요|
+|S3|기존 private 버킷 유지, 앱은 `uploads/*` 전용 1시간 임시 세션 사용. 전체 원본 복원 검증은 다음 단계|
+|데이터|로컬 API에서 기존 데이터셋 4개 조회 성공. 실제 mini는 데이터셋 #4|
+|GPU|이미지 빌드 완료. 이번 기동에서 Windows `GPU is lost` 오류가 발생해 실행 검증 중단. eGPU 재연결·재부팅 후 재검증 필요|
+|로그인|비로그인 API 401 차단 확인. 사용자 팀 계정 로그인 후 callback·씬·편집 화면 통합 검증은 아직 남음|
+|테스트|프론트 빌드 성공, 9개 파일 71개 테스트 통과|
+
+현재 PC의 비밀 설정은 OneDrive·Git 밖인 `%LOCALAPPDATA%\DriveScene2Label\hybrid`에 있습니다. 비밀번호·AWS 세션·OAuth 비밀은 README나 소스에 넣지 않습니다.
+
+재부팅 후 Docker Desktop을 켜고 저장소 루트에서 실행합니다.
+
+```powershell
+# GPU가 정상 표시되는지 먼저 확인
+nvidia-smi -L
+# AWS 로그인이 만료된 경우만 실행
+aws login --profile ds2l-seoul
+# 로컬 서버·GPU·로그인 게이트웨이·터널·S3 세션 갱신 시작
+powershell -ExecutionPolicy Bypass -File scripts/hybrid.ps1 -Action start
+# GPU 복구 전 데이터 조회용으로만 시작할 때
+# powershell -ExecutionPolicy Bypass -File scripts/hybrid.ps1 -Action start -WebOnly
+# 상태 확인 / 로컬 서비스 종료 (데이터 볼륨 보존)
+powershell -ExecutionPolicy Bypass -File scripts/hybrid.ps1 -Action status
+powershell -ExecutionPolicy Bypass -File scripts/hybrid.ps1 -Action stop
+```
+
+**임시 터널을 다시 시작하면 주소가 바뀝니다.** `.local/hybrid/tunnel.stderr.log`에 나온 새 HTTPS 주소를 Vercel 프로젝트의 `BACKEND_URL`에 반영하고 재배포해야 합니다. 사용자에게 공유하는 `https://drivescene2label.vercel.app` 주소는 유지됩니다. 이 갱신은 아직 자동화하지 않았습니다. 안정적인 상시 운영은 고정 도메인의 named tunnel로 전환하는 후속 범위입니다.
+
+노트북·Docker·터널을 끄면 화면은 열려도 API와 GPU 작업을 사용할 수 없습니다. 로컬 종료·재부팅은 AWS RDS를 정지하지 않으므로 RDS 비용은 계속 발생합니다. 모델·압축 해제 캐시는 여전히 로컬 디스크 공간이 필요합니다. 최초 씬 접근은 S3 ZIP 전체 복원 때문에 느릴 수 있고, 4.34GB 공개 업로드는 아직 검증하지 않았습니다. 자동 작업 worker는 복원 데이터 검토 전까지 꺼 두었습니다.
+
+`release-version` push는 CI 검사만 실행합니다. 기존 ECS/EKS 이미지 배포 workflow는 수동 실행으로 변경했습니다. Vercel은 이번에 검증한 로컬 소스로 배포했으며 Git push 자동 배포 연결은 아직 설정하지 않았습니다. 자세한 설정·제한은 [혼합 배포 기록](docs/hybrid-setup.md), [전체 로컬과 비교·통신 병목](docs/hybrid-deployment-plan-2026-11-11.md)을 참고하세요.
 
 - [프론트엔드 REST API 명세](README_API.md)
+- [Vercel + 로컬 GPU/백엔드 + S3/RDS 실행 준비](docs/hybrid-setup.md)
+- [혼합 구성과 전체 로컬 비교·통신 병목 계획](docs/hybrid-deployment-plan-2026-11-11.md)
 - [파일 업로드·라벨 수정본 저장·다운로드](docs/label-editing.md)
 - [서울 AWS ECS·EKS·GPU 켜기/끄기와 release-version 배포](docs/aws-ecs-cicd.md)
 - [DB / VESPA 결과 스키마](docs/auto-label-result-schema.md)

@@ -1,8 +1,7 @@
 name: Release images and deploy ECS + EKS
 
 on:
-  push:
-    branches: [release-version]
+  # Legacy full-cloud deployment is opt-in. Hybrid releases must not update AWS compute.
   workflow_dispatch:
     inputs:
       component:

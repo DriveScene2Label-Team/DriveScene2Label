@@ -85,6 +85,8 @@ out/
 *.log
 .env.*
 !.env.example
+!.env.hybrid.example
+.vercel/
 __pycache__/
 *.pyc
 .DS_Store

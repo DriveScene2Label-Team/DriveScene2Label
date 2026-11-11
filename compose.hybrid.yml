@@ -1,0 +1,85 @@
+# Standalone configuration: do not merge with compose.yml (which starts a local DB).
+# GPU: docker compose --env-file .env.hybrid -f compose.hybrid.yml -f compose.gpu.yml ...
+name: drivescene-hybrid
+
+services:
+  backend:
+    build: .
+    depends_on:
+      ai-server:
+        condition: service_started
+    environment:
+      DB_URL: ${DB_URL:?Set the RDS JDBC URL in .env.hybrid}
+      DB_USERNAME: ${DB_USERNAME:?Set DB_USERNAME in .env.hybrid}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env.hybrid}
+      SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT: "10000"
+      SERVER_ADDRESS: 0.0.0.0
+      SERVER_PORT: "8080"
+      NUSCENES_ROOT: /data/nuscenes
+      NUSCENES_VERSION: ${NUSCENES_VERSION:-v1.0-mini}
+      NUSCENES_IMPORT_ENABLED: "false"
+      AI_SERVER_BASE_URL: http://ai-server:8000
+      AI_SERVER_READ_TIMEOUT: ${AI_SERVER_READ_TIMEOUT:-30s}
+      VESPA_DATASET_VERSION: ${NUSCENES_VERSION:-v1.0-mini}
+      VESPA_MODEL_VERSION: ${VESPA_MODEL_VERSION:-acb2b6e8683363795528f049fe0444ef9f3efdb9}
+      AUTO_LABEL_READ_TIMEOUT: ${AUTO_LABEL_READ_TIMEOUT:-7300s}
+      # Review restored pending jobs before enabling workers.
+      AUTO_LABEL_WORKER_ENABLED: ${AUTO_LABEL_WORKER_ENABLED:-false}
+      RECORDING_WORKER_ENABLED: ${RECORDING_WORKER_ENABLED:-false}
+      RECORDING_READ_TIMEOUT: ${RECORDING_READ_TIMEOUT:-660s}
+      RECORDING_ROOT: /recordings
+      UPLOAD_ROOT: /uploads
+      UPLOAD_S3_BUCKET: ${UPLOAD_S3_BUCKET:?Set the private archive bucket in .env.hybrid}
+      AWS_REGION: ${AWS_REGION:-ap-northeast-2}
+      AWS_PROFILE: ${AWS_PROFILE:-default}
+      AWS_SHARED_CREDENTIALS_FILE: /run/secrets/s3_credentials
+      AWS_EC2_METADATA_DISABLED: "true"
+    secrets:
+      - s3_credentials
+    ports:
+      - "127.0.0.1:${APP_PORT:-8080}:8080"
+    volumes:
+      - uploaded_datasets:/uploads
+      - nuscenes_data:/data/nuscenes:ro
+      - rerun_recordings:/recordings:ro
+      - ${AWS_CREDENTIALS_DIRECTORY:?Set the directory with refreshable S3 session}:/run/hybrid-aws:ro
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8080/api/datasets"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 5m
+
+  ai-server:
+    build:
+      context: .
+      dockerfile: ai-server/Dockerfile
+    environment:
+      VESPA_EXECUTOR: local
+      VESPA_DATASET_VERSION: ${NUSCENES_VERSION:-v1.0-mini}
+      VESPA_NUM_THREADS: ${VESPA_NUM_THREADS:-1}
+      VESPA_TIMEOUT_SECONDS: ${VESPA_TIMEOUT_SECONDS:-7200}
+      RECORDING_TIMEOUT_SECONDS: ${RECORDING_TIMEOUT_SECONDS:-600}
+      UPLOAD_ROOT: /uploads
+      # Spring is the only archive writer. AI reads the shared prepared dataset.
+      UPLOAD_S3_BUCKET: ""
+      AWS_EC2_METADATA_DISABLED: "true"
+    volumes:
+      - uploaded_datasets:/uploads:ro
+      - nuscenes_data:/data/nuscenes:ro
+      - model_cache:/models
+      - vespa_results:/results
+      - rerun_recordings:/recordings
+    shm_size: 2gb
+
+secrets:
+  s3_credentials:
+    file: ${AWS_SHARED_CREDENTIALS_HOST_PATH:?Set a dedicated AWS credentials file path in .env.hybrid}
+
+volumes:
+  uploaded_datasets:
+  nuscenes_data:
+  model_cache:
+    name: ${MODEL_CACHE_VOLUME:-drivescene-hybrid_model_cache}
+  vespa_results:
+  rerun_recordings:

@@ -13,6 +13,8 @@ npm run dev                     # http://localhost:5173
 
 Spring이 다른 PC에 있으면 `API_PROXY_TARGET`을 그 주소로 바꾼다. 배포는 같은 origin의 reverse proxy가 `/api`를 Spring으로 전달하고 나머지 경로에는 `dist/index.html`을 돌려주도록 구성한다(BrowserRouter, 새 탭 링크).
 
+Vercel 구성은 [`vercel.json`](vercel.json)에 있다. Root Directory를 `frontend`로 지정하고, 인증 게이트웨이가 있는 공개 HTTPS origin을 `BACKEND_URL`에 넣는다. `/api`와 `/oauth2`를 전달하고 정적 자산을 먼저 제공한 뒤 SPA 경로를 처리한다. `VITE_AUTH_REQUIRED=true`로 로그인 gate를 활성화한다. API의 실제 접근 제어는 서버의 oauth2-proxy가 담당한다. 누락되거나 잘못된 origin은 Vercel 빌드에서 차단하며, 로컬 `npm run build`에는 이 값이 필요 없다. [혼합 실행 준비와 미완료 연결 항목](../docs/hybrid-setup.md)을 함께 확인한다.
+
 | script | 내용 |
 |---|---|
 | `npm run typecheck` | `tsc -b --noEmit` |

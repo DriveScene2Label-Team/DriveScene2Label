@@ -1,0 +1,35 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "installCommand": "npm ci",
+  "buildCommand": "node scripts/check-vercel-env.mjs && npm run build",
+  "outputDirectory": "dist",
+  "routes": [
+    {
+      "src": "/oauth2(/.*)?$",
+      "dest": "${BACKEND_URL}/oauth2$1",
+      "env": ["BACKEND_URL"],
+      "headers": { "Cache-Control": "private, no-store" }
+    },
+    {
+      "src": "/api(/.*)?$",
+      "dest": "${BACKEND_URL}/api$1",
+      "env": ["BACKEND_URL"],
+      "respectOriginCacheControl": false,
+      "headers": {
+        "Cache-Control": "private, no-store",
+        "x-vercel-enable-rewrite-caching": "0"
+      }
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html",
+      "headers": {
+        "Cache-Control": "no-cache"
+      }
+    }
+  ]
+}
