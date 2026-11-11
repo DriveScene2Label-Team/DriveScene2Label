@@ -156,7 +156,7 @@ HTML은 시각·상호작용 참고 자료다. 실제 앱에서는 데이터와 
 | FR-01 | 데이터셋 선택 | API의 실제 dataset 목록 사용. 변경 시 이전 선택 씬·검색 결과를 새 dataset과 섞지 않음 |
 | FR-02 | 전체 씬 목록 | 이름·설명·프레임 수 표시. 전체 목록 API에는 thumbnail·작업 상태가 없음을 고려 |
 | FR-03 | 자연어 검색 | 제출 시 요청. 기본 k=10, TOP_K_AVERAGE, imageTopK=3, keyframesOnly=true |
-| FR-04 | 결과 카드 | 검색 응답의 대표 이미지·이름·설명·유사도 표시. score를 정확도 %로 바꾸지 않음 |
+| FR-04 | 결과 카드 | 검색 응답의 대표 이미지·이름·설명과 일치도(`matchScore`, "일치도 65점") 표시. 툴팁에 원래 코사인 값과 확률이 아니라는 설명. matchScore가 없으면 원래 score 표시. score를 정확도 %로 바꾸지 않음. 보정된 일치도는 허용하며 근거와 기준값을 문서화한다([검색 일치도](search-match-score.md)) |
 | FR-05 | 씬 이동 | sceneId/datasetId를 URL에 넣고 대표 sampleToken이 있으면 해당 프레임 선택 |
 | FR-06 | 비교 씬 선택 | A/B 2개 선택 후 비교 화면. 서로 다른 dataset도 각 문맥을 보존 |
 

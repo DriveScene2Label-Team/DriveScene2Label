@@ -12,7 +12,11 @@ test.describe('탐색 → 작업대 (QA-01/02)', () => {
     await page.getByLabel('장면 설명으로 검색').fill('rainy night road');
     await page.getByRole('button', { name: '검색', exact: true }).click();
     await expect(page.getByRole('heading', { name: /검색 결과\s*2/ })).toBeVisible();
-    await expect(page.getByText('0.31', { exact: true })).toBeVisible();
+    const badge = page.locator('.card-score').first(); // calibrated match score on the card, raw cosine in the tooltip
+    await expect(badge).toHaveText('일치도100점잘 맞음');
+    await expect(badge).toHaveAttribute('title', /코사인 유사도 0\.310.*확률이 아니에요/);
+    await expect(page.locator('.card-score').nth(1)).toHaveText('일치도63점관련 있음'); // 0.21 between anchors 0.173 and 0.232
+    await expect(page.getByRole('link', { name: /scene-0103 열기\. 일치도 \d+점, (잘 맞음|관련 있음)/ })).toBeVisible();
     await expect(page.getByText(/%/)).toHaveCount(0); // score is not shown as a percentage
     await page.getByRole('link', { name: /scene-0103 열기/ }).click();
     await expect(page).toHaveURL(new RegExp(`/scenes/22\\?dataset=${DATASET.id}&sample=${sampleToken(22, 1)}`));
@@ -146,7 +150,7 @@ test.describe('투영·레이어', () => {
     await table.getByRole('row', { name: /^GT car,/ }).click();
     await expect(page.getByTestId('object-detail').locator('.ed-label')).toHaveText('car');
     await expect(page.getByTestId('object-detail')).toContainText('vehicle.car');
-    await table.getByRole('row', { name: /movable_object\.barrier/ }).click();
+    await table.getByRole('row', { name: /movable_object\.debris/ }).click(); // barrier is mapped since patch 0001
     await expect(page.getByTestId('object-detail')).toContainText('비교 분류 없음');
     await table.getByRole('row', { name: /클래스 정보 없음/ }).click();
     await expect(page.getByTestId('object-detail')).toContainText('클래스 정보 없음');

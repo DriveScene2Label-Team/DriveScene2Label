@@ -128,11 +128,11 @@ curl --get http://localhost:8080/api/search/scenes --data-urlencode 'q=rainy nig
 응답 예시 (수치는 설명용):
 
 ```json
-{"query":"rainy night road","modelName":"ViT-L-14-quickgelu/openai","preprocess":"lr-square-crop-mean","aggregation":"TOP_K_AVERAGE","imageTopK":3,"keyframesOnly":true,"scenes":[{"sceneId":7,"datasetId":1,"sceneToken":"scene-token","sceneName":"scene-0061","description":"...","score":0.31,"distance":0.69,"matchedImages":234,"contributingImages":3,"bestImageId":42,"bestSampleToken":"sample-token","bestImagePath":"samples/CAM_FRONT/example.jpg","contentUrl":"/api/sensor-files/42/content"}]}
+{"query":"rainy night road","modelName":"ViT-L-14-quickgelu/openai","preprocess":"lr-square-crop-mean","aggregation":"TOP_K_AVERAGE","imageTopK":3,"keyframesOnly":true,"scenes":[{"sceneId":7,"datasetId":1,"sceneToken":"scene-token","sceneName":"scene-0061","description":"...","score":0.31,"matchScore":100,"distance":0.69,"matchedImages":234,"contributingImages":3,"bestImageId":42,"bestSampleToken":"sample-token","bestImagePath":"samples/CAM_FRONT/example.jpg","contentUrl":"/api/sensor-files/42/content"}]}
 ```
 
 Text는 `clip-text-tokenizer`, image는 `lr-square-crop-mean`이 정상이다. modality별 preprocess 이름을 같은 문자열로 비교하지 않는다. 두 modality의 model은 `ViT-L-14-quickgelu/openai`로 일치한다.
-DB는 같은 image model/preprocess의 camera만 선택해 `<=>` 거리 계산 → scene별 aggregation → score 내림차순으로 k개를 반환한다. score=1-distance이며 확률이 아니다. MAX는 최고 이미지, AVERAGE는 전체 평균, TOP_K_AVERAGE는 scene 내 상위 N개 평균이다. N보다 적으면 존재하는 개수로 평균낸다. 대표 이미지는 가장 가까운 이미지다. image LIMIT를 먼저 적용하지 않는다.
+DB는 같은 image model/preprocess의 camera만 선택해 `<=>` 거리 계산 → scene별 aggregation → score 내림차순으로 k개를 반환한다. score=1-distance이며 확률이 아니다. matchScore(정수 0..100, nullable, 2026-11-04 추가)는 score를 aggregation별 보정 기준점(`search.match-score.*`, 하한=관련 없는 문장 점수 p90 → 0점, 상한=짧은 검색어(`scripts/match_score_queries.mini.json`)가 맞는 scene에서 받는 점수 중앙값 → 100점, 2026-11-05 변경) 사이에서 선형 환산·clamp한 값이며 역시 확률이 아니다. 설정의 model/preprocess와 다른 embedding이면 null이다. 근거·재보정은 [검색 일치도](docs/search-match-score.md). MAX는 최고 이미지, AVERAGE는 전체 평균, TOP_K_AVERAGE는 scene 내 상위 N개 평균이다. N보다 적으면 존재하는 개수로 평균낸다. 대표 이미지는 가장 가까운 이미지다. image LIMIT를 먼저 적용하지 않는다.
 200 + `scenes:[]`는 정상적인 빈 결과. 없는 양수 datasetId도 빈 결과다. 400 잘못된 입력, 502 AI 비정상 응답/HTTP 오류, 503 AI 연결 실패/timeout. 한국어 검색은 요청 가능하지만 이 OpenAI CLIP의 한국어 검색 품질은 검증하지 않았다.
 
 ## 7. Auto Label Job 생성 / 상태

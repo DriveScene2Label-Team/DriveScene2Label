@@ -11,6 +11,16 @@ public class SceneSearchRepository {
  private final JdbcClient jdbc;
  public SceneSearchRepository(JdbcClient jdbc) { this.jdbc=jdbc; }
 
+ /** One SQL row; the service adds matchScore. */
+ record Row(long sceneId, long datasetId, String sceneToken, String sceneName, String description, double score,
+  double distance, long matchedImages, long contributingImages, long bestImageId, String bestSampleToken,
+  String bestImagePath, String contentUrl) {
+  SceneSearchResult toResult() {
+   return new SceneSearchResult(sceneId,datasetId,sceneToken,sceneName,description,score,distance,matchedImages,
+    contributingImages,bestImageId,bestSampleToken,bestImagePath,contentUrl,null);
+  }
+ }
+
  /** Exact scene ranking: aggregate eligible images BEFORE limiting scenes. */
  @Transactional(readOnly=true)
  public List<SceneSearchResult> search(String vector, String model, String preprocess, Long datasetId,
@@ -53,6 +63,6 @@ public class SceneSearchRepository {
    """).param("vector",vector).param("model",model).param("preprocess",preprocess)
     .param("dataset",datasetId).param("k",k).param("aggregation",aggregation)
     .param("imageTopK",imageTopK).param("keyframesOnly",keyframesOnly)
-    .query(SceneSearchResult.class).list();
+    .query(Row.class).list().stream().map(Row::toResult).toList();
  }
 }

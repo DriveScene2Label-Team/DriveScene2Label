@@ -1,0 +1,15 @@
+{
+  "_comment": "Short queries for the 100-point anchor (scripts/calibrate_match_score.py). The scenes are the ones whose nuScenes v1.0-mini description says so; every other scene counts as a wrong match. Replace this file for another dataset.",
+  "queries": [
+    {"query": "night", "scenes": ["scene-1077", "scene-1094", "scene-1100"]},
+    {"query": "parking lot", "scenes": ["scene-0655", "scene-0916"]},
+    {"query": "construction site", "scenes": ["scene-0061", "scene-1077"]},
+    {"query": "pedestrians crossing the crosswalk", "scenes": ["scene-0553", "scene-1100"]},
+    {"query": "bike rack", "scenes": ["scene-0103", "scene-0916"]},
+    {"query": "wet road after rain", "scenes": ["scene-1094"]},
+    {"query": "bus stop", "scenes": ["scene-1077"]},
+    {"query": "waiting at an intersection", "scenes": ["scene-0553", "scene-0757"]},
+    {"query": "parked motorcycles and scooters", "scenes": ["scene-0916"]},
+    {"query": "bendy bus", "scenes": ["scene-0655"]}
+  ]
+}

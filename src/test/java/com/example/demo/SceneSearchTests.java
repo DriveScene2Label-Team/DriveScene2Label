@@ -150,6 +150,7 @@ class SceneSearchTests {
     .andExpect(jsonPath("$.scenes.length()").value(1)).andExpect(jsonPath("$.scenes[0].sceneName").value("B"))
     .andExpect(jsonPath("$.scenes[0].matchedImages").value(3)).andExpect(jsonPath("$.scenes[0].contributingImages").value(3))
     .andExpect(jsonPath("$.scenes[0].score").value(org.hamcrest.Matchers.closeTo(.8,1e-6)))
+    .andExpect(jsonPath("$.scenes[0].matchScore").value(100))  // above the calibrated upper anchor
     .andExpect(jsonPath("$.scenes[0].contentUrl").exists());
   assertThat(REQUEST.get()).isEqualTo("POST {\"text\":\"rainy night road\"}");
   mvc.perform(get("/api/search/scenes").param("q","road").param("datasetId",String.valueOf(d)).param("aggregation","MAX"))

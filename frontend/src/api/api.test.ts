@@ -1,8 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { calibrationDto, gtDto, jobResultsDto, jobStatusDto, poseDto, sampleDetailDto, sampleDto } from '@/test/fixtures';
-import type { RecordingDto } from './dto';
+import type { RecordingDto, SceneSearchResponseDto, SceneSearchResultDto } from './dto';
 import { ApiError, getJson, toApiError } from './http';
-import { gtToBox, toCalibration, toEgoPose, toJobResults, toJobStatus, toRecording, toSampleFrame } from './mappers';
+import { gtToBox, toCalibration, toEgoPose, toJobResults, toJobStatus, toMatchScore, toRecording, toSampleFrame, toSearchResult } from './mappers';
+import { matchTooltip } from '@/features/scenes/SceneCard';
 import { fetchAllSceneSamples, SAMPLE_PAGE } from './queries';
 
 afterEach(() => vi.restoreAllMocks());
@@ -100,5 +101,33 @@ describe('scene sample paging', () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(samples[0]!.token).toBe('s0');
     expect(samples.at(-1)!.token).toBe(`s${SAMPLE_PAGE + 2}`);
+  });
+});
+
+describe('search match score', () => {
+  const dto = (extra: Partial<SceneSearchResultDto>): SceneSearchResultDto => ({
+    sceneId: 7, datasetId: 1, sceneToken: 'scene-tok', sceneName: 'scene-1077', description: 'Night', score: 0.258, distance: 0.742,
+    matchedImages: 234, contributingImages: 3, bestImageId: 42, bestSampleToken: 's0', bestImagePath: 'samples/CAM_FRONT/x.jpg',
+    contentUrl: '/api/sensor-files/42/content', ...extra,
+  });
+  const response = (scenes: SceneSearchResultDto[]): SceneSearchResponseDto => ({
+    query: 'rainy night road', modelName: 'ViT-L-14-quickgelu/openai', preprocess: 'lr-square-crop-mean',
+    aggregation: 'TOP_K_AVERAGE', imageTopK: 3, keyframesOnly: true, scenes,
+  });
+  it('keeps the raw score and maps matchScore, tolerating servers without it', () => {
+    const hits = toSearchResult(response([dto({ matchScore: 99 }), dto({}), dto({ matchScore: null })])).hits;
+    expect(hits.map((h) => h.score)).toEqual([0.258, 0.258, 0.258]);
+    expect(hits.map((h) => h.matchScore)).toEqual([99, null, null]);
+  });
+  it('rejects values that are not an integer 0..100', () => {
+    expect([0, 100, 65].map(toMatchScore)).toEqual([0, 100, 65]);
+    expect([-1, 101, 0.5, Number.NaN, '65', undefined].map(toMatchScore)).toEqual([null, null, null, null, null, null]);
+  });
+  it('tooltip shows the cosine value and says it is not a probability, without %', () => {
+    const withScore = matchTooltip(0.258, 99);
+    expect(withScore).toContain('코사인 유사도 0.258');
+    expect(withScore).toContain('확률이 아니에요');
+    expect(matchTooltip(0.258, null)).toContain('확률이 아니에요');
+    expect(withScore + matchTooltip(0.258, null)).not.toContain('%');
   });
 });

@@ -40,7 +40,7 @@
 - 카메라는 JPG 키프레임 시퀀스다. 재생·상대 동기화는 `timestampUs` 기반이며 실제 영상/실시간 스트림으로 설명하지 않는다.
 - GT/예측은 WORLD 미터, size W/L/H, quaternion W/X/Y/Z다. 박스 로컬 x=L, y=W, z=H를 지킨다.
 - 카메라마다 해당 sensor file의 pose와 calibration을 사용한다. 이미지와 박스는 동일 sample이 준비되었을 때 함께 표시한다.
-- VESPA detectionScore=1.0은 고정값이다. confidence UI·정확도·진행률을 임의로 만들지 않는다. 검색 score도 확률이 아니다.
+- VESPA detectionScore=1.0은 고정값이다. confidence UI·정확도·진행률을 임의로 만들지 않는다. 검색 score도 확률이 아니다. 보정된 일치도는 허용하며 근거와 기준값을 문서화한다([검색 일치도](docs/search-match-score.md)). %로 표시하지 않는다.
 - job 생성은 씬 전체이며 classMode=1/3/8, 상태는 PENDING/RUNNING/COMPLETED/FAILED다. terminal에서 polling을 멈춘다.
 - 같은 실행의 네트워크 재시도는 동일 Idempotency-Key를 사용한다. 사용자가 새 작업을 실행하면 새 key를 사용한다.
 - status GET 오류는 job FAILED가 아니다. 완료 결과 GET 재시도는 새 VESPA 작업을 만들지 않는다.

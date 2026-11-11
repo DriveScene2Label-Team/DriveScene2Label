@@ -100,6 +100,8 @@ export interface SearchHit {
   sceneName: string;
   description: string;
   score: number;
+  /** 0..100 calibrated match score, or null (show the raw score instead). */
+  matchScore: number | null;
   bestSampleToken: string;
   bestImageId: number;
   contentUrl: string;

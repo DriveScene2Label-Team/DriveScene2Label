@@ -711,6 +711,11 @@ a.card-hit:hover { text-decoration: none; }
 .card-name { font-size: 16.5px; font-weight: 700; letter-spacing: -.015em; white-space: nowrap; }
 .card-score { margin-left: auto; display: inline-flex; align-items: baseline; gap: 5px; color: var(--label-3); font-size: 12.5px; font-weight: 500; white-space: nowrap; }
 .card-score b { color: var(--accent-text); font-size: 17px; font-weight: 800; letter-spacing: -.01em; }
+/* Calibrated matchScore band (docs/search-match-score.md). Same number, a word and a color to read it by. */
+.card-score .sim-level { font-size: 11.5px; font-weight: 700; padding: 1px 7px; border-radius: 999px; background: var(--fill-1); color: var(--label-2); }
+.card-score[data-level="good"] .sim-level { color: var(--green); }
+.card-score[data-level="weak"] b { color: var(--label-3); }
+.card-score[data-level="weak"] .sim-level { color: var(--label-3); }
 .card-desc { display: -webkit-box; margin-top: 6px; color: var(--label-2); font-size: 14px; line-height: 1.5; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: normal; }
 .card-meta { display: block; margin-top: 10px; color: var(--label-3); font-size: 12.5px; }
 .empty { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 64px 16px; text-align: center; }

@@ -313,7 +313,7 @@ export async function installMockApi(page: Page, opts: MockOptions = {}): Promis
     if (p === '/api/search/scenes') {
       if (opts.search === 'error') return json(route, { code: 'HTTP_503', message: 'AI server unavailable' }, 503);
       const hits = opts.search === 'empty' ? [] : [SCENES[1]!, SCENES[0]!].map((s, i) => ({
-        sceneId: s.id, datasetId: DATASET.id, sceneToken: s.token, sceneName: s.name, description: s.description, score: 0.31 - i * 0.05, distance: 0.69 + i * 0.05,
+        sceneId: s.id, datasetId: DATASET.id, sceneToken: s.token, sceneName: s.name, description: s.description, score: 0.31 - i * 0.1, matchScore: Math.max(0, Math.min(100, Math.round((0.31 - i * 0.1 - 0.173) / (0.232 - 0.173) * 100))), distance: 0.69 + i * 0.1,
         matchedImages: 200, contributingImages: 3, bestImageId: fileId(sampleId(s.id, 1), 'CAM_FRONT'), bestSampleToken: sampleToken(s.id, 1), bestImagePath: 'samples/CAM_FRONT/x.jpg',
         contentUrl: `/api/sensor-files/${fileId(sampleId(s.id, 1), 'CAM_FRONT')}/content`,
       }));

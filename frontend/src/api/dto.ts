@@ -139,7 +139,10 @@ export interface SceneSearchResultDto {
   sceneToken: string;
   sceneName: string;
   description: string;
+  /** 1 - cosine distance. Not a probability. */
   score: number;
+  /** score rescaled to 0..100 with Spring's calibrated anchors; null/absent if uncalibrated or an older server. */
+  matchScore?: number | null;
   distance: number;
   matchedImages: number;
   contributingImages: number;

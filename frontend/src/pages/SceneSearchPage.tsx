@@ -95,7 +95,7 @@ export function SceneSearchPage() {
       {!!count && (
         <label className="sort">정렬
           <select className="popup popup--sm" value={sortKey} onChange={(e) => setSort(e.currentTarget.value as SortKey)}>
-            {searching && <option value="score">유사도</option>}
+            {searching && <option value="score">일치도</option>}
             <option value="name">이름</option>
             <option value="frames">프레임 수</option>
           </select>
@@ -149,7 +149,7 @@ export function SceneSearchPage() {
     } else {
       const rows: CardData[] = search.data.hits.map((h) => ({
         datasetId: h.datasetId, sceneId: h.sceneId, name: h.sceneName, description: h.description, nbrSamples: frames.get(h.sceneId) ?? null,
-        hit: { score: h.score, contentUrl: h.contentUrl, bestSampleToken: h.bestSampleToken },
+        hit: { score: h.score, matchScore: h.matchScore, contentUrl: h.contentUrl, bestSampleToken: h.bestSampleToken },
       }));
       results = <>{bar(`“${search.data.query}” 검색 결과`, rows.length)}{grid(rows)}</>;
     }
@@ -214,7 +214,7 @@ export function SceneSearchPage() {
             </div>
           </section>
           <section id="results" aria-live="polite">{results}</section>
-          <p className="lib-note">씬 이름과 설명은 데이터셋 원본을 따라요. 유사도는 검색어와 씬 카메라 이미지 임베딩 사이의 점수라서 확률이나 정확도가 아니에요. 영문 검색어를 권장해요(한국어 검색 품질은 검증되지 않았어요).</p>
+          <p className="lib-note">씬 이름과 설명은 데이터셋 원본을 따라요. 일치도는 검색어와 카메라 이미지 임베딩의 코사인 유사도를 0~100점으로 보정한 값이라 확률이나 정확도가 아니에요(0점 ≈ 관련 없는 문장, 100점 ≈ 짧은 검색어가 맞는 씬에서 받는 대표 점수). 80점 이상은 잘 맞음, 50~79점은 관련 있음, 50점 미만은 약함으로 표시하지만, 맞지 않는 장면도 80점을 넘을 수 있으니 이미지로 확인해 주세요. 영문 검색어를 권장해요(한국어 검색 품질은 검증되지 않았어요).</p>
         </div>
       </main>
       {picking && (

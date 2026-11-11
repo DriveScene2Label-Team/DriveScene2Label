@@ -96,13 +96,18 @@ export function predictionToBox(p: PredictionDto, jobId: number, datasetId: numb
   };
 }
 
+/** Integer 0..100 from the server; anything else (missing, null, out of range) is treated as no match score. */
+export function toMatchScore(v: unknown): number | null {
+  return typeof v === 'number' && Number.isInteger(v) && v >= 0 && v <= 100 ? v : null;
+}
+
 export function toSearchResult(r: SceneSearchResponseDto): SearchResult {
   return {
     query: r.query,
     aggregation: r.aggregation,
     hits: r.scenes.map((s) => ({
       sceneId: s.sceneId, datasetId: s.datasetId, sceneToken: s.sceneToken, sceneName: s.sceneName, description: s.description,
-      score: s.score, bestSampleToken: s.bestSampleToken, bestImageId: s.bestImageId, contentUrl: s.contentUrl,
+      score: s.score, matchScore: toMatchScore(s.matchScore), bestSampleToken: s.bestSampleToken, bestImageId: s.bestImageId, contentUrl: s.contentUrl,
       matchedImages: s.matchedImages, contributingImages: s.contributingImages,
     })),
   };

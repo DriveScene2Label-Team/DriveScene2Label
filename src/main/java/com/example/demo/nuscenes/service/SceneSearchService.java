@@ -15,10 +15,11 @@ import org.springframework.web.server.ResponseStatusException;
 public class SceneSearchService {
  private final TextEmbeddingClient ai;
  private final SceneSearchRepository repository;
+ private final MatchScoreCalibration calibration;
  private final String model, preprocess;
- public SceneSearchService(TextEmbeddingClient ai, SceneSearchRepository repository,
+ public SceneSearchService(TextEmbeddingClient ai, SceneSearchRepository repository, MatchScoreCalibration calibration,
    @Value("${embedding.model-name}") String model, @Value("${embedding.preprocess}") String preprocess) {
-  this.ai=ai; this.repository=repository; this.model=model; this.preprocess=preprocess;
+  this.ai=ai; this.repository=repository; this.calibration=calibration; this.model=model; this.preprocess=preprocess;
  }
  public SceneSearchResponse search(String query, int k, Long datasetId, String aggregation,
    int imageTopK, boolean keyframesOnly) {
@@ -32,7 +33,8 @@ public class SceneSearchService {
   var encoded=ai.embed(text);
   String vector=EmbeddingValidator.vector(encoded,model,"clip-text-tokenizer");
   // HTTP inference occurs before the repository's read-only DB transaction.
-  var results=repository.search(vector,model,preprocess,datasetId,k,mode,imageTopK,keyframesOnly);
+  var results=repository.search(vector,model,preprocess,datasetId,k,mode,imageTopK,keyframesOnly).stream()
+   .map(r->r.withMatchScore(calibration.matchScore(model,preprocess,mode,r.score()))).toList();
   org.slf4j.LoggerFactory.getLogger(getClass()).info("[SEARCH] topK={} scenes={} aggregation={}",k,results.size(),mode);
   return new SceneSearchResponse(text,model,preprocess,mode,imageTopK,keyframesOnly,results);
  }
