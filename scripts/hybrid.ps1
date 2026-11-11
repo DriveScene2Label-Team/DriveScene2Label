@@ -1,6 +1,7 @@
 param(
     [ValidateSet('start', 'stop', 'status')][string]$Action = 'status',
-    [switch]$WebOnly
+    [switch]$WebOnly,
+    [switch]$SkipVercel
 )
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
@@ -12,6 +13,7 @@ if (-not (Test-Path -LiteralPath $runtimeEnv)) { throw 'Prepare the protected ru
 Push-Location $repoRoot
 try {
     if ($Action -eq 'status') {
+        & python scripts/hybrid/cloud.py rds-status
         & docker @composeArgs ps
         & python scripts/hybrid/operations.py status --env-file $runtimeEnv
         if ($LASTEXITCODE -ne 0) { throw 'Cannot verify the backend maintenance state.' }
@@ -41,14 +43,30 @@ try {
         & nvidia-smi -L
         if ($LASTEXITCODE -ne 0) { throw 'GPU is unavailable. Reconnect/reboot the eGPU, or use -WebOnly for data viewing.' }
     }
+    & python scripts/hybrid/cloud.py rds-start
+    if ($LASTEXITCODE -ne 0) { throw 'RDS is not ready. Check aws login --profile ds2l-seoul --region ap-northeast-2 and retry.' }
+    & docker info --format '{{.ServerVersion}}' 2>$null
+    if ($LASTEXITCODE -ne 0) {
+        $dockerDesktop = Join-Path $env:ProgramFiles 'Docker/Docker/Docker Desktop.exe'
+        if (-not (Test-Path -LiteralPath $dockerDesktop)) { throw 'Docker Desktop is not installed.' }
+        Start-Process -FilePath $dockerDesktop -WindowStyle Hidden
+        $dockerReady = $false
+        for ($attempt = 0; $attempt -lt 60; $attempt++) {
+            Start-Sleep -Seconds 3
+            & docker info --format '{{.ServerVersion}}' 2>$null
+            if ($LASTEXITCODE -eq 0) { $dockerReady = $true; break }
+        }
+        if (-not $dockerReady) { throw 'Docker Desktop did not become ready within three minutes.' }
+    }
     & python scripts/hybrid/refresh-s3-session.py --directory (Join-Path $runtimeRoot 'aws')
     if ($LASTEXITCODE -ne 0) { throw 'Renew AWS login with aws login --profile ds2l-seoul, then retry.' }
     & python scripts/hybrid/operations.py prepare --env-file $runtimeEnv
     if ($LASTEXITCODE -ne 0) { throw 'Local operations credential preparation failed.' }
     & docker @composeArgs config --quiet
     if ($LASTEXITCODE -ne 0) { throw 'Compose configuration failed' }
-    if ($WebOnly) { & docker @composeArgs up -d --no-build --no-deps backend auth-gateway }
-    else { & docker @composeArgs up -d --no-build }
+    # Repeated start must not recreate containers or interrupt an active GPU job.
+    if ($WebOnly) { & docker @composeArgs up -d --no-build --no-recreate --no-deps --wait --wait-timeout 180 backend auth-gateway }
+    else { & docker @composeArgs up -d --no-build --no-recreate --wait --wait-timeout 180 }
     if ($LASTEXITCODE -ne 0) { throw 'Local service startup failed' }
     & python scripts/hybrid/operations.py resume --env-file $runtimeEnv
     if ($LASTEXITCODE -ne 0) { throw 'Backend started but writes remain unavailable. Check maintenance state before using the app.' }
@@ -68,5 +86,9 @@ try {
             -RedirectStandardError (Join-Path $localRoot ($helper.Name + '.stderr.log'))
         $process.Id | Set-Content -LiteralPath $pidPath
     }
-    Write-Output 'Local services started. If the tunnel URL changed, update Vercel BACKEND_URL and redeploy before using the public site.'
+    if (-not $SkipVercel) {
+        & python scripts/hybrid/cloud.py vercel-sync
+        if ($LASTEXITCODE -ne 0) { throw 'Local services are running, but Vercel is not verified. Run python scripts/hybrid/cloud.py vercel-login once, then retry start.' }
+    }
+    Write-Output 'Local services ready. RDS is available, S3 credentials refreshed, existing data and running jobs preserved.'
 } finally { Pop-Location }

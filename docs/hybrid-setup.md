@@ -2,17 +2,38 @@
 
 기준: `release-version`, 2026-11-11. 구성은 **Vercel 프론트 + 로컬 Spring/FastAPI/GPU + S3 원본 + RDS DB**다. 최신 기능·검증 범위는 [11월 11일 MVP 갱신 기록](hybrid-mvp-update-2026-11-11.md)과 저장소 README를 기준으로 한다. 아래 초기 준비와 과거 연결 기록은 당시 상태를 보존한 것이다.
 
+## 명령 하나로 기존 환경 시작
+
+보호된 runtime 설정이 준비된 PC에서 `powershell -ExecutionPolicy Bypass -File scripts/hybrid.ps1 -Action start`를 실행한다. 기존 RDS 상태 확인·필요 시 시작, Docker Desktop 준비, GPU 확인, 컨테이너 재사용, 인증된 maintenance 해제, S3 세션 갱신, 터널 시작, Vercel 연결을 순서대로 처리한다. EC2·ECS·EKS나 새 RDS를 생성하지 않는다. 이미 실행 중인 컨테이너는 `--no-recreate`로 보존하므로 이미지·환경 변경 적용은 별도의 배포 절차로 수행한다.
+
+Vercel 자동 연결에는 CLI 65.14.0과 최초 공식 로그인이 필요하다. Node가 PATH에 있는 셸에서 저장소 루트 기준으로 한 번 준비한다.
+
+```powershell
+npm install --prefix .local/tools/vercel-cli --no-audit --no-fund --ignore-scripts vercel@65.14.0
+python scripts/hybrid/cloud.py vercel-login
+```
+
+AWS 세션 만료 시 `aws login --profile ds2l-seoul --region ap-northeast-2`를 실행한다. 비밀은 공식 CLI 사용자 저장소에 두고 토큰을 명령 인자나 Git에 넣지 않는다. Vercel 로그인 전에는 `-SkipVercel`로 로컬 기동까지만 실행할 수 있다. 대상은 기존 `leehyeoksu1/drivescene2label`, RDS `ds2l-hybrid-database`이며 계정·프로젝트가 다르면 변경을 중단한다.
+
+Vercel 연결은 익명 API 401을 확인한 터널만 사용한다. 기존 production 소스를 새 주소로 재배포하며 작업 트리의 미검증 소스는 올리지 않는다. `.local/hybrid/vercel-connection.json`에 확인한 주소·배포 ID 또는 진행 중 배포 ID를 저장한다. 재시도는 진행 중 배포 확인을 이어가고, 확인된 연결이 그대로면 재배포하지 않는다. 로그인을 기다리는 동안 로컬 서비스는 계속 실행된다.
+
+실제 RDS `available` 재사용과 로컬 시작을 확인했으며 세 컨테이너의 ID가 그대로 유지됐다. Python 검사 11개와 PowerShell 문법 검사가 통과했다. 실제 RDS 중지→시작 시험은 사용자 데이터 이용을 중단하지 않도록 수행하지 않았고, Vercel 자동 연결 실검증은 최초 CLI 로그인 후 진행한다. S3는 켜고 끄는 인스턴스가 없고, 기존 `stop` 명령은 로컬 서비스만 중지한다.
+
 ## 최신 운영 설정
 
 `scripts/hybrid.ps1 -Action start`는 보호된 `compose.env`에 로컬 운영 토큰을 준비하고 backend 기동 후 인증된 resume API를 호출한다. DB 스냅샷에 남은 `deployment_control.maintenance=true`를 명시적으로 해제하며, 실제 업로드 쓰기 경로가 검증 단계에 도달하는지 확인한다. `status`도 maintenance 상태를 출력한다. 일반 GET healthcheck만으로 쓰기 가능 상태를 판정하지 않는다. 현재 파일 형식은 ZIP·TGZ·TAR.GZ이며 공식 mini.tgz 재압축은 필요 없다.
 
 앱 데이터 초기화와 백업 보존을 완료했다. 현재 업로드·검색 인덱스·자동 라벨 작업자는 `UPLOAD_WORKER_ENABLED=true`, `EMBEDDING_INDEX_WORKER_ENABLED=true`, `AUTO_LABEL_WORKER_ENABLED=true`로 운영한다. 업로드 데이터셋의 recording은 지원하지 않아 `RECORDING_WORKER_ENABLED=false`를 유지한다. 예제 파일의 기본값은 복원 직후 기존 작업을 검토하도록 모두 false다.
 
-업로드 ZIP은 4MB 조각으로 전송하고 서버에서 비동기로 검증·등록한다. 원본 등록 후 검색 임베딩을 자동 생성하며, 진행률과 재시도를 씬 화면에서 제공한다. 자동 라벨 작업과 인덱스 생성은 같은 GPU 작업자를 공유해 동시에 실행하지 않는다. 완료된 신규 VESPA 작업에는 객체별 기준 프레임 후처리를 사용할 수 있다. 이전 캐시 없는 작업은 기본 라벨 생성부터 다시 수행해야 한다.
+업로드 ZIP·TGZ·TAR.GZ는 4MB 조각으로 전송하고 서버에서 비동기로 검증·등록한다. 원본 등록 후 검색 임베딩을 자동 생성하며, 진행률과 재시도를 씬 화면에서 제공한다. 자동 라벨 작업과 인덱스 생성은 같은 GPU 작업자를 공유해 동시에 실행하지 않는다. 완료된 신규 VESPA 작업에는 객체별 기준 프레임 후처리를 사용할 수 있다. 이전 캐시 없는 작업은 기본 라벨 생성부터 다시 수행해야 한다.
+
+2026-11-11 20:37 KST 사용자가 공개 Vercel에서 전송한 `v1.0-mini.tgz` 4,168,148,189바이트가 S3 보관과 DB 등록까지 완료됐다. 데이터셋 #5, 10개 씬이며 카메라·GT 조회를 확인했다. 서버 로그 기준 압축 해제·검증 약 47.8초, S3 보관 약 358.1초, DB 등록 약 13.0초다. 전송과 등록, 검색 인덱싱, VESPA 라벨 생성은 서로 다른 단계다.
 
 기존 모델 캐시는 `MODEL_CACHE_VOLUME=demo_model_cache`, `MODEL_CACHE_EXTERNAL=true`로 연결했다. 새 PC는 기본값 false로 자체 캐시를 만들면 된다. 재부팅 후 `scripts/hybrid.ps1 -Action start`를 실행하고 터널 주소가 바뀌면 Vercel의 `BACKEND_URL` 갱신과 재배포가 필요하다. `stop`은 로컬만 정지하며 RDS 과금은 계속된다.
 
 ## 준비한 파일
+
+대용량 원본이 백엔드 PC에 있으면 `http://127.0.0.1:8080/labels`에서 직접 업로드할 수 있다. 현재 Docker backend 이미지가 React 화면도 포함하며, 공개 Vercel과 같은 Spring·S3·RDS를 사용한다. 공개 프록시를 거치는 파일 전송만 생략한다. `compose.hybrid.yml`의 loopback 바인딩을 유지한다. 두 origin의 브라우저 업로드 기록은 공유되지 않으므로 이미 전송 중인 파일을 다른 주소에서 중복 업로드하지 않는다.
 
 - `compose.hybrid.yml`: 로컬 backend·ai-server만 정의한 독립 Compose. DB 서비스·EC2·ECS·EKS를 생성하지 않는다.
 - `.env.hybrid.example`: RDS·S3 설정 예제. 실제 `.env.hybrid`는 Git에서 제외한다. 필수 연결 값은 비워 두어 설정 전 기동을 막는다.
@@ -84,7 +105,7 @@ Vercel의 `/api` 요청은 `${BACKEND_URL}/api`로 전달한다. 공개 주소�
 
 API는 캐시하지 않고 기존 상태 polling을 유지한다. 정적 WASM/JS 파일은 filesystem 단계에서 제공한 뒤 `/scenes/...`, `/labels` 등의 SPA 경로를 index로 전달한다. 실제 배포에서 API 실패가 HTML 200으로 바뀌지 않는지, Rerun WASM 응답과 새로고침을 확인해야 한다. [Vercel routing 설정](https://vercel.com/docs/project-configuration/vercel-json), [외부 rewrite 캐시](https://vercel.com/docs/routing/rewrites)
 
-4.34GB ZIP 전체를 공개 경로로 전송하는 최종 검증은 남아 있다. 4MB 조각 전송·진행 저장·같은 파일 재선택 시 재개·비동기 등록을 구현했다. S3 직접 multipart 방식은 아니다. 로컬 테스트 서버 검증과 실제 공개 경로의 4.34GB 검증은 구분한다.
+4MB 조각 전송·진행 저장·같은 파일 재선택 시 재개·비동기 등록을 구현했고, 실제 공개 경로에서 정상 TGZ 약 4.17GB 등록을 확인했다. S3 직접 multipart 방식은 아니다. 과거 4.34GB ZIP의 관리자 터널 경로 검증과 이번 TGZ 공개 경로 검증은 파일과 경로가 다르다.
 
 ## 이번 검증 기록
 
