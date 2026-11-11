@@ -18,7 +18,7 @@ import static com.example.demo.labels.LabelDtos.*;
 @Service
 @Transactional(readOnly=true)
 public class LabelService {
- private static final Set<String> CLASSES=Set.of("vehicle","car","truck","bus","trailer","construction_vehicle","pedestrian","motorcycle","bicycle");
+ private static final Set<String> CLASSES=Set.of("vehicle","car","truck","bus","trailer","construction_vehicle","pedestrian","motorcycle","bicycle","barrier","traffic_cone");
  private static final int MAX_BYTES=20*1024*1024;
  private final LabelDocumentRepository documents;
  private final LabelRevisionRepository revisions;

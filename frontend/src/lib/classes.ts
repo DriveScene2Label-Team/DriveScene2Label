@@ -69,7 +69,7 @@ export function classModeFromMapping(mappingName: string | null | undefined): Cl
 }
 
 /** Classes a box can be renamed to. Must match the server list (LabelClasses.LABELS). */
-export const LABEL_OPTIONS = ['car', 'truck', 'bus', 'trailer', 'construction_vehicle', 'pedestrian', 'motorcycle', 'bicycle', 'vehicle'] as const;
+export const LABEL_OPTIONS = ['car', 'truck', 'bus', 'trailer', 'construction_vehicle', 'pedestrian', 'motorcycle', 'bicycle', 'barrier', 'traffic_cone', 'vehicle'] as const;
 
 /**
  * Original display class of a GT category: the 8class comparison class, or the category itself when VESPA does not

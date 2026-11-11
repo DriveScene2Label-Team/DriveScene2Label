@@ -23,10 +23,12 @@ describe('label edit fields in screen models', () => {
   });
 
   it('unmapped or missing categories are never coerced to vehicle', () => {
-    expect(gtBaseClass('movable_object.barrier')).toBe('movable_object.barrier');
+    expect(gtBaseClass('movable_object.debris')).toBe('movable_object.debris');
+    expect(gtBaseClass('movable_object.barrier')).toBe('barrier'); // 8class since vespa-patches/0001
     expect(gtBaseClass(null)).toBe('클래스 정보 없음');
     expect(gtBaseClass('human.pedestrian.child')).toBe('pedestrian');
     expect(LABEL_OPTIONS).toContain('vehicle');
+    expect(LABEL_OPTIONS).toEqual(expect.arrayContaining(['barrier', 'traffic_cone']));
   });
 
   it('predictions keep detectionName; results skip deleted boxes and count edited ones', () => {

@@ -1,6 +1,6 @@
 import type { LabelBox, LabelData } from '@/api/labels';
 
-export const EDIT_CLASSES = ['vehicle', 'car', 'truck', 'bus', 'trailer', 'construction_vehicle', 'pedestrian', 'motorcycle', 'bicycle'];
+export const EDIT_CLASSES = ['vehicle', 'car', 'truck', 'bus', 'trailer', 'construction_vehicle', 'pedestrian', 'motorcycle', 'bicycle', 'barrier', 'traffic_cone'];
 
 export function changeBox(data: LabelData, frame: string, index: number, update: (box: LabelBox) => void): LabelData {
   const next = structuredClone(data);

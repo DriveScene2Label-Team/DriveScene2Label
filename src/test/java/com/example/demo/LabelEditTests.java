@@ -29,7 +29,7 @@ class LabelEditTests {
   jdbc.sql("INSERT INTO capture_log(dataset_id,token,logfile,location,date_captured,vehicle,raw_payload) VALUES(:d,'log','x','x','x','x','{}')").param("d",dataset).update();
   scene=scene("scene-token","scene-0061"); otherScene=scene("scene-other","scene-0103");
   sampleA=sample("sample-a","scene-token",100); sampleB=sample("sample-b","scene-token",200); sample("sample-o","scene-other",1);
-  jdbc.sql("INSERT INTO category(dataset_id,token,name,description,raw_payload) VALUES(:d,'cat-car','vehicle.car','x','{}'),(:d,'cat-ped','human.pedestrian.adult','x','{}'),(:d,'cat-bar','movable_object.barrier','x','{}')").param("d",dataset).update();
+  jdbc.sql("INSERT INTO category(dataset_id,token,name,description,raw_payload) VALUES(:d,'cat-car','vehicle.car','x','{}'),(:d,'cat-ped','human.pedestrian.adult','x','{}'),(:d,'cat-bar','movable_object.debris','x','{}')").param("d",dataset).update();
   jdbc.sql("""
    INSERT INTO object_instance(dataset_id,token,category_token,nbr_annotations,first_annotation_token,last_annotation_token,raw_payload) VALUES
    (:d,'inst-car','cat-car',2,'gt-car-a','gt-car-b','{}'),(:d,'inst-ped','cat-ped',1,'gt-ped-a','gt-ped-a','{}'),(:d,'inst-bar','cat-bar',1,'gt-bar-a','gt-bar-a','{}')""").param("d",dataset).update();
@@ -111,7 +111,11 @@ class LabelEditTests {
 
  @Test void unmappedCategoryUsesCategoryNameAsOriginalClass() throws Exception {
   var r=rename("/api/annotations/{id}",barrierA,"{\"label\":\"car\"}",200).path("edit");
-  assertThat(r.path("fromLabel").asText()).isEqualTo("movable_object.barrier");
+  assertThat(r.path("fromLabel").asText()).isEqualTo("movable_object.debris");
+ }
+
+ @Test void barrierAndTrafficConeAreRenameTargets() throws Exception {
+  assertThat(rename("/api/annotations/{id}",carA,"{\"label\":\"traffic_cone\"}",200).path("edit").path("toLabel").asText()).isEqualTo("traffic_cone");
  }
 
  @Test void deleteSampleScopeHidesOnlyThatFrameAndSceneAnnotations() throws Exception {
