@@ -17,13 +17,13 @@ AWS 세션 만료 시 `aws login --profile ds2l-seoul --region ap-northeast-2`�
 
 Vercel 연결은 익명 API 401을 확인한 터널만 사용한다. 기존 production 소스를 새 주소로 재배포하며 작업 트리의 미검증 소스는 올리지 않는다. `.local/hybrid/vercel-connection.json`에 확인한 주소·배포 ID 또는 진행 중 배포 ID를 저장한다. 재시도는 진행 중 배포 확인을 이어가고, 확인된 연결이 그대로면 재배포하지 않는다. 로그인을 기다리는 동안 로컬 서비스는 계속 실행된다.
 
-실제 RDS `available` 재사용과 로컬 시작을 확인했으며 세 컨테이너의 ID가 그대로 유지됐다. Python 검사 11개와 PowerShell 문법 검사가 통과했다. 실제 RDS 중지→시작 시험은 사용자 데이터 이용을 중단하지 않도록 수행하지 않았고, Vercel 자동 연결 실검증은 최초 CLI 로그인 후 진행한다. S3는 켜고 끄는 인스턴스가 없고, 기존 `stop` 명령은 로컬 서비스만 중지한다.
+실제 RDS `available` 재사용과 로컬 시작을 확인했으며 세 컨테이너의 ID가 그대로 유지됐다. 운영 Python 검사 13개 통과. Vercel CLI 로그인 후 터널 연결 갱신→production READY→익명 API 401을 확인했고, 같은 명령의 두 번째 실행은 `already connected`로 재배포를 생략했다. CLI의 owner/배포 응답 구조를 검증하며 암호화된 환경 값을 URL로 비교하지 않고 메타데이터 fingerprint를 기록한다. 실제 RDS 중지→시작 시험은 사용자 데이터 이용을 중단하지 않도록 수행하지 않았다. S3는 켜고 끄는 인스턴스가 없고, 기존 `stop` 명령은 로컬 서비스만 중지한다.
 
 ## 최신 운영 설정
 
 `scripts/hybrid.ps1 -Action start`는 보호된 `compose.env`에 로컬 운영 토큰을 준비하고 backend 기동 후 인증된 resume API를 호출한다. DB 스냅샷에 남은 `deployment_control.maintenance=true`를 명시적으로 해제하며, 실제 업로드 쓰기 경로가 검증 단계에 도달하는지 확인한다. `status`도 maintenance 상태를 출력한다. 일반 GET healthcheck만으로 쓰기 가능 상태를 판정하지 않는다. 현재 파일 형식은 ZIP·TGZ·TAR.GZ이며 공식 mini.tgz 재압축은 필요 없다.
 
-앱 데이터 초기화와 백업 보존을 완료했다. 현재 업로드·검색 인덱스·자동 라벨 작업자는 `UPLOAD_WORKER_ENABLED=true`, `EMBEDDING_INDEX_WORKER_ENABLED=true`, `AUTO_LABEL_WORKER_ENABLED=true`로 운영한다. 업로드 데이터셋의 recording은 지원하지 않아 `RECORDING_WORKER_ENABLED=false`를 유지한다. 예제 파일의 기본값은 복원 직후 기존 작업을 검토하도록 모두 false다.
+앱 데이터 초기화와 백업 보존을 완료한 뒤 사용자의 새 업로드와 결과를 유지하고 있다. 현재 `UPLOAD_WORKER_ENABLED=true`, `EMBEDDING_INDEX_WORKER_ENABLED=true`, `AUTO_LABEL_WORKER_ENABLED=true`, `RECORDING_WORKER_ENABLED=true`로 운영한다. 업로드 dataset key/version에 맞는 RRD 생성을 지원하며 CLIP 실패만으로 recording을 차단하지 않는다. 예제 파일의 기본값은 복원 직후 기존 작업을 검토하도록 모두 false다.
 
 업로드 ZIP·TGZ·TAR.GZ는 4MB 조각으로 전송하고 서버에서 비동기로 검증·등록한다. 원본 등록 후 검색 임베딩을 자동 생성하며, 진행률과 재시도를 씬 화면에서 제공한다. 자동 라벨 작업과 인덱스 생성은 같은 GPU 작업자를 공유해 동시에 실행하지 않는다. 완료된 신규 VESPA 작업에는 객체별 기준 프레임 후처리를 사용할 수 있다. 이전 캐시 없는 작업은 기본 라벨 생성부터 다시 수행해야 한다.
 
@@ -33,7 +33,7 @@ Vercel 연결은 익명 API 401을 확인한 터널만 사용한다. 기존 prod
 
 ## 준비한 파일
 
-대용량 원본이 백엔드 PC에 있으면 `http://127.0.0.1:8080/labels`에서 직접 업로드할 수 있다. 현재 Docker backend 이미지가 React 화면도 포함하며, 공개 Vercel과 같은 Spring·S3·RDS를 사용한다. 공개 프록시를 거치는 파일 전송만 생략한다. `compose.hybrid.yml`의 loopback 바인딩을 유지한다. 두 origin의 브라우저 업로드 기록은 공유되지 않으므로 이미 전송 중인 파일을 다른 주소에서 중복 업로드하지 않는다.
+대용량 원본이 백엔드 PC에 있으면 `http://127.0.0.1:8080/uploads`에서 직접 업로드할 수 있다. 현재 Docker backend 이미지가 React 화면도 포함하며, 공개 Vercel과 같은 Spring·S3·RDS를 사용한다. 공개 프록시를 거치는 파일 전송만 생략한다. `compose.hybrid.yml`의 loopback 바인딩을 유지한다. 두 origin의 브라우저 업로드 기록은 공유되지 않으므로 이미 전송 중인 파일을 다른 주소에서 중복 업로드하지 않는다.
 
 - `compose.hybrid.yml`: 로컬 backend·ai-server만 정의한 독립 Compose. DB 서비스·EC2·ECS·EKS를 생성하지 않는다.
 - `.env.hybrid.example`: RDS·S3 설정 예제. 실제 `.env.hybrid`는 Git에서 제외한다. 필수 연결 값은 비워 두어 설정 전 기동을 막는다.

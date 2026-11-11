@@ -9,9 +9,10 @@ import org.springframework.web.bind.annotation.*;
 public class AutoLabelController {
  private final AutoLabelService jobs;
  public AutoLabelController(AutoLabelService jobs) { this.jobs=jobs; }
+ @GetMapping public java.util.List<JobStatus> history(@RequestParam long sceneId) { return jobs.byScene(sceneId); }
  @PostMapping @ResponseStatus(HttpStatus.ACCEPTED)
  public Created create(@Valid @RequestBody CreateRequest body,@RequestHeader(value="Idempotency-Key",required=false) String key) { var result=jobs.create(body,key); org.slf4j.LoggerFactory.getLogger(getClass()).info("[VESPA] job={} status={} accepted",result.jobId(),result.status()); return result; }
- @GetMapping("/{id}/results") public Results results(@PathVariable long id) { return jobs.results(id); }
+ @GetMapping("/{id}/results") public Results results(@PathVariable long id,@RequestParam(defaultValue="false") boolean includeDeleted) { return jobs.results(id,includeDeleted); }
  @PostMapping("/{id}/postprocess") @ResponseStatus(HttpStatus.ACCEPTED)
  public Created postprocess(@PathVariable long id,@Valid @RequestBody PostprocessRequest body,@RequestHeader(value="Idempotency-Key",required=false) String key) { return jobs.postprocess(id,body,key); }
  @GetMapping("/{id}") public JobStatus status(@PathVariable long id) { return jobs.status(id); }

@@ -47,8 +47,15 @@ public class DatasetStorage {
   Files.createDirectories(target.getParent());
   Path staging=Files.createTempDirectory(target.getParent(),".restore-");
   try {
-   DatasetUploadService.extract(archive(key),staging,maxExpanded);
+   var log=org.slf4j.LoggerFactory.getLogger(getClass());
+   log.info("[CACHE] upload={} event=miss",key);
+   long started=System.nanoTime();
+   Path source=archive(key);
+   log.info("[CACHE] upload={} stage=archive_prepare wall_ms={}",key,(System.nanoTime()-started)/1_000_000);
+   started=System.nanoTime();
+   DatasetUploadService.extract(source,staging,maxExpanded);
    Files.move(staging,target);
+   log.info("[CACHE] upload={} stage=extract event=completed wall_ms={}",key,(System.nanoTime()-started)/1_000_000);
   } finally {
    if(Files.exists(staging)) try(var paths=Files.walk(staging)) { for(Path path:paths.sorted(Comparator.reverseOrder()).toList()) Files.deleteIfExists(path); }
   }

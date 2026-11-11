@@ -7,7 +7,7 @@ export interface Timed {
   readonly timestampUs: number;
 }
 
-export const SPEEDS = [0.5, 1, 2] as const;
+export const SPEEDS = [0.5, 1, 2, 4] as const;
 export type Speed = (typeof SPEEDS)[number];
 
 /** Fallback when two samples share a timestamp or the gap is invalid: nuScenes keyframes are ~2 Hz. */
@@ -67,16 +67,4 @@ export function mapRelative(source: readonly Timed[], sourceIndex: number, targe
   if (!(span > 0)) return 0;
   const p = relativeProgress(source, sourceIndex);
   return nearestIndex(target, first.timestampUs + p * span);
-}
-
-export function formatTimestamp(us: number): string {
-  return `${us} µs`;
-}
-
-/** Seconds from scene start, e.g. "12.35 s". */
-export function formatOffset(samples: readonly Timed[], index: number): string {
-  const first = samples[0];
-  const cur = samples[index];
-  if (!first || !cur) return '';
-  return `${((cur.timestampUs - first.timestampUs) / 1e6).toFixed(2)} s`;
 }

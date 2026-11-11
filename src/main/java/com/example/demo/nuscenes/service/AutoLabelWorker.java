@@ -22,7 +22,13 @@ public class AutoLabelWorker {
    var pending=jobs.claim(); if(pending.isEmpty()) return; var job=pending.get();
    try {
     log.info("[VESPA] job={} scene={} started",job.id(),job.sceneName());
-    var result=ai.run(job); jobs.complete(job,result);
+    long aiStarted=System.nanoTime();
+    var result=ai.run(job);
+    log.info("[VESPA_STAGE] job={} scene={} stage=ai_request event=completed wall_ms={}",job.id(),job.sceneName(),(System.nanoTime()-aiStarted)/1_000_000);
+    long storageStarted=System.nanoTime();
+    log.info("[VESPA_STAGE] job={} scene={} stage=result_storage event=started",job.id(),job.sceneName());
+    jobs.complete(job,result);
+    log.info("[VESPA_STAGE] job={} scene={} stage=result_storage event=completed wall_ms={}",job.id(),job.sceneName(),(System.nanoTime()-storageStarted)/1_000_000);
     log.info("[VESPA] job={} completed boxes={}",job.id(),result.results().values().stream().mapToInt(java.util.List::size).sum());
    }
    catch(Exception e) {

@@ -2,8 +2,15 @@
 # GPU: docker compose --env-file .env.hybrid -f compose.hybrid.yml -f compose.gpu.yml ...
 name: drivescene-hybrid
 
+x-logging: &hybrid-logging
+  driver: json-file
+  options:
+    max-size: "25m"
+    max-file: "4"
+
 services:
   backend:
+    logging: *hybrid-logging
     build: .
     depends_on:
       ai-server:
@@ -54,6 +61,7 @@ services:
       start_period: 5m
 
   ai-server:
+    logging: *hybrid-logging
     build:
       context: .
       dockerfile: ai-server/Dockerfile

@@ -1,11 +1,12 @@
 import { queryOptions } from '@tanstack/react-query';
 import type {
-  CalibratedSensorDto, DatasetDto, EgoPoseDto, GtAnnotationDto, JobResultsDto, JobStatusDto, RecordingDto, SampleDetailDto, SampleDto,
+  CalibratedSensorDto, DatasetDto, EgoPoseDto, GtAnnotationDto, JobResultsDto, JobStatusDto, LabelEditDto, RecordingDto, SampleDetailDto, SampleDto,
   SceneDto, SceneSearchResponseDto,
 } from './dto';
 import { getJson, qs } from './http';
 import {
-  gtToBox, toCalibration, toDataset, toEgoPose, toJobResults, toJobStatus, toRecording, toSampleFrame, toSampleRef, toScene, toSearchResult,
+  gtToBox, toCalibration, toDataset, toEgoPose, toJobResults, toJobStatus, toLabelEdit, toRecording, toSampleFrame, toSampleRef, toScene, toSceneInstances,
+  toSearchResult,
 } from './mappers';
 import type { SampleRef, SensorFile } from './models';
 
@@ -20,9 +21,12 @@ export const qk = {
   pose: (sensorFileId: number) => ['pose', sensorFileId] as const,
   search: (p: SearchParams) => ['sceneSearch', p] as const,
   jobStatus: (jobId: number) => ['jobStatus', jobId] as const,
+  sceneJobs: (sceneId: number) => ['sceneJobs', sceneId] as const,
   jobResults: (jobId: number) => ['jobResults', jobId] as const,
   recordings: (sceneId: number) => ['recordings', sceneId] as const,
   recording: (recordingId: number) => ['recording', recordingId] as const,
+  sceneInstances: (sceneId: number) => ['sceneInstances', sceneId] as const,
+  labelEdits: (sceneId: number, jobId: number | null) => ['labelEdits', sceneId, jobId] as const,
 };
 
 const STATIC = { staleTime: Infinity, gcTime: 30 * 60_000 } as const;
@@ -104,6 +108,14 @@ export const searchQuery = (p: SearchParams) =>
     retry: false,
   });
 
+export const sceneJobsQuery = (sceneId: number) =>
+  queryOptions({
+    queryKey: qk.sceneJobs(sceneId),
+    queryFn: ({ signal }) => getJson<JobStatusDto[]>(`/api/auto-label/jobs?sceneId=${sceneId}`, signal).then((jobs) => jobs.map(toJobStatus)),
+    staleTime: 5000,
+    retry: false,
+  });
+
 export const jobStatusQuery = (jobId: number) =>
   queryOptions({
     queryKey: qk.jobStatus(jobId),
@@ -131,5 +143,23 @@ export const recordingQuery = (recordingId: number) =>
   queryOptions({
     queryKey: qk.recording(recordingId),
     queryFn: ({ signal }) => getJson<RecordingDto>(`/api/recordings/${recordingId}`, signal).then(toRecording),
+    retry: false,
+  });
+
+/** GT instance → frames index of a scene. Used for "all frames of this object" counts and timeline marks. */
+export const sceneInstancesQuery = (sceneId: number) =>
+  queryOptions({
+    queryKey: qk.sceneInstances(sceneId),
+    queryFn: ({ signal }) => getJson<GtAnnotationDto[]>(`/api/scenes/${sceneId}/annotations`, signal).then(toSceneInstances),
+    staleTime: Infinity,
+    gcTime: 10 * 60_000,
+    retry: false,
+  });
+
+/** GT edits of the scene plus prediction edits of the shown job, newest first. */
+export const labelEditsQuery = (sceneId: number, jobId: number | null) =>
+  queryOptions({
+    queryKey: qk.labelEdits(sceneId, jobId),
+    queryFn: ({ signal }) => getJson<LabelEditDto[]>(`/api/scenes/${sceneId}/label-edits${qs({ jobId })}`, signal).then((d) => d.map(toLabelEdit)),
     retry: false,
   });

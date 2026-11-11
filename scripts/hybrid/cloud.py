@@ -5,6 +5,7 @@ are created, started or inspected. Vercel redeploys reviewed production source,
 never the possibly modified working tree.
 """
 import argparse
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -21,6 +22,8 @@ PROFILE = 'ds2l-seoul'
 REGION = 'ap-northeast-2'
 DATABASE = 'ds2l-hybrid-database'
 TEAM = 'team_Mu6arR8bulAiFe0hRw8ocLIf'
+TEAM_SLUG = 'leehyeoksu1'
+PROJECT_NAME = 'drivescene2label'
 PROJECT = 'prj_4oVMQaMlPUX7KYegmRBW18XFd3rM'
 SITE = 'https://drivescene2label.vercel.app'
 
@@ -109,12 +112,14 @@ def require_auth_gate(origin):
 
 
 def validate_project(project):
-    if project.get('id') != PROJECT or project.get('accountId') != TEAM:
+    owner = project.get('accountId') == TEAM or project.get('owner', {}).get('slug') == TEAM_SLUG
+    if project.get('id') != PROJECT or not owner:
         raise RuntimeError('Vercel project/team mismatch; refusing to change deployment.')
 
 
 def validate_deployment(deployment):
-    if deployment.get('projectId') != PROJECT or deployment.get('target') != 'production':
+    owned = deployment.get('projectId') == PROJECT or (deployment.get('name') == PROJECT_NAME and deployment.get('contextName') == TEAM_SLUG)
+    if not owned or deployment.get('target') != 'production':
         raise RuntimeError('Expected production deployment was not found.')
     if (deployment.get('readyState') or deployment.get('state')) != 'READY':
         raise RuntimeError('Production deployment is not READY; preserve it and diagnose first.')
@@ -127,27 +132,47 @@ def save_connection(path, value):
     os.replace(temporary, path)
 
 
+def environment_revision(row):
+    # CLI env ls returns encrypted values. Compare a fingerprint, never treat ciphertext as an origin or log it.
+    return hashlib.sha256(json.dumps(row, sort_keys=True).encode()).hexdigest()
+
+
+def backend_environment():
+    environment = vercel('env', 'ls', '--environment', 'production', '--project', PROJECT, '--json')
+    selected = [row for row in environment.get('envs', []) if row.get('key') == 'BACKEND_URL' and 'production' in row.get('target', [])]
+    if len(selected) != 1:
+        raise RuntimeError('Expected one existing production BACKEND_URL. No environment is created automatically.')
+    return selected[0]
+
+
+def created_deployment_id(response):
+    rows = response.get('deployments')
+    value = rows[0] if isinstance(rows, list) and len(rows) == 1 else response.get('deployment', response)
+    deployment_id = value.get('id') or value.get('deploymentId') or value.get('uid')
+    if not isinstance(deployment_id, str) or not deployment_id.startswith('dpl_'):
+        raise RuntimeError('CLI returned no single deployment ID. Inspect the latest deployment before retrying.')
+    return deployment_id
+
+
 def sync_vercel(origin, state_path):
     require_auth_gate(origin)
     project = vercel('project', 'inspect', PROJECT, '--json')
     validate_project(project)
     current = vercel('inspect', SITE, '--json')
     validate_deployment(current)
-    environment = vercel('env', 'ls', '--environment', 'production', '--project', PROJECT, '--json')
-    rows = environment.get('envs', [])
-    selected = [row for row in rows if row.get('key') == 'BACKEND_URL' and 'production' in row.get('target', [])]
-    if len(selected) != 1:
-        raise RuntimeError('Expected one existing production BACKEND_URL. No environment is created automatically.')
+    row = backend_environment()
+    revision = environment_revision(row)
     saved = json.loads(state_path.read_text(encoding='utf-8')) if state_path.exists() else {}
-    if selected[0].get('value') == origin and saved == {'origin': origin, 'deploymentId': current['id']}:
+    if saved == {'origin': origin, 'deploymentId': current['id'], 'envRevision': revision}:
         require_auth_gate(SITE)
         print(f'Vercel already connected: {SITE}', flush=True)
         return
-    if saved.get('pending') and saved.get('origin') != origin:
-        raise RuntimeError('A previous tunnel deployment is pending. Resolve it before changing the origin again.')
-    if selected[0].get('value') != origin:
+    if saved.get('pending') and (saved.get('origin') != origin or saved.get('envRevision') != revision):
+        raise RuntimeError('The tunnel or environment changed during a pending deployment. Resolve it before reconnecting.')
+    if not saved.get('pending'):
         vercel('env', 'update', 'BACKEND_URL', '--environment', 'production', '--project', PROJECT,
                '--value', origin, '--yes', parse_json=False)
+        revision = environment_revision(backend_environment())
     if saved.get('pending'):
         if current['id'] not in (saved['sourceDeploymentId'], saved['deploymentId']):
             raise RuntimeError('Production changed during reconnect. Inspect the new deployment before retrying.')
@@ -156,9 +181,9 @@ def sync_vercel(origin, state_path):
     else:
         print('Rebuilding the existing production frontend with the current tunnel address.', flush=True)
         created = vercel('redeploy', current['id'], '--environment', 'production', '--json', '--no-wait')
-        deployment_id = created['id']
+        deployment_id = created_deployment_id(created)
         save_connection(state_path, {'origin': origin, 'deploymentId': deployment_id,
-                                    'sourceDeploymentId': current['id'], 'pending': True})
+                                    'sourceDeploymentId': current['id'], 'envRevision': revision, 'pending': True})
     deadline = time.monotonic() + 900
     previous = None
     while True:
@@ -177,7 +202,7 @@ def sync_vercel(origin, state_path):
     if active.get('id') != deployment_id:
         raise RuntimeError('Ready deployment is not assigned to the public site. Check Vercel promotion settings.')
     require_auth_gate(SITE)
-    save_connection(state_path, {'origin': origin, 'deploymentId': deployment_id})
+    save_connection(state_path, {'origin': origin, 'deploymentId': deployment_id, 'envRevision': revision})
     print(f'Vercel connected: {SITE}', flush=True)
 
 

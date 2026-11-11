@@ -1,26 +1,24 @@
-import { ArrowLeft, ExternalLink, Link2, PanelRightClose, PanelRightOpen, RotateCcw } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router';
 import type { SampleRef, Scene } from '@/api/models';
 import { compareUrl, parseCompare, searchUrl, workspaceUrl } from '@/app/urls';
-import { StateBox } from '@/components/StateBox';
 import { usePaneFrames, type PaneFrames } from '@/features/frames/usePaneFrames';
-import { Divider } from '@/features/layout/Divider';
-import { JobPanel } from '@/features/labeling/JobPanel';
-import { LayerToggles } from '@/features/objects/LayerToggles';
-import { ObjectInspector } from '@/features/objects/ObjectInspector';
+import { Inspector, JobTracker } from '@/features/inspector/Inspector';
+import { Split } from '@/features/layout/Split';
 import { usePredictions, type PredState } from '@/features/objects/useFrameBoxes';
 import { useScene } from '@/features/scenes/useScene';
 import { FrameTimeline } from '@/features/timeline/FrameTimeline';
 import { RecordingPanel } from '@/features/viewer/RecordingPanel';
+import { CameraBody } from '@/features/workspace/CameraBody';
+import { Hud } from '@/features/workspace/Hud';
 import { usePlaybackLifecycle, useWorkspaceShortcuts } from '@/features/workspace/hooks';
-import { useCameraBody } from '@/features/workspace/PaneView';
-import { DataOriginBadge } from '@/features/system/DataOriginBadge';
+import { DeleteDialog, KeysSheet, useUndoLast, ZoomDialog } from '@/features/workspace/Overlays';
+import { PageState, WorkspaceToolbar, type WorkspaceMode } from '@/features/workspace/WorkspaceToolbar';
+import { josa } from '@/lib/edits/labelEdits';
 import { mapRelative } from '@/lib/time/timeline';
-import { cn } from '@/lib/utils';
-import { useLayout } from '@/stores/layout';
+import { COMPARE_MAX, useLayout } from '@/stores/layout';
 import { toast } from '@/stores/toast';
-import { useWorkspace, type CompareSide } from '@/stores/workspace';
+import { useWorkspace, type CompareSide, type PaneView } from '@/stores/workspace';
 
 export default function SceneComparePage() {
   const [sp] = useSearchParams();
@@ -37,8 +35,7 @@ export default function SceneComparePage() {
   const ratio = useLayout((s) => s.compareRatio);
   const setRatio = useLayout((s) => s.setCompareRatio);
   const resetRatio = useLayout((s) => s.resetCompare);
-  const collapsed = useLayout((s) => s.inspectorCollapsed);
-  const setCollapsed = useLayout((s) => s.setInspectorCollapsed);
+  const inspectorHidden = useLayout((s) => s.inspectorHidden);
 
   const written = useRef<string | null>(null);
   useEffect(() => {
@@ -58,8 +55,15 @@ export default function SceneComparePage() {
   const framesB = usePaneFrames('B');
   const predA = usePredictions(paneA.resultJobId, framesA.displayed.sample);
   const predB = usePredictions(paneB.resultJobId, framesB.displayed.sample);
+  const undo = useUndoLast();
   usePlaybackLifecycle();
-  useWorkspaceShortcuts(active, active === 'A' ? framesA : framesB);
+  const activeFrames = active === 'A' ? framesA : framesB;
+  const activePred = active === 'A' ? predA : predB;
+  const activeScene = active === 'A' ? sceneA.scene : sceneB.scene;
+  useWorkspaceShortcuts({
+    paneId: active, frames: activeFrames, sceneId: activeScene?.id ?? null, undo,
+    boxes: [...(activeFrames.displayed.gt ?? []), ...(activePred.kind === 'ready' ? activePred.boxes : [])],
+  });
   useRelativeSync(framesA.samples, framesB.samples);
 
   // Store → URL.
@@ -81,86 +85,59 @@ export default function SceneComparePage() {
     return () => window.clearTimeout(t);
   }, [paneA, paneB, sync, active, framesA.buffering, framesB.buffering, location.search, navigate]);
 
+  useEffect(() => {
+    if (sceneA.scene && sceneB.scene) document.title = `${sceneA.scene.name}, ${sceneB.scene.name} 비교 - DriveScene2Label`;
+  }, [sceneA.scene, sceneB.scene]);
+
   if (params.A.datasetId == null || params.A.sceneId == null || params.B.datasetId == null || params.B.sceneId == null) {
-    return (
-      <div className="page-state">
-        <StateBox kind="error" title="비교할 두 씬 정보가 링크에 없어요" actions={<Link className="btn btn--weak" to={searchUrl(null)}>씬 목록에서 고르기</Link>}>
-          datasetA/sceneA와 datasetB/sceneB가 모두 필요해요.
-        </StateBox>
-      </div>
-    );
+    return <PageState title="비교할 두 씬 정보가 링크에 없어요" detail="datasetA/sceneA와 datasetB/sceneB가 모두 필요해요." actions={<Link className="btn" to={searchUrl(null)}>씬 목록에서 고르기</Link>} />;
   }
 
-  const activeScene = active === 'A' ? sceneA.scene : sceneB.scene;
-  const activeFrames = active === 'A' ? framesA : framesB;
-  const activePred = active === 'A' ? predA : predB;
-  const copyLink = async () => {
-    try { await navigator.clipboard.writeText(window.location.href); toast('두 씬 비교 링크를 복사했어요', 'ok'); } catch { toast('링크를 복사하지 못했어요', 'error'); }
+  const activePane = active === 'A' ? paneA : paneB;
+  const nameA = sceneA.scene?.name ?? '…';
+  const nameB = sceneB.scene?.name ?? '…';
+  const exitCompare = () => {
+    if (activePane.datasetId == null || activePane.sceneId == null) return navigate(searchUrl(null));
+    navigate(workspaceUrl({ datasetId: activePane.datasetId, sceneId: activePane.sceneId, sample: activePane.displayedSampleToken, job: activePane.jobId, view: 'split' }));
   };
+  const setMode = (m: WorkspaceMode) => {
+    if (m === 'compare' || activePane.datasetId == null || activePane.sceneId == null) return;
+    navigate(workspaceUrl({ datasetId: activePane.datasetId, sceneId: activePane.sceneId, sample: activePane.displayedSampleToken, job: activePane.jobId, view: m === 'cams' ? 'six' : 'split' }));
+  };
+  const toggleSync = (on: boolean) => {
+    setSync(on);
+    if (on) {
+      useWorkspace.getState().setPlaying('B', false);
+      const st = useWorkspace.getState();
+      const i = framesA.samples.findIndex((s) => s.token === st.panes.A.requestedSampleToken);
+      const target = framesB.samples[mapRelative(framesA.samples, i, framesB.samples)];
+      if (i >= 0 && target) st.requestSample('B', target.token, 'sync');
+    }
+    toast(on ? '두 씬의 재생 위치를 비율로 맞춰요' : '재생 위치 맞추기를 껐어요');
+  };
+  const backLabel = activeScene ? `${josa(activeScene.name, '으로/로')} 돌아가기` : '비교 닫기';
 
   return (
-    <div className="app app--ws" data-view="compare">
-      <header className="topbar">
-        <Link className="btn btn--ghost btn--sm" to={searchUrl(paneA.datasetId)}><ArrowLeft className="icon" aria-hidden="true" /><span className="lbl">씬 목록</span></Link>
-        <div className="crumb">
-          <h1 className="crumb-title">두 씬 비교</h1>
-          <span className="crumb-sub">{sceneA.scene?.name ?? '…'}와 {sceneB.scene?.name ?? '…'}를 각자의 타임라인으로 확인해요</span>
-        </div>
-        <div className="topbar-end">
-          <button type="button" className="btn btn--ghost btn--sm" onClick={() => void copyLink()}><Link2 className="icon" aria-hidden="true" /><span className="lbl">링크 복사</span></button>
-          <button type="button" className="btn btn--ghost btn--sm btn--icon collapse-toggle" onClick={() => setCollapsed(!collapsed)} aria-pressed={collapsed} aria-label={collapsed ? '오른쪽 패널 펼치기' : '오른쪽 패널 접기'}>
-            {collapsed ? <PanelRightOpen className="icon" aria-hidden="true" /> : <PanelRightClose className="icon" aria-hidden="true" />}
-          </button>
-        </div>
-      </header>
-      <main className={cn('ws', collapsed && 'is-collapsed')}>
-        <section className="viewer" aria-label="두 씬 센서 보기">
-          <div className="vbar">
-            <label className="switch">
-              <input type="checkbox" checked={sync} onChange={(e) => setSync(e.currentTarget.checked)} />
-              <span className="switch-ui" />
-              <span>상대 위치 동기화</span>
-            </label>
-            <span className="vbar-note">켜면 다른 씬을 각자 시간 범위의 같은 비율 위치로 맞춰요. 같은 촬영 시각이라는 뜻은 아니에요.</span>
-            <div className="vbar-end">
-              <button type="button" className="btn btn--ghost btn--sm" onClick={resetRatio}><RotateCcw className="icon" aria-hidden="true" /><span className="lbl">기본 배치</span></button>
-            </div>
-          </div>
-          <div className="vbody">
-            <div className="split split--compare" style={{ ['--ratio' as string]: ratio }}>
-              <div className="split-pane split-pane--a">
-                <ComparePane side="A" scene={sceneA.scene} scenes={sceneA.scenes} frames={framesA} pred={predA} active={active === 'A'} />
-              </div>
-              <Divider ratio={ratio} onChange={setRatio} onReset={resetRatio} label="씬 A와 씬 B 영역 비율" />
-              <div className="split-pane split-pane--b">
-                <ComparePane side="B" scene={sceneB.scene} scenes={sceneB.scenes} frames={framesB} pred={predB} active={active === 'B'} />
-              </div>
-            </div>
+    <div className={inspectorHidden ? 'app app--ws insp-hidden' : 'app app--ws'} data-mode="compare">
+      <WorkspaceToolbar title="두 씬 비교" sub={`${josa(nameA, '과/와')} ${nameB}`} mode="compare" onMode={setMode} backLabel={backLabel} onBack={exitCompare} datasetId={activePane.datasetId} />
+      <div className="body" id="main">
+        <section className="stage" aria-label="센서 화면">
+          <Hud paneId={active} compareTag={active} sync={{ on: sync, set: toggleSync }} onResetSplit={resetRatio} onExitCompare={exitCompare} />
+          <div className="viewport">
+            <Split className="split--compare" orient="side" ratio={ratio} max={COMPARE_MAX} onChange={setRatio} onReset={resetRatio} label="씬 A와 씬 B 영역 비율"
+              a={<ComparePane side="A" scene={sceneA.scene} scenes={sceneA.scenes} frames={framesA} pred={predA} active={active === 'A'} />}
+              b={<ComparePane side="B" scene={sceneB.scene} scenes={sceneB.scenes} frames={framesB} pred={predB} active={active === 'B'} />} />
           </div>
         </section>
-        <aside className="inspector" aria-label="작업 대상 씬의 자동 라벨링과 객체 정보">
-          <section className="insp-sec">
-            <div className="ts-row target-switch">
-              <span className="ts-label" id="ts-l">작업 대상 씬</span>
-              <div className="seg seg--full" role="radiogroup" aria-labelledby="ts-l">
-                {(['A', 'B'] as const).map((p) => (
-                  <button key={p} type="button" role="radio" aria-checked={active === p} onClick={() => setActivePane(p)}>
-                    <span className={`pane-dot pane-dot--${p}`}>{p}</span>
-                    <span className="mono">{(p === 'A' ? sceneA.scene : sceneB.scene)?.name ?? '…'}</span>
-                  </button>
-                ))}
-              </div>
-              <p className="help">아래 실행, 상태, 객체 정보는 선택한 씬에만 적용돼요.</p>
-            </div>
-          </section>
-          {activeScene && (
-            <>
-              <JobPanel key={active} paneId={active} scene={activeScene} samples={activeFrames.samples} paneLabel={active} />
-              <ObjectInspector key={`obj-${active}`} paneId={active} bundle={activeFrames.displayed} frameNumber={activeFrames.displayedIndex + 1} pred={activePred} />
-            </>
-          )}
-        </aside>
-      </main>
+        <Inspector paneId={active} scene={activeScene} frames={activeFrames} pred={activePred} hidden={inspectorHidden}
+          compare={{ active, names: { A: nameA, B: nameB }, onActive: setActivePane }} />
+      </div>
+      {sceneA.scene && <JobTracker paneId="A" scene={sceneA.scene} frames={framesA} />}
+      {sceneB.scene && <JobTracker paneId="B" scene={sceneB.scene} frames={framesB} />}
+      <ZoomDialog paneId="A" sceneName={nameA} frames={framesA} pred={predA} />
+      <ZoomDialog paneId="B" sceneName={nameB} frames={framesB} pred={predB} />
+      <DeleteDialog />
+      <KeysSheet />
     </div>
   );
 }
@@ -179,8 +156,7 @@ function useRelativeSync(samplesA: SampleRef[], samplesB: SampleRef[]) {
     const a = st.panes.A;
     if (a.lastOrigin === 'sync' || a.lastOrigin === 'init') return;
     const i = samplesA.findIndex((s) => s.token === a.requestedSampleToken);
-    const j = mapRelative(samplesA, i, samplesB);
-    const target = samplesB[j];
+    const target = samplesB[mapRelative(samplesA, i, samplesB)];
     if (i >= 0 && target) st.requestSample('B', target.token, 'sync');
   }, [sync, seqA, samplesA, samplesB]);
   useEffect(() => {
@@ -189,52 +165,46 @@ function useRelativeSync(samplesA: SampleRef[], samplesB: SampleRef[]) {
     const b = st.panes.B;
     if (b.lastOrigin === 'sync' || b.lastOrigin === 'init') return;
     const i = samplesB.findIndex((s) => s.token === b.requestedSampleToken);
-    const j = mapRelative(samplesB, i, samplesA);
-    const target = samplesA[j];
+    const target = samplesA[mapRelative(samplesB, i, samplesA)];
     if (i >= 0 && target) st.requestSample('A', target.token, 'sync');
   }, [sync, seqB, samplesA, samplesB]);
 }
 
-interface PaneProps {
-  side: CompareSide;
-  scene: Scene | undefined;
-  scenes: Scene[] | undefined;
-  frames: PaneFrames;
-  pred: PredState;
-  active: boolean;
-}
+const VIEWS: Array<[PaneView, string]> = [['both', '카메라 + 3D'], ['cams', '카메라'], ['lidar', '3D']];
 
-function ComparePane({ side, scene, scenes, frames, pred, active }: PaneProps) {
+function ComparePane({ side, scene, scenes, frames, pred, active }: { side: CompareSide; scene: Scene | undefined; scenes: Scene[] | undefined; frames: PaneFrames; pred: PredState; active: boolean }) {
   const pane = useWorkspace((s) => s.panes[side]);
   const setActivePane = useWorkspace((s) => s.setActivePane);
   const setPaneView = useWorkspace((s) => s.setPaneView);
   const openScene = useWorkspace((s) => s.openScene);
   const setPlaying = useWorkspace((s) => s.setPlaying);
-  const cams = useCameraBody(side, { frames, pred });
-  const href = pane.datasetId != null && pane.sceneId != null
-    ? workspaceUrl({ datasetId: pane.datasetId, sceneId: pane.sceneId, sample: pane.displayedSampleToken, job: pane.jobId, view: 'split' })
-    : null;
+  const view = pane.paneView;
+  const recording = scene ? <RecordingPanel paneId={side} scene={scene} enabled={active} /> : null;
   return (
-    <section className={cn('pane', `pane--${side}`, active && 'is-active')} aria-label={`씬 ${side}`} data-pane={side}
+    <section className={active ? 'pane is-active' : 'pane'} data-pane={side} aria-label={`씬 ${side}${scene ? `, ${scene.name}` : ''}`}
       onPointerDownCapture={() => { if (!active) setActivePane(side); }}>
       <div className="pane-head">
-        <button type="button" className="pane-badge" aria-pressed={active} onClick={() => setActivePane(side)} aria-label={`씬 ${side}를 작업 대상으로 선택`} title="작업 대상으로 선택">{side}</button>
-        <DataOriginBadge datasetId={pane.datasetId} />
-        <label className="sr-only" htmlFor={`pane-sel-${side}`}>씬 {side} 선택</label>
-        <select id={`pane-sel-${side}`} className="select select--sm" value={pane.sceneId ?? ''}
-          onChange={(e) => { setPlaying(side, false); openScene(side, { datasetId: pane.datasetId!, sceneId: Number(e.currentTarget.value), sampleToken: null, jobId: null }); }}>
+        <span className="pane-tag" aria-hidden="true">{side}</span>
+        <label className="sr-only" htmlFor={`pane-sel-${side}`}>씬 {side}</label>
+        <select id={`pane-sel-${side}`} className="popup popup--media popup--sm" value={pane.sceneId ?? ''}
+          onChange={(e) => { setPlaying(side, false); setActivePane(side); openScene(side, { datasetId: pane.datasetId!, sceneId: Number(e.currentTarget.value), sampleToken: null, jobId: null }); }}>
           {!scenes && scene && <option value={scene.id}>{scene.name}</option>}
           {scenes?.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
         </select>
-        <div className="seg seg--sm" role="group" aria-label={`씬 ${side} 표시 방식`}>
-          <button type="button" aria-pressed={pane.paneView === 'cams'} onClick={() => setPaneView(side, 'cams')}>카메라</button>
-          <button type="button" aria-pressed={pane.paneView === 'lidar'} onClick={() => setPaneView(side, 'lidar')}>3D</button>
+        <div className="seg seg--media seg--sm" role="group" aria-label={`씬 ${side} 화면`}>
+          {VIEWS.map(([k, l]) => <button key={k} type="button" aria-pressed={view === k} onClick={() => setPaneView(side, k)}>{l}</button>)}
         </div>
-        {href && <a className="btn btn--ghost btn--sm btn--icon" href={href} target="_blank" rel="noopener" aria-label={`씬 ${side} 작업대를 새 탭에서 열기`} title="작업대 새 탭"><ExternalLink className="icon" aria-hidden="true" /></a>}
-        <LayerToggles paneId={side} pred={pred} />
+        <span className="pane-gap" />
+        <span className="pane-target">작업 대상</span>
+        <button type="button" className="hud-btn pane-pick" onClick={() => setActivePane(side)}>작업 대상으로</button>
       </div>
       <div className="pane-body">
-        {pane.paneView === 'lidar' && scene ? <div className="lidar"><RecordingPanel paneId={side} scene={scene} enabled={active} /></div> : cams}
+        {view === 'lidar' ? recording : view === 'cams' ? <CameraBody paneId={side} frames={frames} pred={pred} /> : (
+          <div className="pane-stack">
+            <div className="pane-cams"><CameraBody paneId={side} frames={frames} pred={pred} fit="width" /></div>
+            <div className="pane-3d">{recording}</div>
+          </div>
+        )}
       </div>
       <div className="pane-tl">
         <FrameTimeline paneId={side} samples={frames.samples} requestedIndex={frames.requestedIndex} displayedIndex={frames.displayedIndex} buffering={frames.buffering} prefix={`씬 ${side} `} />

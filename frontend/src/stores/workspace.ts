@@ -10,6 +10,14 @@ import type { Speed } from '@/lib/time/timeline';
 export type PaneId = 'single' | 'A' | 'B';
 export type CompareSide = 'A' | 'B';
 export type ChangeOrigin = 'user' | 'playback' | 'sync' | 'viewer' | 'url' | 'init';
+export type PaneView = 'both' | 'cams' | 'lidar';
+export type LayerKey = 'gt' | 'pred' | 'names';
+export interface Layers {
+  gt: boolean;
+  pred: boolean;
+  /** Class name tags on camera boxes. */
+  names: boolean;
+}
 
 export interface PaneState {
   datasetId: number | null;
@@ -22,8 +30,14 @@ export interface PaneState {
   changeSeq: number;
   playing: boolean;
   speed: Speed;
-  layers: { gt: boolean; pred: boolean };
+  layers: Layers;
+  /**
+   * Selected object (objectKey: a GT instance or one prediction box). Kept when the frame changes, so a GT instance
+   * stays selected across its frames; the inspector says when it is not in the displayed frame.
+   */
   selectedBoxKey: string | null;
+  /** Objects hidden from the cameras/list of this pane (objectKey). Display only — nothing is sent to the server. */
+  hidden: string[];
   focusCamera: string | null;
   classMode: ClassMode;
   /** Job whose status is watched in the inspector. */
@@ -31,8 +45,8 @@ export interface PaneState {
   /** Completed job whose predictions are drawn. Kept while a newer run is pending or failed. */
   resultJobId: number | null;
   recordingId: number | null;
-  /** Compare panes only: camera grid or 3D. */
-  paneView: 'cams' | 'lidar';
+  /** Compare panes only: cameras + 3D, camera grid or 3D. */
+  paneView: PaneView;
   /**
    * UI context generation. Bumped whenever the pane shows another scene (A→B→A ends on a new number), so a late
    * answer to a request made in an older context is recorded but never attached to the current view.
@@ -49,14 +63,15 @@ export const initialPane = (): PaneState => ({
   changeSeq: 0,
   playing: false,
   speed: 1,
-  layers: { gt: true, pred: true },
+  layers: { gt: true, pred: true, names: true },
   selectedBoxKey: null,
+  hidden: [],
   focusCamera: null,
   classMode: 8,
   jobId: null,
   resultJobId: null,
   recordingId: null,
-  paneView: 'cams',
+  paneView: 'both',
   generation: 0,
 });
 
@@ -81,14 +96,16 @@ interface WorkspaceStore {
   markDisplayed: (pane: PaneId, token: string) => void;
   setPlaying: (pane: PaneId, playing: boolean) => void;
   setSpeed: (pane: PaneId, speed: Speed) => void;
-  toggleLayer: (pane: PaneId, layer: 'gt' | 'pred') => void;
+  toggleLayer: (pane: PaneId, layer: LayerKey) => void;
+  toggleHidden: (pane: PaneId, key: string) => void;
+  showAllHidden: (pane: PaneId) => void;
   selectBox: (pane: PaneId, key: string | null) => void;
   setFocusCamera: (pane: PaneId, channel: string | null) => void;
   setClassMode: (pane: PaneId, mode: ClassMode) => void;
   watchJob: (pane: PaneId, jobId: number | null) => void;
   showResult: (pane: PaneId, jobId: number | null) => void;
   setRecording: (pane: PaneId, recordingId: number | null) => void;
-  setPaneView: (pane: PaneId, view: 'cams' | 'lidar') => void;
+  setPaneView: (pane: PaneId, view: PaneView) => void;
   setActivePane: (pane: CompareSide) => void;
   setSync: (on: boolean) => void;
   pauseAll: () => void;
@@ -114,7 +131,6 @@ export const useWorkspace = create<WorkspaceStore>()((set) => ({
         next.requestedSampleToken = o.sampleToken;
         next.lastOrigin = 'url';
         next.changeSeq = cur.changeSeq + 1;
-        next.selectedBoxKey = null;
       }
       if (o.jobId !== undefined && o.jobId !== next.jobId) {
         next.jobId = o.jobId;
@@ -136,8 +152,8 @@ export const useWorkspace = create<WorkspaceStore>()((set) => ({
     set((s) => {
       const cur = s.panes[pane];
       if (cur.requestedSampleToken === token) return s;
-      // A box id is not a track id: selection never carries over to another frame.
-      return patch(s, pane, { requestedSampleToken: token, lastOrigin: origin, changeSeq: cur.changeSeq + 1, selectedBoxKey: null });
+      // Selection is an object key (GT instance / prediction box), not a per-frame row: it is kept across frames.
+      return patch(s, pane, { requestedSampleToken: token, lastOrigin: origin, changeSeq: cur.changeSeq + 1 });
     }),
 
   markDisplayed: (pane, token) =>
@@ -147,9 +163,19 @@ export const useWorkspace = create<WorkspaceStore>()((set) => ({
   setSpeed: (pane, speed) => set((s) => patch(s, pane, { speed })),
   toggleLayer: (pane, layer) =>
     set((s) => {
-      const layers = { ...s.panes[pane].layers, [layer]: !s.panes[pane].layers[layer] };
-      return patch(s, pane, { layers });
+      const cur = s.panes[pane];
+      const layers = { ...cur.layers, [layer]: !cur.layers[layer] };
+      // Hiding a source also drops a selection of that source (it would no longer be visible anywhere).
+      const sel = cur.selectedBoxKey;
+      const dropSel = !layers[layer] && layer !== 'names' && sel != null && sel.startsWith(layer === 'gt' ? 'gt:' : 'pred:');
+      return patch(s, pane, { layers, ...(dropSel ? { selectedBoxKey: null } : {}) });
     }),
+  toggleHidden: (pane, key) =>
+    set((s) => {
+      const h = s.panes[pane].hidden;
+      return patch(s, pane, { hidden: h.includes(key) ? h.filter((k) => k !== key) : [...h, key].slice(-500) });
+    }),
+  showAllHidden: (pane) => set((s) => (s.panes[pane].hidden.length ? patch(s, pane, { hidden: [] }) : s)),
   selectBox: (pane, key) => set((s) => patch(s, pane, { selectedBoxKey: key })),
   setFocusCamera: (pane, channel) => set((s) => patch(s, pane, { focusCamera: channel })),
   setClassMode: (pane, classMode) => set((s) => patch(s, pane, { classMode })),

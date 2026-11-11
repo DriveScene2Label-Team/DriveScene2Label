@@ -61,5 +61,9 @@ def test_real_cached_replay_matches_baseline_and_preserves_bottom_center(tmp_pat
         assert np.allclose(box['rotation'], [1, 0, 0, 0])
     assert checksum(source / 'rigid-state.pkl.gz') == before
     assert (output / 'rigid-manifest.json').is_file()
+    stages = [json.loads(line) for line in (output / 'stage-events.jsonl').read_text().splitlines()]
+    completed = {row['stage'] for row in stages if row['event'] == 'completed'}
+    assert {'rigid_cache_load', 'reference_propagation', 'result_json_write'} <= completed
+    assert 'image_detection_segmentation' not in completed
     # No stage cache was generated: replay does not run the detector or load source sensor files.
     assert not (output / 'outs/vlm/p_final/02_grounding_sam').exists()

@@ -19,7 +19,15 @@ public class RecordingWorker {
    var claimed=recordings.claim(); if(claimed.isEmpty()) return; var work=claimed.get();
    try {
     log.info("[RERUN] recording={} scene={} job={} started",work.id(),work.sceneToken(),work.jobId());
-    var request=recordings.request(work); var result=ai.export(request); recordings.complete(work,request,result);
+    long started=System.nanoTime();
+    var request=recordings.request(work);
+    log.info("[RERUN_STAGE] recording={} stage=request_build wall_ms={}",work.id(),(System.nanoTime()-started)/1_000_000);
+    started=System.nanoTime();
+    var result=ai.export(request);
+    log.info("[RERUN_STAGE] recording={} stage=ai_export wall_ms={}",work.id(),(System.nanoTime()-started)/1_000_000);
+    started=System.nanoTime();
+    recordings.complete(work,request,result);
+    log.info("[RERUN_STAGE] recording={} stage=result_storage wall_ms={}",work.id(),(System.nanoTime()-started)/1_000_000);
     log.info("[RERUN] recording={} ready samples={}",work.id(),request.samples().size());
    } catch(Exception e) {
     log.warn("[RERUN] recording={} failed: {}",work.id(),e.toString());

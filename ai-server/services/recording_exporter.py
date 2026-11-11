@@ -10,9 +10,26 @@ from uuid import uuid4
 import numpy as np
 
 APPLICATION_ID = "drivescene2label"
-EXPORT_VERSION = "ds2l-rrd-v1"
+EXPORT_VERSION = "ds2l-rrd-v3"
 ENTITIES = {"lidar": "world/lidar", "ego": "world/ego", "gt": "world/gt", "prediction": "world/prediction"}
+# Text layers. Not part of the response entities: they hold no box instances, so viewer selection on them maps to nothing.
+# Split by source (v3) so the app's GT / prediction toggles can hide the matching labels: "both" = a GT box and a
+# prediction of the same class at the same place (hidden only when both sources are hidden).
+LABELS_ENTITY = "world/labels"
+LABEL_ENTITIES = {"gt": "world/labels/gt", "pred": "world/labels/pred", "both": "world/labels/both"}
 GT_COLOR, PREDICTION_COLOR, EGO_COLOR = (0xFF, 0xCC, 0x4D), (0x4F, 0xE0, 0xD5), (0xC8, 0xCE, 0xD8)
+BOTH_COLOR = (0xF2, 0xF4, 0xF6)  # label shared by a GT box and a prediction of the same class
+# Label decluttering (Rerun has no screen-space label collision avoidance):
+LABEL_RADIUS_M = 30.0   # only objects within this horizontal distance of the ego get a label (same rule as the camera tags)
+MERGE_GT_PRED_M = 1.5   # a GT box and a prediction of the same class this close share one label
+CLUSTER_M = 4.0         # same-class objects this close are labelled once as "class ×n"
+LABEL_LIFT_M = 0.6      # labels float this far above the highest box top of their group
+# GT display class = VESPA 8class comparison class of the nuScenes category, else the category itself
+# (same table as frontend/src/lib/classes.ts and Spring LabelClasses; never coerced to "vehicle").
+NUSC_8 = {"human.pedestrian.adult": "pedestrian", "human.pedestrian.child": "pedestrian", "human.pedestrian.construction_worker": "pedestrian",
+          "human.pedestrian.police_officer": "pedestrian", "vehicle.bicycle": "bicycle", "vehicle.bus.bendy": "bus", "vehicle.bus.rigid": "bus",
+          "vehicle.car": "car", "vehicle.construction": "construction_vehicle", "vehicle.motorcycle": "motorcycle", "vehicle.trailer": "trailer",
+          "vehicle.truck": "truck"}
 # Approximate nuScenes ego (Renault Zoe): origin at the rear axle on the ground, local x=L, y=W, z=H.
 EGO_CENTER, EGO_HALF_SIZE = (1.3, 0.0, 0.78), (2.04, 0.87, 0.78)
 EXIT_SDK_MISSING, EXIT_LIDAR_MISSING, EXIT_INVALID = 3, 4, 5
@@ -67,6 +84,62 @@ def height_colors(z, ground):
     return (low + (high - low) * t).astype(np.uint8)
 
 
+def gt_class(category_name):
+    if not category_name:
+        return "GT"
+    return NUSC_8.get(category_name, category_name)
+
+
+def label_layer(gt, predictions, ego_xy):
+    """Decluttered labels for one sample: [(position xyz, text, rgb, source)] with source gt | pred | both.
+    Near objects only, GT+prediction of the same class at the same place share a label, same-class groups are merged
+    ("pedestrian ×3"), and each label floats above its group. Without an ego position (no lidar) no labels are written."""
+    if ego_xy is None:
+        return []
+    ex, ey = ego_xy
+    items = []
+    for source, rows in (("gt", gt), ("pred", predictions)):
+        for i, box in enumerate(rows):
+            x, y, z = finite(box["center"], 3, f"box {i} center")
+            h = finite(box["size_wlh"], 3, f"box {i} size_wlh")[2]
+            if math.hypot(x - ex, y - ey) > LABEL_RADIUS_M:
+                continue
+            cls = gt_class(box.get("category_name")) if source == "gt" else box["detection_name"]
+            items.append({"cls": cls, "x": x, "y": y, "top": z + h / 2, "src": {source}})
+    preds = [it for it in items if "pred" in it["src"]]
+    merged = []
+    for g in (it for it in items if "gt" in it["src"]):
+        match = min((p for p in preds if p["cls"] == g["cls"] and math.hypot(p["x"] - g["x"], p["y"] - g["y"]) <= MERGE_GT_PRED_M),
+                    key=lambda p: math.hypot(p["x"] - g["x"], p["y"] - g["y"]), default=None)
+        if match is not None:
+            preds.remove(match)
+            g = {**g, "top": max(g["top"], match["top"]), "src": {"gt", "pred"}}
+        merged.append(g)
+    merged += preds
+    merged.sort(key=lambda it: math.hypot(it["x"] - ex, it["y"] - ey))
+    groups = []
+    for it in merged:
+        group = next((c for c in groups if c["cls"] == it["cls"] and math.hypot(c["x"] - it["x"], c["y"] - it["y"]) <= CLUSTER_M), None)
+        if group is None:
+            groups.append({**it, "n": 1, "src": set(it["src"])})
+            continue
+        n = group["n"] + 1
+        group.update(x=group["x"] + (it["x"] - group["x"]) / n, y=group["y"] + (it["y"] - group["y"]) / n,
+                     top=max(group["top"], it["top"]), n=n, src=group["src"] | it["src"])
+    out = []
+    for c in groups:
+        source = "both" if c["src"] == {"gt", "pred"} else "gt" if c["src"] == {"gt"} else "pred"
+        color = {"both": BOTH_COLOR, "gt": GT_COLOR, "pred": PREDICTION_COLOR}[source]
+        out.append(([c["x"], c["y"], c["top"] + LABEL_LIFT_M], c["cls"] if c["n"] == 1 else f"{c['cls']} ×{c['n']}", color, source))
+    return out
+
+
+def labels_archetype(rr, rows):
+    n = len(rows)
+    return rr.Points3D(np.array([r[0] for r in rows], dtype=np.float32).reshape(n, 3), labels=[r[1] for r in rows],
+                       colors=np.array([r[2] for r in rows], dtype=np.uint8).reshape(n, 3), radii=np.full(n, 0.12, dtype=np.float32), show_labels=True)
+
+
 def boxes(rr, rows, color, labels):
     centers, half_sizes, quaternions = [], [], []
     for i, box in enumerate(rows):
@@ -82,7 +155,8 @@ def boxes(rr, rows, color, labels):
     return rr.Boxes3D(centers=np.array(centers, dtype=np.float32).reshape(n, 3),
                       half_sizes=np.array(half_sizes, dtype=np.float32).reshape(n, 3),
                       quaternions=np.array(quaternions, dtype=np.float32).reshape(n, 4),
-                      colors=np.tile(np.array(color, dtype=np.uint8), (n, 1)), labels=labels)
+                      colors=np.tile(np.array(color, dtype=np.uint8), (n, 1)), labels=labels,
+                      show_labels=False)  # names are drawn by the decluttered LABELS_ENTITY; kept here for selection/hover
 
 
 def export(request, data_root, output, rr):
@@ -103,6 +177,7 @@ def export(request, data_root, output, rr):
             rec.set_time("sample", sequence=sample["index"])
             rec.set_time("timestamp", timestamp=np.datetime64(int(sample["timestamp_us"]), "us"))
             lidar = sample.get("lidar")
+            ego_xy = None
             if lidar is None:
                 rec.log(ENTITIES["lidar"], rr.Points3D(np.zeros((0, 3), dtype=np.float32), colors=np.zeros((0, 3), dtype=np.uint8), radii=np.zeros(0, dtype=np.float32)))
                 points = 0
@@ -118,6 +193,7 @@ def export(request, data_root, output, rr):
                 rec.log(ENTITIES["lidar"], rr.Points3D(world.astype(np.float32), colors=height_colors(world[:, 2], ego_t[2]), radii=0.04))
                 rec.log(ENTITIES["ego"], rr.Transform3D(translation=ego_t, quaternion=[*ego_q[1:], ego_q[0]]))
                 points = len(world)
+                ego_xy = (ego_t[0], ego_t[1])
             gt = sample.get("gt") or []
             rec.log(ENTITIES["gt"], boxes(rr, gt, GT_COLOR, [b.get("category_name") or "GT" for b in gt]))
             predictions = sample.get("predictions") or []
@@ -125,6 +201,10 @@ def export(request, data_root, output, rr):
                 raise ExportError(EXIT_INVALID, "predictions require job_id")
             if with_predictions:
                 rec.log(ENTITIES["prediction"], boxes(rr, predictions, PREDICTION_COLOR, [b["detection_name"] for b in predictions]))
+            # Written every sample (also empty) so latest-at never keeps the previous sample's labels.
+            layer = label_layer(gt, predictions if with_predictions else [], ego_xy)
+            for source, entity in LABEL_ENTITIES.items():
+                rec.log(entity, labels_archetype(rr, [r for r in layer if r[3] == source]))
             counts.append({"index": sample["index"], "sample_token": sample["sample_token"], "lidar_points": points,
                            "gt_boxes": len(gt), "prediction_boxes": len(predictions)})
         rec.flush()

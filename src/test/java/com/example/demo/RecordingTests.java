@@ -47,7 +47,7 @@ class RecordingTests {
     Path file=ROOT.resolve(path); Files.createDirectories(file.getParent()); Files.write(file,rrd);
     ObjectNode body=JSON.createObjectNode();
     body.put("recording_id",id).put("execution_token",token).put("relative_path",mode.equals("traversal")?"../escape.rrd":path).put("size_bytes",rrd.length)
-     .put("checksum",mode.equals("checksum")?"b".repeat(64):sha(rrd)).put("sdk_version",mode.equals("sdk")?"0.21.0":"0.38.1").put("export_version","ds2l-rrd-v1")
+     .put("checksum",mode.equals("checksum")?"b".repeat(64):sha(rrd)).put("sdk_version",mode.equals("sdk")?"0.21.0":"0.38.1").put("export_version","ds2l-rrd-v3")
      .put("application_id","drivescene2label").put("rerun_recording_id","ds2l-recording-"+id).put("timeline","sample").put("time_timeline","timestamp");
     body.putObject("entities").put("lidar","world/lidar").put("ego","world/ego").put("gt","world/gt").put("prediction","world/prediction");
     var samples=body.putArray("samples");
@@ -142,13 +142,39 @@ class RecordingTests {
    +jdbc.sql("SELECT count(*)||':'||string_agg(id::text,',' ORDER BY id) FROM predicted_annotation WHERE job_id=:j").param("j",job).query(String.class).single();
  }
 
+ @Test void uploadedDatasetRecordingUsesStoredScopeAndPreservesLabelJob() throws Exception {
+  String key=UUID.randomUUID().toString();
+  jdbc.sql("UPDATE dataset SET storage_key='uploads',root_relative_path=:k WHERE id=:d").param("k",key).param("d",dataset).update();
+  mvc.perform(get("/api/system/status").param("datasetId",Long.toString(dataset)))
+   .andExpect(status().isOk()).andExpect(jsonPath("$.capabilities.recording.canExecute").value(true));
+  String before=jobSnapshot();
+  long id=create(scene,"{\"jobId\":"+job+"}",202,false);
+  work();
+  assertThat(recordingStatus(id)).isEqualTo("READY");
+  assertThat(LAST.get().path("dataset_key").asText()).isEqualTo(key);
+  assertThat(LAST.get().path("dataset_version").asText()).isEqualTo("v1.0-mini");
+  assertThat(jobSnapshot()).isEqualTo(before);
+ }
+
+ @Test void sceneHistoryIsStoredOrderedAndDatasetScoped() throws Exception {
+  long otherDataset=dataset("another-upload");
+  scene(otherDataset,"scene-token","same-token-other-dataset");
+  job(otherDataset,"same-scene-token","scene-token","COMPLETED");
+  mvc.perform(get("/api/auto-label/jobs").param("sceneId",Long.toString(scene)))
+   .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(2))
+   .andExpect(jsonPath("$[0].jobId").value(pendingJob)).andExpect(jsonPath("$[1].jobId").value(job))
+   .andExpect(jsonPath("$[1].datasetId").value(dataset)).andExpect(jsonPath("$[1].status").value("COMPLETED"));
+  mvc.perform(get("/api/auto-label/jobs").param("sceneId","0")).andExpect(status().isBadRequest());
+  mvc.perform(get("/api/auto-label/jobs").param("sceneId",Long.toString(Long.MAX_VALUE))).andExpect(status().isNotFound());
+ }
+
  @Test void createReuseWorkerReadyMappingAndContent() throws Exception {
   long id=create(scene,"{\"jobId\":"+job+"}",202,false);
   assertThat(create(scene,"{\"jobId\":"+job+"}",200,true)).isEqualTo(id);
   mvc.perform(get("/api/recordings/{id}",id)).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("PENDING")).andExpect(jsonPath("$.recordingId").value(id))
    .andExpect(jsonPath("$.datasetId").value(dataset)).andExpect(jsonPath("$.sceneId").value(scene)).andExpect(jsonPath("$.sceneToken").value("scene-token"))
    .andExpect(jsonPath("$.sceneName").value("scene-rec")).andExpect(jsonPath("$.jobId").value(job)).andExpect(jsonPath("$.sdkVersion").value("0.38.1"))
-   .andExpect(jsonPath("$.exportVersion").value("ds2l-rrd-v1")).andExpect(jsonPath("$.coordinateFrame").value("WORLD")).andExpect(jsonPath("$.samples.length()").value(0))
+   .andExpect(jsonPath("$.exportVersion").value("ds2l-rrd-v3")).andExpect(jsonPath("$.coordinateFrame").value("WORLD")).andExpect(jsonPath("$.samples.length()").value(0))
    .andExpect(jsonPath("$.contentUrl").isEmpty()).andExpect(jsonPath("$.entities").isEmpty());
   mvc.perform(get("/api/recordings/{id}/content",id)).andExpect(status().isConflict());
   work();

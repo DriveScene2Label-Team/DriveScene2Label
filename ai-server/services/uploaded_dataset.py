@@ -7,6 +7,8 @@ import tempfile
 import zipfile
 import gzip
 import tarfile
+import logging
+import time
 from pathlib import Path
 from threading import Lock
 
@@ -15,6 +17,7 @@ from boto3.s3.transfer import TransferConfig
 from botocore.config import Config
 
 MAX_ARCHIVE_BYTES = 5_000_000_000
+logger = logging.getLogger("uvicorn.error").getChild("dataset_cache")
 
 class UploadedDatasetCache:
     def __init__(self):
@@ -32,12 +35,15 @@ class UploadedDatasetCache:
         if not target.is_relative_to(parent):
             raise ValueError("Invalid dataset path")
         if target.is_dir():
+            logger.info("[CACHE] upload=%s event=hit", key)
             return target
         if not self.bucket:
             return target  # Local Compose shares the upload volume; configured() reports missing files.
         with self.lock:
             if target.is_dir():
+                logger.info("[CACHE] upload=%s event=hit_after_wait", key)
                 return target
+            logger.info("[CACHE] upload=%s event=miss", key)
             if self.client is None:
                 self.client = boto3.client("s3", config=Config(connect_timeout=5, read_timeout=60,
                                             retries={"total_max_attempts": 3, "mode": "standard"}))
@@ -53,13 +59,19 @@ class UploadedDatasetCache:
             parent.mkdir(parents=True, exist_ok=True)
             with tempfile.TemporaryDirectory(prefix=".fetch-", dir=parent) as temporary:
                 archive = Path(temporary) / "archive"
+                started = time.perf_counter()
+                logger.info("[CACHE] upload=%s stage=s3_download event=started bytes=%s", key, response["ContentLength"])
                 self.client.download_file(self.bucket, object_key, str(archive), Config=TransferConfig(use_threads=False))
+                logger.info("[CACHE] upload=%s stage=s3_download event=completed wall_seconds=%.3f bytes=%s", key, time.perf_counter()-started, archive.stat().st_size)
                 if archive.stat().st_size > MAX_ARCHIVE_BYTES:
                     raise ValueError("Upload archive exceeds 5GB")
                 extracted = Path(temporary) / "data"
                 extracted.mkdir()
+                started = time.perf_counter()
+                logger.info("[CACHE] upload=%s stage=extract event=started", key)
                 extract_archive(archive, extracted, self.max_expanded)
                 extracted.rename(target)
+                logger.info("[CACHE] upload=%s stage=extract event=completed wall_seconds=%.3f", key, time.perf_counter()-started)
         return target
 
 

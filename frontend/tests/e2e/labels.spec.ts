@@ -66,7 +66,7 @@ test('라벨 업로드 → UI 수정 → 저장 → 다시 열기 → 다운로�
     });
     return route.fulfill({ json: detail() });
   });
-  await page.goto('/labels');
+  await page.goto('/label-files');
   await page.getByLabel('라벨 JSON 파일').setInputFiles({ name: 'labels.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(original)) });
   await page.getByRole('button', { name: '파일 업로드', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'labels.json' })).toBeVisible();
@@ -95,14 +95,16 @@ test('라벨 업로드 → UI 수정 → 저장 → 다시 열기 → 다운로�
   await expect(page.getByLabel('라벨 클래스')).toHaveValue('car');
 });
 
-test('데이터셋 ZIP 업로드 후 씬과 원본 다운로드로 연결한다', async ({ page }) => {
+test('업로드 화면은 원본만 받고 등록한 씬으로 연결한다', async ({ page }) => {
   await installMockApi(page);
   await page.route('**/api/label-documents**', (route) => route.fulfill({ json: [] }));
   await page.route('**/api/dataset-uploads', (route) => route.fulfill({ status: 201, json: { datasetId: 18, sceneCount: 2, version: 'v1.0-mini' } }));
   await page.goto('/labels');
+  await expect(page).toHaveURL(/\/uploads$/);
+  await expect(page.getByLabel('라벨 JSON 파일')).toHaveCount(0);
+  await expect(page.getByText('저장한 라벨', { exact: true })).toHaveCount(0);
   await page.getByLabel('원본 데이터 압축 파일').setInputFiles({ name: 'data.zip', mimeType: 'application/zip', buffer: Buffer.from('fixture upload') });
   await page.getByRole('button', { name: '데이터셋 업로드', exact: true }).click();
   await expect(page.getByText('2개 씬을 등록했습니다.')).toBeVisible();
-  await expect(page.getByRole('link', { name: '씬 열기 · 자동 라벨링' })).toHaveAttribute('href', '/scenes?dataset=18');
-  await expect(page.getByRole('link', { name: '원본 압축 파일 다운로드' })).toHaveAttribute('href', '/api/dataset-uploads/18/original');
+  await expect(page.getByRole('link', { name: '씬 목록에서 라벨링하기' })).toHaveAttribute('href', '/scenes?dataset=18');
 });

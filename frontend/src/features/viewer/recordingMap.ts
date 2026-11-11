@@ -27,3 +27,20 @@ export function boxKeyForSelection(rec: Recording, entity: string, instance: num
   }
   return null;
 }
+
+/**
+ * Box key (per frame, from boxKeyForSelection) → object key used for selection (GT instance / prediction box).
+ * `findGt` looks the GT box up (e.g. in the annotation query cache) to read its instance token.
+ */
+export function objectKeyForBoxKey(key: string, findGt: (boxKey: string) => { instanceToken: string | null; datasetId: number } | undefined): string | null {
+  if (key.startsWith('VESPA:')) {
+    const parts = key.split(':');
+    return parts.length >= 5 ? `pred:${parts[1]}:${parts[parts.length - 1]}` : null;
+  }
+  if (key.startsWith('GT:')) {
+    const box = findGt(key);
+    if (!box) return null;
+    return box.instanceToken ? `gt:${box.datasetId}:${box.instanceToken}` : `gt:box:${key}`;
+  }
+  return null;
+}

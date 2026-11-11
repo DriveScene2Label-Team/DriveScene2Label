@@ -86,7 +86,19 @@ export interface MockOptions {
   contentFailures?: number;
   /** errorCode on a FAILED job 41. */
   failedErrorCode?: string | null;
+  /** Label edit API: 'missing' = older backend without it (404). */
+  labelEdits?: 'missing';
 }
+
+/** Server-side label edit state of the fixture (same rules as LabelEditService, simplified). */
+interface Override { label?: string; deleted?: boolean }
+interface EditFx {
+  id: number; datasetId: number; sceneId: number; jobId: number | null; targetType: 'ANNOTATION' | 'PREDICTION'; action: 'RENAME' | 'DELETE';
+  scope: 'SAMPLE' | 'INSTANCE'; instanceToken: string | null; fromLabel: string; toLabel: string | null; targetIds: number[]; sampleTokens: string[];
+  createdAt: string; revertedAt: string | null; prev: Record<string, Override | null>;
+}
+const LABELS = ['car', 'truck', 'bus', 'trailer', 'construction_vehicle', 'pedestrian', 'motorcycle', 'bicycle', 'vehicle'];
+const gtBase = (cat: string | null) => (cat === 'vehicle.car' ? 'car' : cat ?? 'unknown');
 
 export interface MockLog {
   /** Set at any time during a test: the status API then fails (HTTP 500 or dropped connection) until reset to null. */
@@ -109,8 +121,9 @@ export function gtFor(sid: number) {
   const f = findSample(sid);
   if (!f) return [];
   const x = egoX(f.index);
+  // Same instance token in every frame of the scene (an object = one nuScenes instance across frames).
   const mk = (id: number, dx: number, dy: number, cat: string | null) => ({
-    id, datasetId: DATASET.id, token: `ann-${id}`, sampleToken: f.sample.token, instanceToken: `inst-${id % 100}`, visibilityToken: '4',
+    id, datasetId: DATASET.id, token: `ann-${id}`, sampleToken: f.sample.token, instanceToken: `inst-${f.scene.id}-${id % 10}`, visibilityToken: '4',
     centerX: x + dx, centerY: 1100 + dy, centerZ: 0.8, sizeW: 1.9, sizeL: 4.5, sizeH: 1.6, rotationW: 1, rotationX: 0, rotationY: 0, rotationZ: 0,
     numLidarPts: 40, numRadarPts: 1, prevToken: null, nextToken: null, categoryToken: cat ? `cat-${cat}` : null, categoryName: cat,
   });
@@ -128,6 +141,28 @@ export async function installMockApi(page: Page, opts: MockOptions = {}): Promis
   const recordings: Array<{ id: number; status: string; jobId: number | null; sceneId: number; instanceId: string }> = [];
   const currentInstance = () => log.instanceId ?? opts.status?.instanceId ?? '11111111-1111-4111-8111-111111111111';
   let recordingSeq = 4;
+  const overrides = new Map<string, Override>();
+  const edits: EditFx[] = [];
+  const allGt = (sceneId: number) => { const sc = SCENES.find((x) => x.id === sceneId); return sc ? samplesOf(sc).flatMap((smp) => gtFor(smp.id)) : []; };
+  const withOverride = <T extends { id: number }>(type: string, row: T) => {
+    const o = overrides.get(`${type}:${row.id}`);
+    return { ...row, labelOverride: o?.label ?? null, deleted: !!o?.deleted };
+  };
+  const conflict = (e: EditFx) => edits.some((x) => x.id > e.id && !x.revertedAt && x.targetType === e.targetType && x.targetIds.some((t) => e.targetIds.includes(t)));
+  const editView = (e: EditFx) => { const { prev: _p, ...rest } = e; return { ...rest, count: e.targetIds.length, revertible: !e.revertedAt && !conflict(e) }; };
+  const setOv = (key: string, o: Override, base: string) => {
+    const next: Override = { ...o };
+    if (!next.label || next.label === base) delete next.label;
+    if (!next.deleted) delete next.deleted;
+    if (Object.keys(next).length) overrides.set(key, next); else overrides.delete(key);
+  };
+  const applyEdit = (e: Omit<EditFx, 'id' | 'createdAt' | 'revertedAt' | 'prev'>, keys: string[], bases: string[]) => {
+    const prev = Object.fromEntries(keys.map((k) => [k, overrides.has(k) ? { ...overrides.get(k)! } : null]));
+    keys.forEach((k, i) => setOv(k, e.action === 'RENAME' ? { ...overrides.get(k), label: e.toLabel! } : { ...overrides.get(k), deleted: true }, bases[i]!));
+    const full: EditFx = { ...e, id: edits.length + 1, createdAt: new Date().toISOString(), revertedAt: null, prev };
+    edits.push(full);
+    return { edit: editView(full) };
+  };
 
   await page.route('**/api/**', async (route) => {
     const req = route.request();
@@ -202,7 +237,64 @@ export async function installMockApi(page: Page, opts: MockOptions = {}): Promis
       })).reverse(); // API order must not matter
       return json(route, { sample: f.sample, sensorFiles: files, maps: [{ id: 1, token: 'map', relativePath: 'maps/x.png', location: 'singapore-onenorth', contentUrl: '/api/maps/1/content' }] });
     }
-    if ((r = m(/^\/api\/samples\/(\d+)\/annotations$/))) return json(route, gtFor(Number(r[1])));
+    if ((r = m(/^\/api\/samples\/(\d+)\/annotations$/))) {
+      const all = url.searchParams.get('includeDeleted') === 'true';
+      return json(route, gtFor(Number(r[1])).map((g) => withOverride('ANNOTATION', g)).filter((g) => all || !g.deleted));
+    }
+    if ((r = m(/^\/api\/scenes\/(\d+)\/annotations$/))) return json(route, allGt(Number(r[1])).map((g) => withOverride('ANNOTATION', g)).filter((g) => !g.deleted));
+    const editsMissing = opts.labelEdits === 'missing';
+    if ((r = m(/^\/api\/scenes\/(\d+)\/label-edits$/))) {
+      if (editsMissing) return json(route, { status: 404, error: 'Not Found', path: p }, 404);
+      const sceneId = Number(r[1]);
+      const job = url.searchParams.get('jobId');
+      return json(route, edits.filter((e) => e.sceneId === sceneId && (e.targetType === 'ANNOTATION' || String(e.jobId) === job)).sort((a, b) => b.id - a.id).map(editView));
+    }
+    if ((r = m(/^\/api\/annotations\/(\d+)$/)) && (req.method() === 'PATCH' || req.method() === 'DELETE')) {
+      if (editsMissing) return json(route, { status: 404, error: 'Not Found', path: p }, 404);
+      const id = Number(r[1]);
+      const f = findSample(Math.floor(id / 10));
+      const g = f && gtFor(f.sample.id).find((x) => x.id === id);
+      if (!f || !g) return json(route, { code: 'HTTP_404', message: 'Annotation not found' }, 404);
+      const body = req.method() === 'PATCH' ? (req.postDataJSON() as { label: string; scope?: string }) : null;
+      const scope = (body?.scope ?? url.searchParams.get('scope') ?? 'SAMPLE') as 'SAMPLE' | 'INSTANCE';
+      const self = overrides.get(`ANNOTATION:${id}`);
+      if (self?.deleted) return json(route, { code: 'TARGET_DELETED', message: 'The annotation is already deleted' }, 409);
+      if (body && !LABELS.includes(body.label)) return json(route, { code: 'INVALID_LABEL', message: 'invalid label' }, 400);
+      const targets = (scope === 'INSTANCE' ? allGt(f.scene.id).filter((x) => x.instanceToken === g.instanceToken) : [g])
+        .filter((x) => !overrides.get(`ANNOTATION:${x.id}`)?.deleted)
+        .filter((x) => !body || (overrides.get(`ANNOTATION:${x.id}`)?.label ?? gtBase(x.categoryName)) !== body.label);
+      if (!targets.length) return json(route, { code: 'SAME_LABEL', message: 'The annotation already has this class' }, 400);
+      return json(route, applyEdit({
+        datasetId: DATASET.id, sceneId: f.scene.id, jobId: null, targetType: 'ANNOTATION', action: body ? 'RENAME' : 'DELETE', scope, instanceToken: g.instanceToken,
+        fromLabel: self?.label ?? gtBase(g.categoryName), toLabel: body?.label ?? null, targetIds: targets.map((x) => x.id), sampleTokens: targets.map((x) => x.sampleToken),
+      }, targets.map((x) => `ANNOTATION:${x.id}`), targets.map((x) => gtBase(x.categoryName))));
+    }
+    if ((r = m(/^\/api\/auto-label\/predictions\/(\d+)$/))) {
+      if (editsMissing) return json(route, { status: 404, error: 'Not Found', path: p }, 404);
+      const id = Number(r[1]);
+      const sc = SCENES.find((x) => samplesOf(x).some((smp) => 5000 + smp.id === id));
+      if (!sc) return json(route, { code: 'HTTP_404', message: 'Prediction not found' }, 404);
+      const smp = samplesOf(sc).find((x) => 5000 + x.id === id)!;
+      const key = `PREDICTION:${id}`;
+      const cur = overrides.get(key);
+      if (cur?.deleted) return json(route, { code: 'TARGET_DELETED', message: 'deleted' }, 409);
+      const body = req.method() === 'PATCH' ? (req.postDataJSON() as { label: string }) : null;
+      if (body && (cur?.label ?? 'car') === body.label) return json(route, { code: 'SAME_LABEL', message: 'same' }, 400);
+      return json(route, applyEdit({
+        datasetId: DATASET.id, sceneId: sc.id, jobId: sc.id === 22 ? 77 : 41, targetType: 'PREDICTION', action: body ? 'RENAME' : 'DELETE', scope: 'SAMPLE', instanceToken: null,
+        fromLabel: cur?.label ?? 'car', toLabel: body?.label ?? null, targetIds: [id], sampleTokens: [smp.token],
+      }, [key], ['car']));
+    }
+    if ((r = m(/^\/api\/label-edits\/(\d+)\/revert$/))) {
+      if (editsMissing) return json(route, { status: 404, error: 'Not Found', path: p }, 404);
+      const e = edits.find((x) => x.id === Number(r![1]));
+      if (!e) return json(route, { code: 'HTTP_404', message: 'Edit not found' }, 404);
+      if (e.revertedAt) return json(route, { code: 'ALREADY_REVERTED', message: 'already reverted' }, 409);
+      if (conflict(e)) return json(route, { code: 'LATER_EDIT_EXISTS', message: 'revert the newest edit first' }, 409);
+      for (const [k, v] of Object.entries(e.prev)) { if (v) overrides.set(k, v); else overrides.delete(k); }
+      e.revertedAt = new Date().toISOString();
+      return json(route, { edit: editView(e) });
+    }
     if ((r = m(/^\/api\/sensor-files\/(\d+)\/(calibration|pose|content)$/))) {
       const id = Number(r[1]);
       const sid = Math.floor(id / 10);
@@ -217,6 +309,7 @@ export async function installMockApi(page: Page, opts: MockOptions = {}): Promis
       if (opts.brokenImageSample === sid && ch === 'CAM_BACK_RIGHT') return json(route, { code: 'HTTP_404', message: 'Dataset file unavailable' }, 404);
       return route.fulfill({ status: 200, contentType: 'image/svg+xml', body: cameraSvg(ch, f.sample.token) });
     }
+    if (/^\/api\/datasets\/\d+\/search-index$/.test(p)) return json(route, { datasetId: DATASET.id, status: 'COMPLETED', indexedImages: 42, totalImages: 42, errorMessage: null, workerEnabled: true });
     if (p === '/api/search/scenes') {
       if (opts.search === 'error') return json(route, { code: 'HTTP_503', message: 'AI server unavailable' }, 503);
       const hits = opts.search === 'empty' ? [] : [SCENES[1]!, SCENES[0]!].map((s, i) => ({
@@ -255,7 +348,7 @@ export async function installMockApi(page: Page, opts: MockOptions = {}): Promis
       const boxes = smp.flatMap((s, i) => (i === smp.length - 1 ? [] : [{
         id: 5000 + s.id, sampleToken: s.token, boxIndex: 0, detectionName: 'car', centerX: egoX(i) + 15.3, centerY: 1100.2, centerZ: 0.8, sizeW: 2, sizeL: 4.3, sizeH: 1.6,
         rotationW: 1, rotationX: 0, rotationY: 0, rotationZ: 0, velocityX: 1, velocityY: 0, detectionScore: 1, attributeName: '',
-      }]));
+      }])).map((b) => withOverride('PREDICTION', b)).filter((b) => !b.deleted);
       return json(route, { jobId: Number(r[1]), datasetId: DATASET.id, mappingName: '8class', coordinateFrame: 'WORLD', scoreType: 'VESPA_CONSTANT', sampleTokens: smp.map((s) => s.token), boxes, artifacts: [] });
     }
     if ((r = m(/^\/api\/scenes\/(\d+)\/recordings$/))) {
@@ -294,7 +387,7 @@ function recordingView(id: number, status: string, jobId: number | null, sceneId
   const smp = samplesOf(sc);
   const ready = status === 'READY';
   return {
-    recordingId: id, datasetId: DATASET.id, sceneId: sc.id, sceneToken: sc.token, sceneName: sc.name, jobId, status, sdkVersion: '0.38.1', exportVersion: 'ds2l-rrd-v1',
+    recordingId: id, datasetId: DATASET.id, sceneId: sc.id, sceneToken: sc.token, sceneName: sc.name, jobId, status, sdkVersion: '0.38.1', exportVersion: 'ds2l-rrd-v3',
     coordinateFrame: 'WORLD', applicationId: ready ? 'drivescene2label' : null, rerunRecordingId: ready ? `ds2l-recording-${id}` : null, timeline: ready ? 'sample' : null, timeTimeline: ready ? 'timestamp' : null,
     entities: ready ? { lidar: 'world/lidar', ego: 'world/ego', gt: 'world/gt', prediction: jobId != null ? 'world/prediction' : null } : null,
     samples: ready ? smp.map((s, i) => ({ index: i, sampleToken: s.token, timestampUs: s.timestampUs, lidarPoints: 1321, gtAnnotationIds: gtFor(s.id).map((g) => g.id), predictionIds: [] })) : [],
@@ -304,3 +397,15 @@ function recordingView(id: number, status: string, jobId: number | null, sceneId
 }
 
 export { sampleToken, sampleId };
+
+/** Open the workspace with the 자동 라벨링 tab selected (layout prefs v2 in localStorage). */
+export async function preferJobsTab(page: Page) {
+  await page.addInitScript(() => {
+    localStorage.setItem('ds2l.layout', JSON.stringify({ v: 2, data: { theme: 'light', orient: 'stack', splitRatio: null, compareRatio: 0.5, inspectorHidden: false, sideTab: 'jobs' } }));
+  });
+}
+
+/** Inspector tabs of the renewal (객체 / 자동 라벨링 / 기록). Job controls live in 자동 라벨링. */
+export async function openTab(page: Page, name: '객체' | '자동 라벨링' | '기록') {
+  await page.getByRole('tab', { name: new RegExp(`^${name}`) }).click();
+}

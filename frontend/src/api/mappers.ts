@@ -1,11 +1,11 @@
 import type {
-  CalibratedSensorDto, DatasetDto, EgoPoseDto, GtAnnotationDto, JobResultsDto, JobStatusDto, PredictionDto,
+  CalibratedSensorDto, DatasetDto, EgoPoseDto, GtAnnotationDto, JobResultsDto, JobStatusDto, LabelEditDto, PredictionDto,
   RecordingDto, SampleDetailDto, SampleDto, SceneDto, SceneSearchResponseDto, SensorFileDto,
 } from './dto';
 import type {
-  BoxView, Calibration, Dataset, EgoPose, JobResults, JobStatus, Recording, SampleFrame, SampleRef, Scene, SearchResult, SensorFile,
+  BoxView, Calibration, Dataset, EgoPose, JobResults, JobStatus, LabelEdit, Recording, SampleFrame, SampleRef, Scene, SceneInstances, SearchResult, SensorFile,
 } from './models';
-import { classModeFromMapping, isClassMode } from '@/lib/classes';
+import { classModeFromMapping, gtBaseClass, isClassMode } from '@/lib/classes';
 import type { Mat3 } from '@/lib/geometry/transform';
 
 export const CAMERA_CHANNELS = ['CAM_FRONT_LEFT', 'CAM_FRONT', 'CAM_FRONT_RIGHT', 'CAM_BACK_LEFT', 'CAM_BACK', 'CAM_BACK_RIGHT'] as const;
@@ -71,10 +71,12 @@ export function toEgoPose(p: EgoPoseDto): EgoPose {
 }
 
 export function gtToBox(a: GtAnnotationDto): BoxView {
+  const baseCls = gtBaseClass(a.categoryName);
+  const override = a.labelOverride ?? null;
   return {
     key: `GT:${a.datasetId}:${a.sampleToken}:${a.id}`,
     id: a.id, datasetId: a.datasetId, sampleToken: a.sampleToken, source: 'GT', jobId: null,
-    label: a.categoryName ?? null, categoryToken: a.categoryToken ?? null,
+    label: a.categoryName ?? null, cls: override ?? baseCls, baseCls, edited: override != null && override !== baseCls, categoryToken: a.categoryToken ?? null,
     center: [a.centerX, a.centerY, a.centerZ], sizeWLH: [a.sizeW, a.sizeL, a.sizeH],
     rotation: { w: a.rotationW, x: a.rotationX, y: a.rotationY, z: a.rotationZ }, coordinateFrame: 'WORLD',
     instanceToken: a.instanceToken, numLidarPts: a.numLidarPts, velocityXY: null, attributeName: null,
@@ -86,7 +88,8 @@ export function predictionToBox(p: PredictionDto, jobId: number, datasetId: numb
   return {
     key: `VESPA:${jobId}:${datasetId}:${p.sampleToken}:${p.id}`,
     id: p.id, datasetId, sampleToken: p.sampleToken, source: 'VESPA', jobId,
-    label: p.detectionName, categoryToken: null,
+    label: p.detectionName, cls: p.labelOverride ?? p.detectionName, baseCls: p.detectionName,
+    edited: p.labelOverride != null && p.labelOverride !== p.detectionName, categoryToken: null,
     center: [p.centerX, p.centerY, p.centerZ], sizeWLH: [p.sizeW, p.sizeL, p.sizeH],
     rotation: { w: p.rotationW, x: p.rotationX, y: p.rotationY, z: p.rotationZ }, coordinateFrame: 'WORLD',
     instanceToken: null, numLidarPts: null, velocityXY: [p.velocityX, p.velocityY], attributeName: p.attributeName || null, trackId: p.trackId ?? null,
@@ -123,14 +126,21 @@ export function toJobStatus(j: JobStatusDto): JobStatus {
 export function toJobResults(r: JobResultsDto): JobResults {
   const boxesBySample = new Map<string, BoxView[]>();
   for (const token of r.sampleTokens) boxesBySample.set(token, []);
+  let boxCount = 0;
+  let editedCount = 0;
   for (const p of r.boxes) {
+    if (p.deleted) continue; // only present when includeDeleted=true was asked for
+    const box = predictionToBox(p, r.jobId, r.datasetId);
     const list = boxesBySample.get(p.sampleToken) ?? [];
-    list.push(predictionToBox(p, r.jobId, r.datasetId));
+    list.push(box);
     boxesBySample.set(p.sampleToken, list);
+    boxCount += 1;
+    if (box.edited) editedCount += 1;
   }
   return {
     jobId: r.jobId, datasetId: r.datasetId, mappingName: r.mappingName, classMode: classModeFromMapping(r.mappingName),
-    sampleTokens: new Set(r.sampleTokens), boxesBySample, boxCount: r.boxes.length, artifactCount: r.artifacts.length,
+    sampleTokens: new Set(r.sampleTokens), boxesBySample, boxCount, editedCount, artifactCount: r.artifacts.length,
+    artifactPath: r.artifacts[0]?.relativePath ?? null,
   };
 }
 
@@ -142,4 +152,24 @@ export function toRecording(r: RecordingDto): Recording {
     contentUrl: r.status === 'READY' ? r.contentUrl : null, sizeBytes: r.sizeBytes, errorMessage: r.errorMessage, errorCode: r.errorCode ?? null,
     createdAt: time(r.createdAt) ?? 0,
   };
+}
+
+export function toLabelEdit(e: LabelEditDto): LabelEdit {
+  return {
+    id: e.id, datasetId: e.datasetId, sceneId: e.sceneId, jobId: e.jobId ?? null, targetType: e.targetType, action: e.action, scope: e.scope,
+    instanceToken: e.instanceToken ?? null, fromLabel: e.fromLabel, toLabel: e.toLabel ?? null, targetIds: [...(e.targetIds ?? [])],
+    sampleTokens: [...(e.sampleTokens ?? [])], count: e.count, createdAt: time(e.createdAt) ?? 0, revertedAt: time(e.revertedAt), revertible: !!e.revertible,
+  };
+}
+
+/** Scene GT → instanceToken → sample tokens (deleted boxes are not returned by the server). */
+export function toSceneInstances(list: GtAnnotationDto[]): SceneInstances {
+  const out: SceneInstances = new Map();
+  for (const a of list) {
+    if (a.deleted || !a.instanceToken) continue;
+    const set = out.get(a.instanceToken) ?? new Set<string>();
+    set.add(a.sampleToken);
+    out.set(a.instanceToken, set);
+  }
+  return out;
 }

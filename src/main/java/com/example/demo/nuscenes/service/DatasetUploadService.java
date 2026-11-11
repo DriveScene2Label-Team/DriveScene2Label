@@ -43,23 +43,30 @@ public class DatasetUploadService {
   Files.createDirectories(root); Files.createDirectories(archive.getParent());
   boolean remoteStored=false;DatasetArchive.Format format=null;String stage="COPYING";
   var logger=org.slf4j.LoggerFactory.getLogger(getClass());
+  long started=System.nanoTime(),stageStarted=started;
   try {
+   logger.info("Dataset upload id={} stage={} event=started bytes={}",key,stage,file.getSize());
    try(var input=file.getInputStream()) { Files.copy(input,archive); }
    format=DatasetArchive.detect(archive);
    archive=Files.move(archive,archive.resolveSibling(key+format.extension));
+   logger.info("Dataset upload id={} stage={} event=completed wall_ms={}",key,stage,(System.nanoTime()-stageStarted)/1_000_000);stageStarted=System.nanoTime();
    stage="EXTRACTING";logger.info("Dataset upload id={} stage={} bytes={} format={}",key,stage,file.getSize(),format);
    extract(archive,root,maxExpanded);
    var versions=new ArrayList<String>();
    for(String version:List.of("v1.0-mini","v1.0-trainval")) if(Files.isDirectory(root.resolve(version))) versions.add(version);
    if(versions.size()!=1) throw bad("압축 파일 최상위에 v1.0-mini 또는 v1.0-trainval 폴더와 samples/sweeps 파일을 넣어 주세요.");
+   logger.info("Dataset upload id={} stage={} event=completed wall_ms={}",key,stage,(System.nanoTime()-stageStarted)/1_000_000);stageStarted=System.nanoTime();
    stage="STORING_ORIGINAL";logger.info("Dataset upload id={} stage={}",key,stage);
    archives.put(key,archive); remoteStored=archives.enabled();
+   logger.info("Dataset upload id={} stage={} event=completed wall_ms={} remote={}",key,stage,(System.nanoTime()-stageStarted)/1_000_000,remoteStored);stageStarted=System.nanoTime();
    stage="IMPORTING_METADATA";logger.info("Dataset upload id={} stage={}",key,stage);
    var imported=importer.importUploaded(new DatasetFiles(root.toString()),key,versions.getFirst());
+   logger.info("Dataset upload id={} stage={} event=completed wall_ms={}",key,stage,(System.nanoTime()-stageStarted)/1_000_000);
    logger.info("Dataset upload id={} stage=COMPLETED datasetId={} scenes={}",key,imported.datasetId(),imported.sourceCounts().getOrDefault("scene",0));
+   logger.info("Dataset upload id={} stage=TOTAL event=completed wall_ms={}",key,(System.nanoTime()-started)/1_000_000);
    return new Uploaded(imported.datasetId(),versions.getFirst(),imported.sourceCounts().getOrDefault("scene",0));
   } catch(Exception error) {
-   logger.error("Dataset upload failed id={} stage={} bytes={} format={}",key,stage,file.getSize(),format,error);
+   logger.error("Dataset upload failed id={} stage={} bytes={} format={} stage_wall_ms={} total_wall_ms={}",key,stage,file.getSize(),format,(System.nanoTime()-stageStarted)/1_000_000,(System.nanoTime()-started)/1_000_000,error);
    if(remoteStored) try { archives.remove(key,format); } catch(RuntimeException cleanup) { error.addSuppressed(cleanup); }
    try {
     // Only the UUID directory allocated by this request can be removed.

@@ -126,7 +126,10 @@ class VespaService:
         if request.source_artifact_path and self.executor != "local":
             raise VespaError(409, "RIGID_EXECUTOR_UNSUPPORTED", "Rigid postprocessing requires the local executor.")
         if request.dataset_key is not None:
+            prepared_at = time.perf_counter()
+            logger.info("[VESPA_STAGE] job=%s scene=%s stage=dataset_prepare event=started", request.job_id, request.scene_name)
             scoped = self.for_dataset(request.dataset_key, request.dataset_version)
+            logger.info("[VESPA_STAGE] job=%s scene=%s stage=dataset_prepare event=completed wall_seconds=%.3f", request.job_id, request.scene_name, time.perf_counter()-prepared_at)
             return scoped.generate(request.model_copy(update={"dataset_key": None, "dataset_version": None}))
         if not self.lock.acquire(blocking=False):
             raise VespaError(409, "VESPA_BUSY", "A VESPA run is already active on this AI worker.")
@@ -144,8 +147,13 @@ class VespaService:
             except OSError as exc:
                 raise VespaError(503, "VESPA_LAUNCH_FAILED", "Could not launch VESPA or write its run files.") from exc
             run = self._run_ssh if self.executor == "ssh" else self._run_local
+            run_at = time.perf_counter()
             path = run(request, run_id, run_dir)
-            return self._build_response(request, run_id, path, expected)
+            logger.info("[VESPA_STAGE] job=%s run=%s stage=executor event=completed wall_seconds=%.3f", request.job_id, run_id, time.perf_counter()-run_at)
+            validate_at = time.perf_counter()
+            response = self._build_response(request, run_id, path, expected)
+            logger.info("[VESPA_STAGE] job=%s run=%s stage=result_validation event=completed wall_seconds=%.3f", request.job_id, run_id, time.perf_counter()-validate_at)
+            return response
         finally:
             self.lock.release()
 
@@ -154,7 +162,7 @@ class VespaService:
         try:
             command = [str(self.python), str(Path(__file__).with_name("vespa_runner.py")),
                        "--repo", str(self.repo), "--config", str(self.repo / "configs/vlm/p_final.yaml"),
-                       "--scene", request.scene_name, "--class-mode", str(request.class_mode),
+                       "--scene", request.scene_name, "--class-mode", str(request.class_mode), "--job-id", str(request.job_id),
                        "--output-root", str(run_dir), "--data-root", str(self.data_root), "--dataset-version", self.version]
             if os.environ.get("VESPA_RIGID_ENABLED", "true").lower() == "true":
                 command += ["--rigid"]
@@ -167,6 +175,7 @@ class VespaService:
                 command += ["--source-run", str(source), "--references", str(refs_path)]
             # Small RANSAC linear solves suffer from BLAS oversubscription.
             env = os.environ.copy()
+            env["PYTHONUNBUFFERED"] = "1"
             for key in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS"):
                 env[key] = str(self.num_threads)
             with (run_dir / "execution.log").open("wb") as log:

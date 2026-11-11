@@ -90,6 +90,10 @@ export interface GtAnnotationDto {
   nextToken: string | null;
   categoryToken?: string | null;
   categoryName?: string | null;
+  /** Class set by a label edit; null/absent = unchanged (older servers do not send it). */
+  labelOverride?: string | null;
+  /** True only when deleted rows were requested (includeDeleted=true). */
+  deleted?: boolean;
 }
 
 export interface CalibratedSensorDto {
@@ -208,6 +212,9 @@ export interface PredictionDto {
   detectionScore: number;
   attributeName: string;
   trackId?: number | null;
+  /** Class set by a label edit; null/absent = detectionName unchanged. */
+  labelOverride?: string | null;
+  deleted?: boolean;
 }
 
 export interface ArtifactDto {
@@ -305,4 +312,32 @@ export interface SystemStatusDto {
   checkedAt: string;
   dataset: { id: number; version: string; origin: DataOrigin; metadataChecksum: string; mediaValidation: string } | null;
   capabilities: Record<'catalog' | 'media' | 'search' | 'vespa' | 'recording', CapabilityDto>;
+}
+
+/** Label edit history entry (PATCH/DELETE /api/annotations|auto-label/predictions, GET /api/scenes/{id}/label-edits). */
+export type EditTargetType = 'ANNOTATION' | 'PREDICTION';
+export type EditAction = 'RENAME' | 'DELETE';
+export type EditScope = 'SAMPLE' | 'INSTANCE';
+
+export interface LabelEditDto {
+  id: number;
+  datasetId: number;
+  sceneId: number;
+  jobId: number | null;
+  targetType: EditTargetType;
+  action: EditAction;
+  scope: EditScope;
+  instanceToken: string | null;
+  fromLabel: string;
+  toLabel: string | null;
+  targetIds: number[];
+  sampleTokens: string[];
+  count: number;
+  createdAt: string;
+  revertedAt: string | null;
+  revertible: boolean;
+}
+
+export interface EditResultDto {
+  edit: LabelEditDto;
 }

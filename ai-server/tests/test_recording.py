@@ -77,7 +77,7 @@ def test_real_export_with_predictions(service, tmp_path):
     assert result.relative_path == "5-5a3e0000-0000-4000-8000-000000000001/scene-0000.rrd"
     assert result.size_bytes == len(data) and result.checksum == hashlib.sha256(data).hexdigest()
     assert result.sdk_version == rerun.__version__ == "0.38.1"
-    assert (result.export_version, result.application_id, result.rerun_recording_id) == ("ds2l-rrd-v1", "drivescene2label", "ds2l-recording-5")
+    assert (result.export_version, result.application_id, result.rerun_recording_id) == ("ds2l-rrd-v3", "drivescene2label", "ds2l-recording-5")
     assert result.entities.model_dump() == {"lidar": "world/lidar", "ego": "world/ego", "gt": "world/gt", "prediction": "world/prediction"}
     points = write_lidar(tmp_path/"count.bin")
     assert [(s.index, s.sample_token, s.lidar_points, s.gt_boxes, s.prediction_boxes) for s in result.samples] == [
@@ -95,6 +95,15 @@ def test_real_export_with_predictions(service, tmp_path):
     assert column(rows, "/world/gt", "timestamp", 1).replace(tzinfo=timezone.utc).timestamp() == pytest.approx((1700000000000000 + 500000) / 1e6)
     assert column(rows, "/world/gt", "Boxes3D:labels", 0) == ["vehicle.car", "human.pedestrian.adult", "vehicle.car"]
     assert column(rows, "/world/prediction", "Boxes3D:labels", 0) == ["car", "pedestrian"]
+    # v2: box names are data only; the decluttered text layer draws them (GT+prediction pairs share one label).
+    assert column(rows, "/world/gt", "Boxes3D:show_labels", 0) == [False]
+    assert column(rows, "/world/prediction", "Boxes3D:show_labels", 0) == [False]
+    # GT+prediction pairs share one label in the "both" layer; the app hides gt/pred layers with its toggles.
+    assert sorted(column(rows, "/world/labels/both", "Points3D:labels", 0)) == ["car", "pedestrian"]
+    assert column(rows, "/world/labels/gt", "Points3D:labels", 0) == ["car"]  # third GT box has no matching prediction
+    assert column(rows, "/world/labels/pred", "Points3D:labels", 0) == []
+    for entity in ("/world/labels/gt", "/world/labels/pred", "/world/labels/both"):
+        assert column(rows, entity, "Points3D:labels", 2) == [] and column(rows, entity, "Points3D:labels", 3) == []  # empty sample / no lidar
 
     box = body["samples"][1]["gt"][1]
     w, l, h = box["size_wlh"]
@@ -122,6 +131,29 @@ def test_without_job_has_no_prediction_entity(client, service, tmp_path):
     assert [s["prediction_boxes"] for s in r.json()["samples"]] == [0, 0]
     _, counts, _, rows = read_back(service.output_root / r.json()["relative_path"])
     assert "/world/prediction" not in rows and counts["/world/gt"] == {0: 2, 1: 2}
+
+
+def test_uploaded_recording_uses_only_its_dataset_root(client, service, tmp_path):
+    key = "00000000-0000-4000-8000-000000000001"
+    service.uploaded_datasets.root = tmp_path / "uploads"
+    service.uploaded_datasets.bucket = ""
+    root = service.uploaded_datasets.root / "datasets" / key
+    body = make_request(root, samples=2)
+    body.update(dataset_key=key, dataset_version="v1.0-mini")
+    # Default dataset is empty; successful export must read the uploaded LiDAR.
+    response = client.post("/recordings", json=body)
+    assert response.status_code == 200, response.text
+    result = response.json()
+    assert all(sample["lidar_points"] > 0 for sample in result["samples"])
+    assert all(sample["prediction_boxes"] > 0 for sample in result["samples"])
+    assert service.data_root == tmp_path / "data"  # no mutation shared across requests
+    body["dataset_key"] = "00000000-0000-4000-8000-000000000002"
+    response = client.post("/recordings", json=body)
+    assert response.status_code == 503  # never falls back to another upload
+    assert response.json()["detail"]["code"] == "RECORDING_NOT_CONFIGURED"
+    for patch in ({"dataset_key": "../escape"}, {"dataset_version": None}):
+        response = client.post("/recordings", json={**body, **patch})
+        assert response.status_code == 422
 
 
 def test_invalid_requests(client, tmp_path):
@@ -200,3 +232,31 @@ def test_main_wiring(service, tmp_path):
             r = c.post("/recordings", json=make_request(tmp_path/"data", samples=2, job_id=3))
             assert r.status_code == 200, r.text
             assert c.post("/recordings", json={"recording_id": 1}).json()["detail"]["code"] == "RECORDING_INVALID_REQUEST"
+
+
+def box(cls, x, y, z=0.8, h=1.6, source="gt"):
+    row = {"center": [x, y, z], "size_wlh": [1.0, 1.0, h], "rotation_wxyz": [1, 0, 0, 0]}
+    row["category_name" if source == "gt" else "detection_name"] = cls
+    return row
+
+
+def test_label_layer_declutters():
+    from services.recording_exporter import BOTH_COLOR, GT_COLOR, PREDICTION_COLOR, label_layer
+    gt = [box("vehicle.car", 10, 0), box("human.pedestrian.adult", 20, 5, h=1.8), box("human.pedestrian.child", 21, 6),
+          box("human.pedestrian.adult", 22, 7), box("movable_object.barrier", 15, -4), box(None, 12, 3), box("vehicle.car", 60, 0)]
+    preds = [box("car", 10.5, 0.4, h=1.7, source="pred"), box("truck", 25, -6, source="pred")]
+    out = {text: (pos, color, source) for pos, text, color, source in label_layer(gt, preds, (0.0, 0.0))}
+    assert set(out) == {"car", "pedestrian ×3", "movable_object.barrier", "GT", "truck"}  # 60 m car has no label
+    assert out["car"][1] == BOTH_COLOR and out["car"][0][2] == pytest.approx(0.8 + 1.7 / 2 + 0.6)  # higher top of the pair
+    assert out["pedestrian ×3"][1] == GT_COLOR and out["pedestrian ×3"][0][:2] == pytest.approx([21, 6])
+    assert out["truck"][1] == PREDICTION_COLOR
+    assert {t: v[2] for t, v in out.items()} == {"car": "both", "pedestrian ×3": "gt", "movable_object.barrier": "gt", "GT": "gt", "truck": "pred"}
+
+
+def test_label_layer_keeps_different_classes_and_far_pairs_apart():
+    from services.recording_exporter import label_layer
+    gt = [box("vehicle.car", 10, 0), box("vehicle.truck", 11, 0)]
+    preds = [box("car", 13, 0, source="pred")]  # same class but 3 m away: not the same object, still one group within 4 m
+    texts = sorted(t for _, t, _, _ in label_layer(gt, preds, (0.0, 0.0)))
+    assert texts == ["car ×2", "truck"]
+    assert label_layer(gt, preds, None) == []

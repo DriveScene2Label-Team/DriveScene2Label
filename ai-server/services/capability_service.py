@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 SCHEMA_VERSION = 1
 EXPECTED_RERUN = "0.38.1"
-EXPORT_VERSION = "ds2l-rrd-v1"
+EXPORT_VERSION = "ds2l-rrd-v3"
 # Same order Spring's NuscenesImporter hashes (ImportSchema.TABLES): sha256(name + bytes) for each table.
 CHECKSUM_TABLES = ("log", "map", "scene", "sample", "sensor", "calibrated_sensor", "ego_pose", "sample_data",
                    "category", "instance", "visibility", "attribute", "sample_annotation")
@@ -64,7 +64,8 @@ class CapabilityService:
                 key = (dataset_key, dataset_version)
                 scoped = self.dataset_services.get(key)
                 if scoped is None:
-                    scoped = CapabilityService(self.clip, self.vespa.for_dataset(*key), None, self.clip_error)
+                    scoped = CapabilityService(self.clip, self.vespa.for_dataset(*key) if self.vespa else None,
+                                               self.recording.for_dataset(*key) if self.recording else None, self.clip_error)
                     self.dataset_services[key] = scoped
                 self.dataset_services.move_to_end(key)
                 if len(self.dataset_services) > 32:

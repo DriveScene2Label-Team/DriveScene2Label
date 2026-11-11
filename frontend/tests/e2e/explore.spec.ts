@@ -8,11 +8,11 @@ test.describe('탐색 → 작업대 (QA-01/02)', () => {
     await installMockApi(page);
     await page.goto('/scenes');
     await expect(page).toHaveURL(new RegExp(`dataset=${DATASET.id}`)); // first listed dataset, not a hard-coded 1
-    await expect(page.getByRole('heading', { name: '전체 씬 3개' })).toBeVisible();
-    await page.getByLabel('씬 검색어').fill('rainy night road');
+    await expect(page.getByRole('heading', { name: /모든 씬\s*3/ })).toBeVisible();
+    await page.getByLabel('장면 설명으로 검색').fill('rainy night road');
     await page.getByRole('button', { name: '검색', exact: true }).click();
-    await expect(page.getByRole('heading', { name: /검색 결과 2개/ })).toBeVisible();
-    await expect(page.getByText('0.310')).toBeVisible();
+    await expect(page.getByRole('heading', { name: /검색 결과\s*2/ })).toBeVisible();
+    await expect(page.getByText('0.31', { exact: true })).toBeVisible();
     await expect(page.getByText(/%/)).toHaveCount(0); // score is not shown as a percentage
     await page.getByRole('link', { name: /scene-0103 열기/ }).click();
     await expect(page).toHaveURL(new RegExp(`/scenes/22\\?dataset=${DATASET.id}&sample=${sampleToken(22, 1)}`));
@@ -22,11 +22,11 @@ test.describe('탐색 → 작업대 (QA-01/02)', () => {
   test('빈 검색 결과와 검색 오류를 구분한다', async ({ page }) => {
     await installMockApi(page, { search: 'empty' });
     await page.goto(`/scenes?dataset=${DATASET.id}&q=snow`);
-    await expect(page.getByText('일치하는 씬이 없어요')).toBeVisible();
+    await expect(page.getByText('“snow”에 맞는 씬이 없어요')).toBeVisible();
     await page.unroute('**/api/**');
     await installMockApi(page, { search: 'error' });
     await page.goto(`/scenes?dataset=${DATASET.id}&q=snow2`);
-    await expect(page.getByRole('heading', { name: '검색하지 못했어요' })).toBeVisible();
+    await expect(page.getByText('검색하지 못했어요')).toBeVisible();
   });
 
   test('새로고침해도 씬·프레임이 복원되고 잘못된 sample은 첫 프레임으로 간다', async ({ page }) => {
@@ -84,13 +84,15 @@ test.describe('6카메라·프레임 이동', () => {
     await installMockApi(page);
     await page.goto(ws(21, '&view=six'));
     await expect(page.locator('.cam-media[data-state="ready"]')).toHaveCount(6);
-    const expand = page.getByRole('button', { name: '전방 카메라 크게 보기' });
+    const expand = page.getByRole('button', { name: '전방 CAM_FRONT 크게 보기' });
     await expand.click();
     const dialog = page.getByRole('dialog');
     await expect(dialog).toBeVisible();
     await expect(dialog.getByRole('heading')).toContainText('CAM_FRONT');
-    await dialog.getByRole('radio', { name: '후방' }).click();
+    await dialog.getByRole('button', { name: '후방', exact: true }).click();
     await expect(dialog.getByRole('heading')).toContainText('CAM_BACK');
+    // Arrow keys inside the camera switcher (a group) move between buttons, as in the design; elsewhere they move frames.
+    await dialog.getByRole('button', { name: '닫기 (Esc)' }).focus();
     await page.keyboard.press('ArrowRight');
     await expect(dialog.getByTestId('frame-readout-single')).toHaveText(/2\s*\/ 4/);
     await page.keyboard.press('Escape');
@@ -124,10 +126,10 @@ test.describe('투영·레이어', () => {
       expect(dx).toBeLessThan(img!.width * 0.03);
     }).toPass({ timeout: 3000 });
     await centred();
-    const divider = page.getByRole('separator', { name: '카메라와 LiDAR 영역 비율' });
+    const divider = page.getByRole('separator', { name: '카메라와 3D 영역 높이 비율' });
     await divider.focus();
-    await page.keyboard.press('ArrowLeft');
-    await page.keyboard.press('ArrowLeft');
+    await page.keyboard.press('ArrowUp');
+    await page.keyboard.press('ArrowUp');
     await centred();
     // layer toggle hides GT
     await page.getByRole('button', { name: 'GT', exact: true }).click();
@@ -137,13 +139,16 @@ test.describe('투영·레이어', () => {
   test('객체 목록에서 원본 category·비교 분류·미매핑을 구분한다 (QA-17)', async ({ page }) => {
     await installMockApi(page);
     await page.goto(ws(21));
-    const list = page.getByRole('list', { name: /프레임 1의 객체/ });
-    await expect(list.getByRole('button')).toHaveCount(3);
-    await list.getByRole('button', { name: /vehicle\.car/ }).click();
-    await expect(page.getByTestId('object-detail')).toContainText('car');
-    await list.getByRole('button', { name: /movable_object\.barrier/ }).click();
+    await expect(page.locator('.cam-media[data-state="ready"]').first()).toBeVisible({ timeout: 15_000 });
+    const table = page.getByRole('table', { name: /프레임 1의 객체/ });
+    await expect(table.locator('tbody tr')).toHaveCount(3);
+    // GT shows the 8class comparison class; the original category stays visible in the details.
+    await table.getByRole('row', { name: /^GT car,/ }).click();
+    await expect(page.getByTestId('object-detail').locator('.ed-label')).toHaveText('car');
+    await expect(page.getByTestId('object-detail')).toContainText('vehicle.car');
+    await table.getByRole('row', { name: /movable_object\.barrier/ }).click();
     await expect(page.getByTestId('object-detail')).toContainText('비교 분류 없음');
-    await list.getByRole('button', { name: /클래스 정보 없음/ }).click();
+    await table.getByRole('row', { name: /클래스 정보 없음/ }).click();
     await expect(page.getByTestId('object-detail')).toContainText('클래스 정보 없음');
   });
 });

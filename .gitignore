@@ -68,6 +68,8 @@ out/
 *.jpg
 *.jpeg
 *.png
+# Reviewed product screenshots for documentation (not dataset media)
+!docs/images/*-2026-11-11.jpg
 *.pcd
 *.bin
 *.npz

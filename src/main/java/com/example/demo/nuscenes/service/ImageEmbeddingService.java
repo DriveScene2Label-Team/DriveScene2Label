@@ -13,6 +13,7 @@ public class ImageEmbeddingService {
  private final DatasetStorage storage;
  public ImageEmbeddingService(TextEmbeddingClient ai,ImageEmbeddingRepository repo,DatasetStorage storage,@Value("${embedding.model-name}") String model,@Value("${embedding.preprocess}") String preprocess) { this.ai=ai;this.repo=repo;this.storage=storage;this.model=model;this.preprocess=preprocess; }
  public Result embed(long id,boolean overwrite) {
+  long started=System.nanoTime(),aiMs=0,storageMs=0;
   var source=repo.source(id).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Sensor file not found"));
   if(!"camera".equals(source.modality())) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Only camera images can be embedded");
   String datasetKey=null;
@@ -23,11 +24,14 @@ public class ImageEmbeddingService {
   } else if(!"nuscenes".equals(source.storageKey()) || !".".equals(source.rootRelativePath())) throw new ResponseStatusException(HttpStatus.CONFLICT,"Dataset does not map to the configured AI image root");
   String status="SKIPPED";
   if(overwrite || !repo.exists(source,model,preprocess)) {
+   long stageStarted=System.nanoTime();
    String vector=EmbeddingValidator.vector(ai.image(source.relativePath(),preprocess,datasetKey),model,preprocess);
+   aiMs=(System.nanoTime()-stageStarted)/1_000_000;stageStarted=System.nanoTime();
    // A single atomic upsert follows HTTP inference; no database transaction spans inference.
    if(repo.save(source,model,preprocess,vector,overwrite)>0) status="STORED";
+   storageMs=(System.nanoTime()-stageStarted)/1_000_000;
   }
-  org.slf4j.LoggerFactory.getLogger(getClass()).info("[CLIP] image={} status={}",id,status);
+  org.slf4j.LoggerFactory.getLogger(getClass()).info("[CLIP] dataset={} image={} status={} ai_ms={} storage_ms={} total_ms={}",source.datasetId(),id,status,aiMs,storageMs,(System.nanoTime()-started)/1_000_000);
   return new Result(id,source.datasetId(),source.token(),model,preprocess,768,status);
  }
 }

@@ -30,7 +30,8 @@ public final class RecordingDtos {
    double rotationW,double rotationX,double rotationY,double rotationZ) {}
 
  public record AiRequest(@JsonProperty("recording_id") long recordingId,@JsonProperty("execution_token") UUID executionToken,@JsonProperty("scene_name") String sceneName,
-   @JsonProperty("scene_token") String sceneToken,@JsonProperty("job_id") Long jobId,List<AiSample> samples) {}
+   @JsonProperty("scene_token") String sceneToken,@JsonProperty("job_id") Long jobId,List<AiSample> samples,
+   @JsonProperty("dataset_key") String datasetKey,@JsonProperty("dataset_version") String datasetVersion) {}
  public record AiSample(int index,@JsonProperty("sample_token") String sampleToken,@JsonProperty("timestamp_us") long timestampUs,AiLidar lidar,List<AiGt> gt,List<AiPrediction> predictions) {}
  public record AiLidar(@JsonProperty("relative_path") String relativePath,@JsonProperty("sensor_translation") List<Double> sensorTranslation,@JsonProperty("sensor_rotation") List<Double> sensorRotation,
    @JsonProperty("ego_translation") List<Double> egoTranslation,@JsonProperty("ego_rotation") List<Double> egoRotation) {}

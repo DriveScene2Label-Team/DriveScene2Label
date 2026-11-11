@@ -4,6 +4,7 @@ import { describeError, requestJson } from '@/api/http';
 import { saveReceipt } from '@/lib/jobs/receipts';
 import { useServer } from '@/stores/server';
 import { useWorkspace, type PaneId } from '@/stores/workspace';
+import { objectKey } from '@/features/objects/objectKeys';
 
 export function PostprocessPanel({ paneId, scene, samples, results, disabled }: { paneId: PaneId; scene: Scene; samples: SampleRef[]; results: JobResults; disabled: boolean }) {
   const pane = useWorkspace((s) => s.panes[paneId]);
@@ -14,9 +15,9 @@ export function PostprocessPanel({ paneId, scene, samples, results, disabled }: 
   const [error, setError] = useState('');
   const frame = pane.displayedSampleToken;
   const boxes = frame ? (results.boxesBySample.get(frame) ?? []).filter((b) => b.trackId != null) : [];
-  const selected = boxes.find((b) => b.key === pane.selectedBoxKey);
+  const selected = boxes.find((b) => objectKey(b) === pane.selectedBoxKey);
   const hasTracks = [...results.boxesBySample.values()].some((list) => list.some((box) => box.trackId != null));
-  if (!hasTracks) return <p className="help">이 결과에는 객체 추적 정보가 없어요. 후처리를 사용하려면 새 라벨 작업을 실행해 주세요.</p>;
+  if (!hasTracks) return <p className="muted small">이 결과에는 후처리에 필요한 객체 추적 정보가 없어요.</p>;
   const update = (next: Record<string, string>) => { setRefs(next); setRequestKey(crypto.randomUUID()); setError(''); };
   const submit = async () => {
     if (!results.classMode || !Object.keys(refs).length || busy || disabled) return;
@@ -34,20 +35,20 @@ export function PostprocessPanel({ paneId, scene, samples, results, disabled }: 
     } catch (failure) { setError(describeError(failure)); }
     finally { setBusy(false); }
   };
-  return <section className="job-card">
+  return <section className="postprocess-panel">
     <h3>객체 기준 후처리</h3>
-    <p className="help">원본 작업 #{results.jobId}을 보존하고 새 결과를 만들어요. 기준 박스의 크기와 방향을 같은 객체의 다른 프레임에 적용해요. 각 프레임의 바닥 중심 위치는 유지해요.</p>
+    <p className="muted small">원본 작업 #{results.jobId}을 보존하고 새 결과를 만들어요. 기준 박스의 크기와 방향을 같은 객체의 다른 프레임에 적용해요.</p>
     <label>현재 프레임의 객체
-      <select aria-label="후처리 기준 객체" value={selected?.key ?? ''} disabled={busy || !boxes.length} onChange={(e) => selectBox(paneId, e.target.value || null)}>
+      <select className="popup" aria-label="후처리 기준 객체" value={selected ? objectKey(selected) : ''} disabled={busy || !boxes.length} onChange={(e) => selectBox(paneId, e.target.value || null)}>
         <option value="">박스를 선택하세요</option>
-        {boxes.map((box) => <option key={box.key} value={box.key}>T{box.trackId} · {box.label}</option>)}
+        {boxes.map((box) => <option key={box.key} value={objectKey(box)}>T{box.trackId} · {box.label}</option>)}
       </select>
     </label>
-    <button className="btn btn--sm btn--weak" disabled={busy || selected?.trackId == null || !frame} onClick={() => { if (selected?.trackId != null && frame) update({ ...refs, [selected.trackId]: frame }); }}>현재 프레임을 기준으로 추가</button>
+    <button className="btn sm weak" disabled={busy || selected?.trackId == null || !frame} onClick={() => { if (selected?.trackId != null && frame) update({ ...refs, [selected.trackId]: frame }); }}>현재 프레임을 기준으로 추가</button>
     <ul>{Object.entries(refs).map(([track, token]) => <li key={track}>T{track} · 기준 프레임 {samples.findIndex((sample) => sample.token === token)}
-      <button aria-label={`T${track} 기준 제거`} className="btn btn--sm btn--ghost" disabled={busy} onClick={() => { const next = { ...refs }; delete next[track]; update(next); }}>제거</button></li>)}</ul>
-    <button className="btn btn--primary" disabled={busy || disabled || !Object.keys(refs).length} onClick={() => void submit()}>{busy ? '후처리 요청 중…' : error ? '같은 후처리 요청 다시 보내기' : '후처리 결과 생성'}</button>
-    {error && <p className="alert" role="alert">{error}</p>}
-    <p className="help">프레임 번호는 0부터 시작해요. T 번호는 이 작업 안에서만 유효해요.</p>
+      <button aria-label={`T${track} 기준 제거`} className="btn sm plain" disabled={busy} onClick={() => { const next = { ...refs }; delete next[track]; update(next); }}>제거</button></li>)}</ul>
+    <button className="btn weak" disabled={busy || disabled || !Object.keys(refs).length} onClick={() => void submit()}>{busy ? '후처리 요청 중…' : error ? '같은 후처리 요청 다시 보내기' : '후처리 결과 생성'}</button>
+    {error && <p className="notice notice--err" role="alert">{error}</p>}
+    <p className="muted small">프레임 번호는 0부터 시작해요. T 번호는 이 작업 안에서만 유효해요.</p>
   </section>;
 }

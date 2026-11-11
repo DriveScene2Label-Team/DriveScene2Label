@@ -67,10 +67,17 @@ public class AutoLabelService {
  }
  public Optional<Work> claim() { return tx.execute(s->repo.claim()); }
  public JobStatus status(long id) { return repo.status(id).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Job not found")); }
- public Results results(long id) {
+ public List<JobStatus> byScene(long sceneId) {
+  if(sceneId<=0) throw bad("sceneId must be positive");
+  if(!repo.sceneExists(sceneId)) throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Scene not found");
+  return repo.byScene(sceneId);
+ }
+ public Results results(long id) { return results(id,false); }
+ /** includeDeleted=true also returns boxes removed by a label edit (deleted=true); the default leaves them out. */
+ public Results results(long id,boolean includeDeleted) {
   var status=status(id);
   if(!"COMPLETED".equals(status.status())) throw new ResponseStatusException(HttpStatus.CONFLICT,"Job has not completed successfully");
-  return repo.results(id,status);
+  return repo.results(id,status,includeDeleted);
  }
  public void complete(Work job,AiResponse result) {
   tx.executeWithoutResult(status->{

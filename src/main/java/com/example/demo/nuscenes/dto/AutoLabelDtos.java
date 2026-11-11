@@ -12,7 +12,9 @@ public final class AutoLabelDtos {
  public record JobStatus(long jobId,long datasetId,String status,String errorMessage,OffsetDateTime createdAt,OffsetDateTime startedAt,OffsetDateTime completedAt,
    String sceneToken,Long sceneId,String sceneName,int classMode,String mappingName,String errorCode) {}
  public record Results(long jobId,long datasetId,String mappingName,String coordinateFrame,String scoreType,List<String> sampleTokens,List<Prediction> boxes,List<Artifact> artifacts) {}
- public record Prediction(long id,String sampleToken,int boxIndex,String detectionName,double centerX,double centerY,double centerZ,double sizeW,double sizeL,double sizeH,double rotationW,double rotationX,double rotationY,double rotationZ,double velocityX,double velocityY,double detectionScore,String attributeName,Integer trackId) {}
+ /** labelOverride: class set by a label edit (null = detectionName unchanged). deleted is true only when deleted boxes were requested. */
+ public record Prediction(long id,String sampleToken,int boxIndex,String detectionName,double centerX,double centerY,double centerZ,double sizeW,double sizeL,double sizeH,double rotationW,double rotationX,double rotationY,double rotationZ,double velocityX,double velocityY,double detectionScore,String attributeName,
+   Integer trackId,String labelOverride,boolean deleted) {}
  public record Artifact(long id,String artifactType,String storageKey,String relativePath,String checksum,String contentType) {}
  public record Header(String mappingName,String coordinateFrame,String scoreType) {}
  public record Work(long id,long datasetId,String sceneName,String mappingName,UUID executionToken,String datasetKey,String datasetVersion,String sourceArtifactPath,String referenceFrames) {

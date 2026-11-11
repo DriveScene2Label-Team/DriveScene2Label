@@ -1,8 +1,10 @@
 import { expect, test } from '@playwright/test';
-import { DATASET, installMockApi } from './fixtures/mockApi';
+import { DATASET, installMockApi, preferJobsTab } from './fixtures/mockApi';
 
 /** Integration-plan scenarios on route fixtures (UI behaviour only; not real-data or real-AI verification). */
 const ws = (sceneId: number, extra = '') => `/scenes/${sceneId}?dataset=${DATASET.id}${extra}`;
+
+test.beforeEach(async ({ page }) => { await preferJobsTab(page); });
 
 test.describe('IT-02/03/04 준비 상태·출처', () => {
   test('VESPA 설정만 확인된 상태는 실행을 막고, 환경 확인(읽기 전용) 후에만 실행할 수 있다', async ({ page }) => {
@@ -11,7 +13,7 @@ test.describe('IT-02/03/04 준비 상태·출처', () => {
     const run = page.getByTestId('run-job-single');
     await expect(page.getByTestId('vespa-readiness-single')).toHaveAttribute('data-reason', 'EXECUTOR_NOT_CHECKED');
     await expect(run).toBeDisabled();
-    await page.getByRole('button', { name: '실행 환경 확인' }).click();
+    await page.getByRole('button', { name: '지금 확인' }).click();
     await expect(run).toBeEnabled();
     expect(log.statusCalls.some((c) => c.refresh)).toBe(true);
     expect(log.jobPosts).toHaveLength(0); // checking the environment never creates work
@@ -25,7 +27,7 @@ test.describe('IT-02/03/04 준비 상태·출처', () => {
     await page.goto(ws(21, '&view=six'));
     await expect(page.getByTestId('origin-badge')).toHaveAttribute('data-origin', 'SYNTHETIC');
     await expect(page.getByTestId('vespa-readiness-single')).toHaveAttribute('data-reason', 'SYNTHETIC_DATASET');
-    await expect(page.getByRole('button', { name: '실행 환경 확인' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: '지금 확인' })).toHaveCount(0);
     await expect(page.getByTestId('run-job-single')).toBeDisabled();
     await expect(page.locator('.cam-media[data-state="ready"]')).toHaveCount(6);
     expect(log.jobPosts).toHaveLength(0);
@@ -46,9 +48,9 @@ test.describe('IT-02/03/04 준비 상태·출처', () => {
     await installMockApi(page, { status: { search: 'UNAVAILABLE' } });
     await page.goto(`/scenes?dataset=${DATASET.id}`);
     await expect(page.getByTestId('search-readiness')).toHaveAttribute('data-reason', 'EMBEDDINGS_NOT_READY');
-    await page.getByLabel('씬 검색어').fill('rain');
+    await page.getByLabel('장면 설명으로 검색').fill('rain');
     await expect(page.getByRole('button', { name: '검색', exact: true })).toBeDisabled();
-    await expect(page.locator('.scene-card')).toHaveCount(3);
+    await expect(page.locator('.card-hit')).toHaveCount(3);
     await page.goto(`/scenes?dataset=${DATASET.id}&q=rain`);
     await expect(page.getByText('이 데이터셋에서는 지금 검색할 수 없어요')).toBeVisible();
     expect(searchCalls).toBe(0);
@@ -62,7 +64,7 @@ test.describe('IT-02/03/04 준비 상태·출처', () => {
     await page.unroute('**/api/**');
     await installMockApi(page, { status: { instanceId: 'bbbbbbbb-0000-4000-8000-000000000002' }, jobSequence: ['RUNNING'] });
     await page.goto(ws(21));
-    await expect(page.getByText('아직 연결된 작업이 없어요')).toBeVisible();
+    await expect(page.getByText('아직 실행한 작업이 없어요.')).toBeVisible();
     await expect(page.getByTestId('job-card-single')).toHaveCount(0);
   });
 });
@@ -75,7 +77,7 @@ test.describe('IT-05 오류 원인', () => {
     await expect(card.locator('[data-error-code="AI_ENDPOINT_UNSUPPORTED"]')).toBeVisible();
     await expect(card).toContainText('연결된 AI 서버가 이 기능을 제공하지 않아요');
     await expect(card).not.toContainText('timed out');
-    await expect(card.getByRole('button', { name: /다시 실행/ })).toBeDisabled();
+    await expect(card.getByRole('button', { name: /다시 시도/ })).toBeDisabled();
   });
 });
 
@@ -84,17 +86,17 @@ test.describe('IT-06/07 요청 snapshot', () => {
     const log = await installMockApi(page, { postDelayMs: 1500, jobSequence: ['RUNNING'] });
     await page.goto(ws(21));
     await page.getByTestId('run-job-single').click();
-    await page.getByRole('link', { name: '씬 목록' }).click(); // client-side navigation keeps the request alive
+    await page.getByRole('button', { name: '씬 목록으로' }).click(); // client-side navigation keeps the request alive
     await page.getByRole('link', { name: /scene-0103 열기/ }).click();
     await expect(page.getByRole('heading', { name: 'scene-0103' })).toBeVisible();
     await expect.poll(() => log.jobPosts.length).toBe(1);
     await page.waitForTimeout(1800); // answer arrives while scene-0103 is open
-    await expect(page.getByText('아직 연결된 작업이 없어요')).toBeVisible();
+    await expect(page.getByText('아직 실행한 작업이 없어요.')).toBeVisible();
     const receipts = await page.evaluate(() => JSON.parse(localStorage.getItem('ds2l.jobReceipts.v2') ?? '{"data":[]}').data);
     expect(receipts).toHaveLength(1);
     expect(receipts[0]).toMatchObject({ jobId: 41, sceneToken: 'scene-tok-61', sceneId: 21, paneId: 'single', classMode: 8 });
     // back on the original scene its history shows the job
-    await page.getByRole('link', { name: '씬 목록' }).click();
+    await page.getByRole('button', { name: '씬 목록으로' }).click();
     await page.getByRole('link', { name: /scene-0061 열기/ }).click();
     await expect(page.getByTestId('job-card-single')).toContainText('작업 #41');
   });
@@ -103,11 +105,11 @@ test.describe('IT-06/07 요청 snapshot', () => {
     await installMockApi(page, { postDelayMs: 2000, jobSequence: ['RUNNING'] });
     await page.goto(ws(21));
     await page.getByTestId('run-job-single').click();
-    await page.getByRole('link', { name: '씬 목록' }).click();
+    await page.getByRole('button', { name: '씬 목록으로' }).click();
     await page.getByRole('link', { name: /scene-0103 열기/ }).click();
-    await page.getByRole('link', { name: '씬 목록' }).click();
+    await page.getByRole('button', { name: '씬 목록으로' }).click();
     await page.getByRole('link', { name: /scene-0061 열기/ }).click();
-    await page.getByPlaceholder('작업 번호로 열기').fill('77');
+    await page.getByLabel('번호로 열기').fill('77');
     await page.getByRole('button', { name: '열기', exact: true }).click();
     await expect(page.getByTestId('job-card-single')).toContainText('작업 #77');
     await page.waitForTimeout(2300);
@@ -118,10 +120,10 @@ test.describe('IT-06/07 요청 snapshot', () => {
     await installMockApi(page, { postDelayMs: 1500, jobSequence: ['RUNNING'] });
     await page.goto(`/compare?datasetA=${DATASET.id}&sceneA=21&datasetB=${DATASET.id}&sceneB=22`);
     await page.getByTestId('run-job-A').click();
-    await page.getByRole('radio', { name: /B scene-0103/ }).click();
+    await page.getByRole('radio', { name: /B\s*scene-0103/ }).click();
     await page.waitForTimeout(1800);
-    await expect(page.getByText('아직 연결된 작업이 없어요')).toBeVisible(); // pane B
-    await page.getByRole('radio', { name: /A scene-0061/ }).click();
+    await expect(page.getByText('아직 실행한 작업이 없어요.')).toBeVisible(); // pane B
+    await page.getByRole('radio', { name: /A\s*scene-0061/ }).click();
     await expect(page.getByTestId('job-card-A')).toContainText('작업 #41');
   });
 
@@ -135,7 +137,7 @@ test.describe('IT-06/07 요청 snapshot', () => {
     const keys = new Set(log.jobPosts.map((p) => p.key));
     expect(log.jobPosts.length).toBe(4);
     expect(keys.size).toBe(1);
-    await page.getByRole('button', { name: '새 작업으로 다시 실행' }).click();
+    await page.getByRole('button', { name: '다시 시도' }).click();
     await expect.poll(() => log.jobPosts.length).toBe(5);
     expect(log.jobPosts[4]!.key).not.toBe(log.jobPosts[0]!.key);
   });
@@ -145,12 +147,17 @@ test.describe('IT-10 라벨 토글 적용 범위', () => {
   test('GT/예측 토글은 카메라 라벨 범위로 표시되고 패널별로 독립이다', async ({ page }) => {
     await installMockApi(page, { recording: 'ready' });
     await page.goto(`/compare?datasetA=${DATASET.id}&sceneA=21&datasetB=${DATASET.id}&sceneB=21`);
-    await expect(page.locator('.pane--A').getByRole('group', { name: /카메라 라벨 레이어/ })).toBeVisible();
-    await page.locator('.pane--A').getByRole('button', { name: 'GT', exact: true }).click();
-    await expect(page.locator('.pane--A g[data-source="GT"]')).toHaveCount(0);
-    await expect(page.locator('.pane--B g[data-source="GT"]').first()).toBeAttached();
+    // The display bar applies to the work-target pane (tagged A/B); each pane keeps its own layers.
+    const hud = page.getByRole('toolbar', { name: '씬 A 표시' });
+    await expect(page.locator('.pane[data-pane="B"] g[data-source="GT"]').first()).toBeAttached();
+    await hud.getByRole('button', { name: 'GT', exact: true }).click();
+    await expect(page.locator('.pane[data-pane="A"] g[data-source="GT"]')).toHaveCount(0);
+    await expect(page.locator('.pane[data-pane="B"] g[data-source="GT"]').first()).toBeAttached();
+    await page.getByRole('radio', { name: /B\s*scene-0061/ }).click();
+    const hudB = page.getByRole('toolbar', { name: '씬 B 표시' });
+    await expect(hudB.getByRole('button', { name: 'GT', exact: true })).toHaveAttribute('aria-pressed', 'true');
     await page.goto(ws(21));
-    await expect(page.getByTestId('recording-badge')).toContainText('카메라 라벨 토글과 별개');
+    await expect(page.getByTestId('recording-badge')).toContainText('표시는 위 버튼을 따라요');
   });
 });
 
@@ -173,11 +180,11 @@ test.describe('FU-01 상태 조회 실패·만료 뒤 이전 READY 미사용', (
       await expect(page.locator('.cam-tile[data-channel="CAM_FRONT"] g[data-source="VESPA"]')).toHaveCount(1);
       // a light re-check that still fails keeps it blocked (no heavy refresh=true is sent for a status problem)
       const refreshesBefore = log.statusCalls.filter((c) => c.refresh).length;
-      await box.getByRole('button', { name: '상태 다시 확인' }).click();
+      await page.getByRole('button', { name: '지금 확인' }).click();
       await expect(run).toBeDisabled();
       expect(log.statusCalls.filter((c) => c.refresh).length).toBe(refreshesBefore);
       log.statusFailure = null;
-      await box.getByRole('button', { name: '상태 다시 확인' }).click();
+      await page.getByRole('button', { name: '지금 확인' }).click();
       await expect(run).toBeEnabled();
       expect(log.jobPosts).toHaveLength(0);
       expect(log.recordingPosts).toHaveLength(0);
@@ -190,7 +197,7 @@ test.describe('FU-01 상태 조회 실패·만료 뒤 이전 READY 미사용', (
     const run = page.getByTestId('run-job-single');
     await expect(run).toBeDisabled();
     log.statusFailure = 500;
-    await page.getByRole('button', { name: '실행 환경 확인' }).click();
+    await page.getByRole('button', { name: '지금 확인' }).click();
     await expect(page.getByTestId('vespa-readiness-single')).toHaveAttribute('data-reason', 'STATUS_UNREACHABLE');
     await expect(run).toBeDisabled();
     expect(log.jobPosts).toHaveLength(0);
@@ -206,10 +213,10 @@ test.describe('FU-02 구버전 이력의 DB 귀속 방지', () => {
     await page.addInitScript((r) => { localStorage.setItem('ds2l.jobReceipts', JSON.stringify({ v: 1, data: [r] })); }, v1);
     await installMockApi(page, { jobSequence: ['RUNNING'] });
     await page.goto(ws(21));
-    await expect(page.getByText('아직 연결된 작업이 없어요')).toBeVisible();
+    await expect(page.getByText('아직 실행한 작업이 없어요.')).toBeVisible();
     await expect(page.getByTestId('legacy-receipts-single')).toContainText('1건');
     await page.reload(); // repeated initialisation does not attach it either
-    await expect(page.getByText('아직 연결된 작업이 없어요')).toBeVisible();
+    await expect(page.getByText('아직 실행한 작업이 없어요.')).toBeVisible();
     const stored = await page.evaluate(() => [localStorage.getItem('ds2l.jobReceipts'), localStorage.getItem('ds2l.jobReceipts.v2')]);
     expect(JSON.parse(stored[0]!).data).toHaveLength(1); // v1 kept as is
     expect(stored[1] === null || JSON.parse(stored[1]).data.every((r: { paneId: string }) => r.paneId !== 'legacy')).toBe(true);
@@ -221,7 +228,7 @@ test.describe('FU-02 구버전 이력의 DB 귀속 방지', () => {
     await page.addInitScript((d) => { localStorage.setItem('ds2l.jobReceipts.v2', JSON.stringify({ v: 2, data: d })); }, [legacyV2, normal]);
     await installMockApi(page, { jobSequence: ['RUNNING'] });
     await page.goto(ws(21));
-    await expect(page.getByText('아직 연결된 작업이 없어요')).toBeVisible();
+    await expect(page.getByText('아직 실행한 작업이 없어요.')).toBeVisible();
     await expect(page.getByTestId('legacy-receipts-single')).toContainText('1건');
     await page.goto(ws(22));
     await expect(page.getByTestId('job-card-single')).toContainText('작업 #77');
@@ -264,7 +271,7 @@ test.describe('기능별 만료 시점의 화면 갱신 (만료 보완)', () => 
     expect(log.statusCalls.every((c) => !c.refresh)).toBe(true);
 
     log.statusHang = false; // fresh answers again
-    await box.getByRole('button', { name: '상태 다시 확인' }).click();
+    await page.getByRole('button', { name: '지금 확인' }).click();
     await expect(run).toBeEnabled();
     await expect(create).toBeEnabled();
     expect(log.jobPosts).toHaveLength(0);

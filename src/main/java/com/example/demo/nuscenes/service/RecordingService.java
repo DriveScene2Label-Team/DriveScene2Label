@@ -37,7 +37,7 @@ public class RecordingService {
  private final TransactionTemplate tx;
  private final String sdkVersion,exportVersion;
  public RecordingService(RecordingRepository repo,SystemStatusService readiness,GtAnnotationViewRepository gt,SceneRepository scenes,RecordingFiles files,ObjectMapper json,PlatformTransactionManager manager,
-   @Value("${recording.sdk-version:0.38.1}") String sdkVersion,@Value("${recording.export-version:ds2l-rrd-v1}") String exportVersion) {
+   @Value("${recording.sdk-version:0.38.1}") String sdkVersion,@Value("${recording.export-version:ds2l-rrd-v3}") String exportVersion) {
   this.repo=repo;this.readiness=readiness;this.gt=gt;this.scenes=scenes;this.files=files;this.json=json;this.tx=new TransactionTemplate(manager);this.sdkVersion=sdkVersion;this.exportVersion=exportVersion;
  }
  public Created create(long sceneId,Long jobId) {
@@ -129,7 +129,10 @@ public class RecordingService {
    var s=samples.get(i);
    out.add(new AiSample(i,s.token(),s.timestampUs(),lidar(lidar.get(s.token())),boxes.getOrDefault(s.token(),List.of()),predictions.getOrDefault(s.token(),List.of())));
   }
-  return new AiRequest(w.id(),w.executionToken(),sceneName,w.sceneToken(),w.jobId(),out);
+  var dataset=readiness.dataset(w.datasetId()).orElseThrow(()->new Invalid("DATA_NOT_READY","Dataset no longer exists"));
+  boolean uploaded="uploads".equals(dataset.storageKey());
+  return new AiRequest(w.id(),w.executionToken(),sceneName,w.sceneToken(),w.jobId(),out,
+    uploaded?dataset.rootRelativePath():null,uploaded?dataset.version():null);
  }
  /** Validates the AI result against the request and the file on disk, then stores READY only if this execution still owns the row. */
  public void complete(Work w,AiRequest req,AiResponse r) {

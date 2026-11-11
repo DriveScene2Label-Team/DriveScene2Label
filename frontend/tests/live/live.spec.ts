@@ -13,7 +13,7 @@ test('real Spring: datasets → scene → 6 cameras, GT and job/recording states
 
   await page.goto('/scenes');
   await expect(page).toHaveURL(new RegExp(`dataset=${ds.id}`));
-  await expect(page.locator('.scene-card')).toHaveCount(scenes.length);
+  await expect(page.locator('.card-hit')).toHaveCount(scenes.length);
   await page.getByRole('link', { name: new RegExp(`${scene.name} 열기`) }).click();
   await expect(page.getByRole('heading', { name: scene.name })).toBeVisible();
 
@@ -26,31 +26,32 @@ test('real Spring: datasets → scene → 6 cameras, GT and job/recording states
   // GT list equals the API's annotations for the displayed sample
   const samples = await (await request.get(`/api/scenes/${scene.id}/samples?limit=1&offset=0`)).json() as Array<{ id: number }>;
   const gt = await (await request.get(`/api/samples/${samples[0]!.id}/annotations`)).json() as Array<{ categoryName?: string | null }>;
-  await expect(page.locator('.obj-row')).toHaveCount(gt.length);
+  await expect(page.locator('.otable tbody tr')).toHaveCount(gt.length);
   note('gt', `${gt.length} boxes, categories: ${[...new Set(gt.map((g) => g.categoryName ?? 'null'))].join(', ')}`);
 
   // search answers with results, an empty state, or an error state — never a silent mock
   await page.goto(`/scenes?dataset=${ds.id}&q=rainy%20night%20road`);
   // settled = a result grid or a state box (the loading skeleton grid is aria-hidden)
-  await expect(page.locator('.results .state-box, .results .scene-grid:not([aria-hidden])').first()).toBeVisible({ timeout: 45_000 });
-  note('search', (await page.locator('.results').innerText()).replace(/\s+/g, ' ').slice(0, 160));
+  await expect(page.locator('#results .empty, #results .grid:not([aria-hidden])').first()).toBeVisible({ timeout: 45_000 });
+  note('search', (await page.locator('#results').innerText()).replace(/\s+/g, ' ').slice(0, 160));
   note('search-readiness', (await page.getByTestId('search-readiness').getAttribute('data-reason').catch(() => null)) ?? 'READY');
 
   const jobId = process.env.DS2L_LIVE_JOB_ID;
   if (jobId) {
     await page.goto(`/scenes/${scene.id}?dataset=${ds.id}&job=${jobId}`);
+    await page.getByRole('tab', { name: /자동 라벨링/ }).click();
     const card = page.getByTestId('job-card-single');
     await expect(card.locator('[data-status]')).toBeVisible({ timeout: 15_000 });
     note('job', (await card.innerText()).replace(/\s+/g, ' ').slice(0, 200));
   }
 
   await page.goto(`/scenes/${scene.id}?dataset=${ds.id}&view=split`);
-  const lidar = page.locator('.lidar');
-  await expect(lidar.locator('.lidar-state, [data-testid="rerun-host"]').first()).toBeVisible({ timeout: 20_000 });
+  const lidar = page.locator('.v3d');
+  await expect(lidar.locator('.v3d-state, [data-testid="rerun-host"]').first()).toBeVisible({ timeout: 20_000 });
   if (process.env.DS2L_LIVE_ALLOW_POST && await page.getByRole('button', { name: /3D recording 만들기|recording 다시 만들기/ }).count()) {
     await page.getByRole('button', { name: /3D recording 만들기|recording 다시 만들기/ }).click();
     // READY (viewer opens) or FAILED (reason shown) — whichever the real worker reaches.
-    await expect(page.locator('[data-testid="rerun-host"][data-phase="ready"], .lidar-state[role="alert"]').first()).toBeVisible({ timeout: 75_000 });
+    await expect(page.locator('[data-testid="rerun-host"][data-phase="ready"], .v3d-state[role="alert"]').first()).toBeVisible({ timeout: 75_000 });
   }
   note('recording', (await lidar.innerText()).replace(/\s+/g, ' ').slice(0, 200));
   await page.screenshot({ path: 'test-results/live/workspace.png' });

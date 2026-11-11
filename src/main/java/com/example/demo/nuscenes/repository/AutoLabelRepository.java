@@ -64,9 +64,13 @@ public class AutoLabelRepository {
   jdbc.sql("UPDATE auto_label_job SET status='COMPLETED',completed_at=now(),result_checksum=:c WHERE id=:j").param("j",job.id()).param("c",result.resultChecksum()).update();
  }
  public void fail(Work job,String code,String reason) { jdbc.sql("UPDATE auto_label_job SET status='FAILED',completed_at=now(),failure_reason=:r,error_code=:c WHERE id=:j AND status='RUNNING' AND execution_token=:t").param("r",reason).param("c",code).param("j",job.id()).param("t",job.executionToken()).update(); }
- public Results results(long id,JobStatus status) {
+ public Results results(long id,JobStatus status,boolean includeDeleted) {
   var header=jdbc.sql("SELECT mapping_name,coordinate_frame,score_type FROM auto_label_job WHERE id=:j").param("j",id).query(Header.class).single();
-  var boxes=jdbc.sql("SELECT id,sample_token,box_index,detection_name,center_x,center_y,center_z,size_w,size_l,size_h,rotation_w,rotation_x,rotation_y,rotation_z,velocity_x,velocity_y,detection_score,attribute_name,CAST(raw_payload->>'track_id' AS integer) AS track_id FROM predicted_annotation WHERE job_id=:j ORDER BY sample_token,box_index").param("j",id).query(Prediction.class).list();
+  var boxes=jdbc.sql("""
+   SELECT p.id,p.sample_token,p.box_index,p.detection_name,p.center_x,p.center_y,p.center_z,p.size_w,p.size_l,p.size_h,p.rotation_w,p.rotation_x,p.rotation_y,p.rotation_z,
+    p.velocity_x,p.velocity_y,p.detection_score,p.attribute_name,CAST(p.raw_payload->>'track_id' AS integer) AS track_id,o.label AS label_override,COALESCE(o.deleted,false) AS deleted
+   FROM predicted_annotation p LEFT JOIN label_override o ON o.target_type='PREDICTION' AND o.target_id=p.id
+   WHERE p.job_id=:j AND (CAST(:all AS boolean) OR COALESCE(o.deleted,false)=false) ORDER BY p.sample_token,p.box_index""").param("j",id).param("all",includeDeleted).query(Prediction.class).list();
   var artifacts=jdbc.sql("SELECT id,artifact_type,storage_key,relative_path,checksum,content_type FROM auto_label_artifact WHERE job_id=:j ORDER BY id").param("j",id).query(Artifact.class).list();
   return new Results(id,status.datasetId(),header.mappingName(),header.coordinateFrame(),header.scoreType(),samples(id).stream().sorted().toList(),boxes,artifacts);
  }
@@ -76,5 +80,15 @@ public class AutoLabelRepository {
     j.requested_targets->>0 AS scene_token,s.id AS scene_id,s.name AS scene_name,CAST(replace(j.mapping_name,'class','') AS integer) AS class_mode,j.mapping_name,j.error_code
    FROM auto_label_job j LEFT JOIN scene s ON s.dataset_id=j.dataset_id AND s.token=j.requested_targets->>0 WHERE j.id=:j
    """).param("j",id).query(JobStatus.class).optional();
+ }
+ public boolean sceneExists(long sceneId) { return jdbc.sql("SELECT EXISTS(SELECT 1 FROM scene WHERE id=:s)").param("s",sceneId).query(Boolean.class).single(); }
+ public List<JobStatus> byScene(long sceneId) {
+  return jdbc.sql("""
+   SELECT j.id AS job_id,j.dataset_id,j.status,j.failure_reason AS error_message,j.created_at,j.started_at,j.completed_at,
+    j.requested_targets->>0 AS scene_token,s.id AS scene_id,s.name AS scene_name,CAST(replace(j.mapping_name,'class','') AS integer) AS class_mode,j.mapping_name,j.error_code
+   FROM scene s JOIN auto_label_job j ON s.dataset_id=j.dataset_id AND s.token=j.requested_targets->>0
+   WHERE s.id=:s AND j.target_type='SCENE' AND jsonb_array_length(j.requested_targets)=1
+   ORDER BY j.created_at DESC,j.id DESC LIMIT 50
+   """).param("s",sceneId).query(JobStatus.class).list();
  }
 }

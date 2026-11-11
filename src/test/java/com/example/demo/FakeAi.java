@@ -28,7 +28,7 @@ final class FakeAi {
    send(ex,200,"{\"schemaVersion\":1,\"service\":\"drivescene-ai\",\"checkedAt\":\""+now+"\","
     +"\"clip\":{\"state\":\"READY\",\"reasonCode\":null,\"modelName\":\"ViT-L-14-quickgelu/openai\",\"imagePreprocess\":[\"lr-square-crop-mean\",\"openclip-eval-224-centercrop\"],\"dimension\":768},"
     +"\"vespa\":{"+vespa+",\"executor\":\"local\",\"datasetVersion\":\"v1.0-mini\",\"metadataChecksum\":null,\"checkedAt\":\""+now+"\",\"expiresAt\":\""+later+"\"},"
-    +"\"recording\":{\"state\":\"READY\",\"reasonCode\":null,\"sdkVersion\":\"0.38.1\",\"expectedSdkVersion\":\"0.38.1\",\"exportVersion\":\"ds2l-rrd-v1\",\"checkedAt\":\""+now+"\",\"expiresAt\":\""+later+"\"}}");
+    +"\"recording\":{\"state\":\"READY\",\"reasonCode\":null,\"sdkVersion\":\"0.38.1\",\"expectedSdkVersion\":\"0.38.1\",\"exportVersion\":\"ds2l-rrd-v3\",\"checkedAt\":\""+now+"\",\"expiresAt\":\""+later+"\"}}");
   });
   server.createContext("/health",ex->{
    if(CAPS.get().equals("missing")) { send(ex,404,"{\"detail\":\"Not Found\"}"); return; }

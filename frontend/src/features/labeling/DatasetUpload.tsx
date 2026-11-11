@@ -66,14 +66,12 @@ export function DatasetUpload({ disabled }: { disabled: boolean }) {
     } catch (e) { setError(e instanceof Error ? e.message : '데이터셋 업로드에 실패했습니다.'); }
     finally { setBusy(false); }
   };
-  return <section className="labels-dataset-upload">
+  return <section className="dataset-upload" aria-label="원본 데이터 업로드">
     <h2>원본 데이터 업로드</h2>
-    <p className="note">nuScenes ZIP · TGZ · TAR.GZ, 최대 5GB, 압축 해제 후 8GiB. 최상위에 v1.0-mini 또는 v1.0-trainval 메타데이터와 해당 samples/sweeps 파일이 필요합니다.</p>
-    <p className="note">라벨 JSON은 없어도 됩니다. 큰 파일은 나눠 전송하며, 연결이 끊기면 같은 파일을 다시 선택해 이어서 올릴 수 있어요.</p>
-    <p className="note">공식 v1.0-mini.tgz를 재압축 없이 올릴 수 있어요. 다운로드나 압축 작업이 끝난 파일을 선택해 주세요.</p>
-    <p className="note">일반 JPG·MP4만으로는 3D 자동 라벨링을 할 수 없습니다. 카메라 보정·센서·위치 정보가 필요합니다.</p>
+    <p className="muted">nuScenes ZIP · TGZ · TAR.GZ · 최대 5GB</p>
+    <p className="small">공식 v1.0-mini.tgz를 그대로 선택하세요. 라벨 파일은 없어도 돼요.</p>
     <input aria-label="원본 데이터 압축 파일" type="file" accept=".zip,.tgz,.tar.gz,application/zip,application/gzip,application/x-gzip" disabled={disabled || busy} onChange={(e) => { setFile(e.currentTarget.files?.[0] ?? null); setError(''); }} />
-    <button className="btn btn--weak" disabled={!file || disabled || busy} onClick={() => void upload()}>{busy ? (phase === 'transfer' ? '파일 전송 중…' : '서버 검증 중…') : '데이터셋 업로드'}</button>
+    <button className="btn primary wide" disabled={!file || disabled || busy} onClick={() => void upload()}>{busy ? (phase === 'transfer' ? '파일 전송 중…' : '서버 검증 중…') : '데이터셋 업로드'}</button>
     {busy && <div role="status">
       {phase === 'transfer' ? <>
         <progress aria-label="파일 전송 진행률" max={100} value={transfer ? Math.floor(transfer.loaded / transfer.total * 100) : 0} />
@@ -82,10 +80,15 @@ export function DatasetUpload({ disabled }: { disabled: boolean }) {
       </> : <p>파일 전송 완료 · 서버에서 파일 검증 및 데이터셋 등록 중입니다.</p>}
       <p>{phase === 'processing' ? '검증 대기' : '전송 경과'} {elapsed}초 · 완료될 때까지 이 페이지를 유지해 주세요.</p>
     </div>}
-    {error && <p className="labels-error" role="alert">{error}</p>}
-    {dataset && <div role="status"><p>{dataset.sceneCount}개 씬을 등록했습니다. 이미지 검색 준비는 서버에서 자동으로 진행되며 씬 화면에서 상태를 확인할 수 있어요.</p>
-      <Link className="btn btn--primary" to={`/scenes?dataset=${dataset.datasetId}`}>씬 열기 · 자동 라벨링</Link>
-      <a className="btn btn--weak" href={`/api/dataset-uploads/${dataset.datasetId}/original`}>원본 압축 파일 다운로드</a>
+    {error && <p className="notice notice--err" role="alert">{error}</p>}
+    {dataset && <div className="upload-complete" role="status"><p>{dataset.sceneCount}개 씬을 등록했습니다. 씬을 선택해 라벨링을 시작하세요.</p>
+      <Link className="btn primary" to={`/scenes?dataset=${dataset.datasetId}`}>씬 목록에서 라벨링하기</Link>
+      <p className="muted small">이미지 검색은 자동으로 준비돼요. 준비 중에도 씬을 열 수 있어요.</p>
     </div>}
+    <details className="disclosure">
+      <summary>지원 파일 · 업로드 도움말</summary>
+      <p>압축 해제 후 최대 8GiB. v1.0-mini 또는 v1.0-trainval 메타데이터와 samples/sweeps 센서 파일이 필요해요. 일반 JPG·MP4만으로는 사용할 수 없어요.</p>
+      <p>다운로드가 끝난 파일을 선택하세요. 전송이 끊기면 같은 파일을 다시 선택해 이어서 올릴 수 있어요.</p>
+    </details>
   </section>;
 }

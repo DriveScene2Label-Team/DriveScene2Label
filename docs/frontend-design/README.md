@@ -1,5 +1,11 @@
 # 프론트 디자인 기준 자료
 
+> **2026-11-05 리뉴얼:** 현재 제품 화면의 디자인 기준은 [renewal-mockup.html](renewal-mockup.html)(Apple×Toss, 밝게/어둡게 테마)이다. 적용 범위·의도된 차이·검증은 [프론트 리뉴얼 기록](../frontend-renewal.md)에 있다. 아래 2026-10-04 다크 시안 자료는 이력으로 보존한다.
+
+| 파일 | 역할 | SHA-256 |
+|---|---|---|
+| [renewal-mockup.html](renewal-mockup.html) | 리뉴얼 목업(단일 HTML, 합성 예시 데이터·mock 백엔드 포함). 원본 그대로 보관 | `bd2cc3e6d49e8c4a44d38cf0defd9b590dc06243a17e1e84da882d503e57f215` |
+
 2026-10-04 작업 폴더에 제공된 수정 HTML과 핸드오프를 원본 그대로 보관했다. 기능 범위와 구현 기준은 [프론트 개발 기획서 v1.1](../frontend-product-plan.md)을 따른다.
 
 | 파일 | 역할 | SHA-256 |

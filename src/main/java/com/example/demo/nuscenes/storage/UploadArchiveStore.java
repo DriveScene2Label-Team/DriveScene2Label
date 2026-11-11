@@ -35,6 +35,8 @@ public class UploadArchiveStore {
  public void remove(String key,DatasetArchive.Format format) { if(s3!=null) s3.deleteObject(r->r.bucket(bucket).key(objectKey(key,format))); }
  public void fetch(String key,Path target) throws IOException {
   if(s3==null) throw new IOException("Upload archive is not on this server and S3 is not configured");
+  var log=org.slf4j.LoggerFactory.getLogger(getClass());long started=System.nanoTime();
+  log.info("[CACHE] upload={} stage=s3_download event=started",key);
   for(var format:DatasetArchive.Format.values()) {
   try(var input=s3.getObject(r->r.bucket(bucket).key(objectKey(key,format)));
       var output=Files.newOutputStream(target,StandardOpenOption.CREATE_NEW)) {
@@ -43,6 +45,7 @@ public class UploadArchiveStore {
     total+=count;if(total>MAX_ARCHIVE_BYTES) throw new IOException("S3 upload archive exceeds 5GB");
     output.write(buffer,0,count);
    }
+   log.info("[CACHE] upload={} stage=s3_download event=completed bytes={} wall_ms={}",key,total,(System.nanoTime()-started)/1_000_000);
    return;
   } catch(NoSuchKeyException missing) { if(format==DatasetArchive.Format.TGZ) throw missing; }
   }

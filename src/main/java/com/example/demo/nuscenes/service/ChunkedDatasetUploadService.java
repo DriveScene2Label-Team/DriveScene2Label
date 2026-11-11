@@ -33,6 +33,7 @@ public class ChunkedDatasetUploadService {
   if(Files.getFileStore(incoming).getUsableSpace()<size*2+9L*1024*1024*1024) throw new ResponseStatusException(HttpStatus.INSUFFICIENT_STORAGE,"로컬 서버의 압축 해제·보관 공간이 부족합니다.");
   UUID id=UUID.randomUUID();
   jdbc.sql("INSERT INTO dataset_upload_session(id,filename,size_bytes) VALUES(:id,:n,:s)").param("id",id).param("n",filename).param("s",size).update();
+  org.slf4j.LoggerFactory.getLogger(getClass()).info("[UPLOAD_TRANSFER] upload={} event=created bytes={}",id,size);
   return status(id);
  }
  private Row row(UUID id,boolean locked) { return jdbc.sql("SELECT id,filename,size_bytes,received_bytes,status,execution_token,dataset_id,error_message FROM dataset_upload_session WHERE id=:id"+(locked?" FOR UPDATE":"")).param("id",id).query(Row.class).optional().orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"업로드 세션을 찾을 수 없습니다.")); }
@@ -43,8 +44,10 @@ public class ChunkedDatasetUploadService {
  }
  private Path file(UUID id) { return incoming.resolve(id.toString()+".zip"); }
  public Status part(UUID id,long offset,InputStream input) throws IOException {
+  long started=System.nanoTime();
   // Bound memory even if a client lies about Content-Length.
   byte[] bytes=input.readNBytes(CHUNK_BYTES+1);
+  long receivedAt=System.nanoTime();
   if(bytes.length>CHUNK_BYTES) throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE,"전송 조각이 너무 큽니다.");
   tx.executeWithoutResult(transaction->{
    var r=row(id,true);
@@ -63,7 +66,9 @@ public class ChunkedDatasetUploadService {
    } catch(IOException error) { throw new UncheckedIOException(error); }
    jdbc.sql("UPDATE dataset_upload_session SET received_bytes=:n,updated_at=now() WHERE id=:id").param("n",offset+bytes.length).param("id",id).update();
   });
-  return status(id);
+  var result=status(id);
+  org.slf4j.LoggerFactory.getLogger(getClass()).info("[UPLOAD_TRANSFER] upload={} event=part offset={} bytes={} received={} receive_ms={} persist_status_ms={} total_ms={}",id,offset,bytes.length,result.receivedBytes(),(receivedAt-started)/1_000_000,(System.nanoTime()-receivedAt)/1_000_000,(System.nanoTime()-started)/1_000_000);
+  return result;
  }
  public Status complete(UUID id) {
   tx.executeWithoutResult(transaction->{
@@ -71,7 +76,9 @@ public class ChunkedDatasetUploadService {
    if(r.receivedBytes()!=r.sizeBytes()) throw conflict("파일 전송이 아직 완료되지 않았습니다.");
    if("RECEIVING".equals(r.status()) || "FAILED".equals(r.status())) jdbc.sql("UPDATE dataset_upload_session SET status='QUEUED',error_message=NULL,updated_at=now() WHERE id=:id").param("id",id).update();
   });
-  return status(id);
+  var result=status(id);
+  org.slf4j.LoggerFactory.getLogger(getClass()).info("[UPLOAD_TRANSFER] upload={} event=submitted received={} status={}",id,result.receivedBytes(),result.status());
+  return result;
  }
  public Optional<Row> claim() {
   return tx.execute(transaction->{

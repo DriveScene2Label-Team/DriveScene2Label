@@ -58,7 +58,7 @@ public class SystemStatusService {
   caps.put("media",media(ds,now));
   caps.put("search",search(ds,snap,now));
   caps.put("vespa",vespa(ds,snap,now));
-  caps.put("recording",ds!=null && "uploads".equals(ds.storageKey())?cap("UNAVAILABLE",false,"UPLOADED_RECORDING_UNSUPPORTED",now,LOCAL_TTL):recording(snap,now));
+  caps.put("recording",recording(snap,now));
   DatasetStatus dataset=ds==null?null:new DatasetStatus(ds.id(),ds.version(),ds.origin(),ds.sourceChecksum(),ds.mediaValidation());
   return new SystemStatus(SCHEMA_VERSION,instanceId(),now,dataset,caps);
  }
@@ -69,7 +69,6 @@ public class SystemStatusService {
  private void require(long datasetId,String key) {
   var ds=dataset(datasetId).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Dataset not found"));
   var now=OffsetDateTime.now();
-  if("recording".equals(key) && "uploads".equals(ds.storageKey())) throw new CodedError(HttpStatus.SERVICE_UNAVAILABLE,"UPLOADED_RECORDING_UNSUPPORTED","업로드 데이터셋은 라벨 편집기를 사용해 주세요. Rerun 내보내기는 아직 지원하지 않습니다.");
   Capability c=evaluate(key,ds,datasetSnapshot(ds,false),now);
   if(!c.canExecute() && ("CONFIGURED".equals(c.state()) || "UNKNOWN".equals(c.state()))) c=evaluate(key,ds,datasetSnapshot(ds,true),now);
   if(!c.canExecute()) throw new CodedError(HttpStatus.SERVICE_UNAVAILABLE,c.reasonCode()==null?"CAPABILITY_NOT_READY":c.reasonCode(),c.message()==null?"Feature is not ready":c.message());

@@ -1,15 +1,20 @@
+import copy
 import hashlib
 import importlib.util
 import json
 import logging
 import os
+import re
 import signal
 import subprocess
 import sys
+import zipfile
 from pathlib import Path, PurePosixPath
 
 from schemas.recording import RecordingEntities, RecordingRequest, RecordingResponse
 from services.recording_exporter import APPLICATION_ID, ENTITIES, EXIT_LIDAR_MISSING, EXIT_SDK_MISSING, EXPORT_VERSION
+from services.uploaded_dataset import UploadedDatasetCache
+from botocore.exceptions import BotoCoreError, ClientError
 
 logger = logging.getLogger(__name__)
 SDK_VERSION = "0.38.1"  # Must match @rerun-io/web-viewer; bump together with export_version.
@@ -29,12 +34,24 @@ class RecordingService:
         self.data_root = Path(os.environ.get("NUSCENES_ROOT", os.environ.get("VESPA_DATA_ROOT", "/data/nuscenes"))).resolve()
         self.output_root = Path(os.environ.get("RECORDING_OUTPUT_ROOT", str(project / ".local/recordings"))).resolve()
         self.timeout = int(os.environ.get("RECORDING_TIMEOUT_SECONDS", "600"))
+        self.uploaded_datasets = UploadedDatasetCache()
         if self.timeout <= 0:
             raise ValueError("RECORDING_TIMEOUT_SECONDS must be positive")
 
     def configured(self):
         sdk = self.python != Path(sys.executable).absolute() or importlib.util.find_spec("rerun") is not None
         return sdk and self.python.is_file() and self.data_root.is_dir()
+
+    def for_dataset(self, key, version):
+        if not re.fullmatch(r"[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}", key) or version not in ("v1.0-mini", "v1.0-trainval"):
+            raise RecordingError(422, "INVALID_DATASET", "Invalid uploaded dataset key/version.")
+        try:
+            root = self.uploaded_datasets.ensure(key)
+        except (OSError, ValueError, zipfile.BadZipFile, BotoCoreError, ClientError) as error:
+            raise RecordingError(503, "UPLOAD_STORAGE_UNAVAILABLE", "Uploaded dataset cache could not be prepared.") from error
+        scoped = copy.copy(self)
+        scoped.data_root = root
+        return scoped
 
     def _lidar_path(self, relative):
         parts = PurePosixPath(relative).parts
@@ -48,6 +65,9 @@ class RecordingService:
         return path
 
     def export(self, request: RecordingRequest):
+        if request.dataset_key is not None:
+            scoped = self.for_dataset(request.dataset_key, request.dataset_version)
+            return scoped.export(request.model_copy(update={"dataset_key": None, "dataset_version": None}))
         if not self.configured():
             raise RecordingError(503, "RECORDING_NOT_CONFIGURED", "Install rerun-sdk and configure the dataset root first.")
         for sample in request.samples:

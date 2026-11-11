@@ -14,6 +14,8 @@
 
 세부 결과와 제한은 [MVP 갱신 기록](hybrid-mvp-update-2026-11-11.md)에 있다. 아래는 기존 개발 시점의 기록이다.
 
+> **2026-11-05 UI/UX 리뉴얼**(브랜치 `feature/frontend-renewal`)의 범위·목업과의 차이·검증(R-01~R-07)은 [프론트 리뉴얼 기록](frontend-renewal.md)에 따로 남긴다. 라벨 편집 API는 [README_API 8-1장](../README_API.md). 아래 M1~M6 기록의 화면 묘사(다크 시안, 6개 카메라 버튼 이름 등)는 리뉴얼 이전 상태다.
+>
 > 후속 개선은 [개선 기획서](frontend-integration-plan.md)와 [별도 개선 체크리스트](frontend-integration-checklist.md)에서 추적한다. 아래 M1~M6 및 V-01~V-10은 기존 구현·검증 범위의 기록이며 새 개선 완료로 옮겨 체크하지 않는다.
 
 기준: [개발 기획서 v1.2](frontend-product-plan.md). 작업 브랜치: `codex/frontend-implementation` (시작 HEAD `501da08`, 이번 작업은 미커밋 작업 트리). 기능별 세부 요구는 기획서 FR-01~24, 검증은 QA-01~17을 따른다.
@@ -160,7 +162,7 @@
 ## 알려진 제한·후속
 
 - Viewer의 GT/예측 레이어 표시는 카메라 레이어 토글과 연동되지 않는다(Viewer 패널에서 조작). 0.38.1 JS API에 entity 표시 전환이 없어 blueprint 전송 방식은 후속 검토.
-- 예측 박스는 track ID가 없어 프레임 간 같은 객체로 잇지 않는다. 선택은 프레임 이동 시 해제된다.
+- 예측 박스는 track ID가 없어 프레임 간 같은 객체로 잇지 않는다. (리뉴얼 이후) 선택은 프레임 이동 시 유지되며 GT는 instanceToken으로 같은 객체를 잇고, 예측 선택은 다른 프레임에서 "이어지지 않음"으로 안내한다.
 - 결과 전체를 한 번에 받는다(서버 pagination 없음). 큰 trainval scene은 측정 필요.
 - Spring `RecordingWorker`가 Jackson 3 `asText()`(deprecated)를 사용한다. 동작 영향 없음.
 - AI 스키마는 `scene_name`을 `scene-NNNN` 형식만 허용한다. 실제 nuScenes 이름은 해당되며, 다른 이름의 scene recording은 422로 FAILED가 된다.
@@ -189,6 +191,17 @@
 - [ ] 일반 이미지/영상 변환, 업로드 데이터 CLIP indexing 자동화, 업로드 데이터 Rerun.
 
 사용법과 범위: [라벨 편집](label-editing.md), [AWS CI/CD](aws-ecs-cicd.md).
+
+### 2026-11-11 리뉴얼·하이브리드 통합
+
+- [x] `feature/frontend-renewal` b8376e4 통합, 기존 Flyway V7 보존·편집 V12 적용.
+- [x] 업로드 전용 `/uploads`, 씬에서 라벨 생성·객체 편집·작업/편집 이력.
+- [x] dataset+scene 범위 서버 작업 목록과 최신 완료 결과 복원. 선택한 scene-0103의 40개 키프레임만 실행하는 실제 인자 확인.
+- [x] 업로드 데이터셋의 Rerun v3 생성·공개 Viewer 확인. 작업 #3의 라벨 985개를 재추론 없이 사용.
+- [x] 실제 공개 업로드/씬 목록/객체/작업 화면 캡처를 README에 반영.
+- [x] 관련 프론트 89개, 브라우저 29개, Spring 28개, AI 23개 검사 통과(세부 범위는 트러블슈팅).
+- [ ] 운영 라벨을 직접 수정하는 전체 UI 저장 시나리오 재실행(격리 DB·브라우저 계약 검증과 구분).
+- [ ] 편집 override를 RRD에 반영하는 재생성 정책, 원본 파일명·업로드 날짜 중심 정렬, 추론 단계 진행률.
 
 ### 배포 후 화면 파일 복구
 

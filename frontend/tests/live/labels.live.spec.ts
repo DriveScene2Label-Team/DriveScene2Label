@@ -7,7 +7,7 @@ test('실제 서버에 업로드하고 UI 수정본을 저장·재조회·다운
     sample_token: 'sample', detection_name: 'car', detection_score: 1, attribute_name: '',
     translation: [1, 2, 3], size: [2, 4, 1.5], rotation: [1, 0, 0, 0], velocity: [0, 0],
   }], empty: [] } });
-  await page.goto('/labels');
+  await page.goto('/label-files');
   const filename = 'live-labels-' + Date.now() + '.json';
   await page.getByLabel('라벨 JSON 파일').setInputFiles({ name: filename, mimeType: 'application/json', buffer: Buffer.from(original) });
   await page.getByRole('button', { name: '파일 업로드', exact: true }).click();

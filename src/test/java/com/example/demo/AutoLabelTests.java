@@ -73,6 +73,24 @@ class AutoLabelTests {
   return JSON.readTree(response).path("jobId").asLong();
  }
  long boxes(long job) { return jdbc.sql("SELECT count(*) FROM predicted_annotation WHERE job_id=:j").param("j",job).query(Long.class).single(); }
+ @Test void sceneHistorySurvivesReloadAndSeparatesDatasetsAndTargets() throws Exception {
+  long originalDataset=dataset;
+  long scene=jdbc.sql("SELECT id FROM scene WHERE dataset_id=:d").param("d",dataset).query(Long.class).single();
+  long older=create("history-old"),latest=create("history-new"),otherTarget=create("history-other-target");
+  jdbc.sql("UPDATE auto_label_job SET requested_targets='[\"other-scene\"]' WHERE id=:j").param("j",otherTarget).update();
+  jdbc.sql("UPDATE auto_label_job SET created_at='2026-01-01T00:00:00Z' WHERE id IN (:a,:b)").param("a",older).param("b",latest).update();
+  seed(); // A second upload can contain exactly the same nuScenes scene token.
+  try {
+   create("history-other-dataset");
+   mvc.perform(get("/api/auto-label/jobs").param("sceneId",Long.toString(scene)))
+    .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(2))
+    .andExpect(jsonPath("$[0].jobId").value(latest)).andExpect(jsonPath("$[1].jobId").value(older))
+    .andExpect(jsonPath("$[0].datasetId").value(originalDataset)).andExpect(jsonPath("$[0].sceneId").value(scene));
+   mvc.perform(get("/api/auto-label/jobs")).andExpect(status().isBadRequest());
+   mvc.perform(get("/api/auto-label/jobs").param("sceneId","0")).andExpect(status().isBadRequest());
+   mvc.perform(get("/api/auto-label/jobs").param("sceneId",Long.toString(Long.MAX_VALUE))).andExpect(status().isNotFound());
+  } finally { cleanup();dataset=originalDataset; }
+ }
  @Test void completedJobBecomesAnEditableCopyWithoutChangingPredictions() throws Exception {
   long job=create("editable");new AutoLabelWorker(jobs,client).runNextJob();
   var response=mvc.perform(post("/api/label-documents/from-job/{id}",job)).andExpect(status().isOk())

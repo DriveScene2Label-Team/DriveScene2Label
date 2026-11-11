@@ -59,9 +59,13 @@ class RecordingRequest(Strict):
     scene_token: str = Field(min_length=1, max_length=128)
     job_id: int | None = Field(default=None, gt=0)
     samples: list[RecordingSample] = Field(min_length=1, max_length=10000)
+    dataset_key: str | None = Field(default=None, pattern=r"^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$")
+    dataset_version: Literal["v1.0-mini", "v1.0-trainval"] | None = None
 
     @model_validator(mode="after")
     def consistent(self):
+        if (self.dataset_key is None) != (self.dataset_version is None):
+            raise ValueError("dataset_key and dataset_version must be supplied together")
         if [s.index for s in self.samples] != list(range(len(self.samples))):
             raise ValueError("samples[].index must be 0..n-1 in request order")
         if len({s.sample_token for s in self.samples}) != len(self.samples):
@@ -95,7 +99,7 @@ class RecordingResponse(BaseModel):
     size_bytes: int = Field(gt=0)
     checksum: str = Field(pattern=r"^[0-9a-f]{64}$", description="SHA-256 of the .rrd file bytes.")
     sdk_version: str
-    export_version: Literal["ds2l-rrd-v1"] = "ds2l-rrd-v1"
+    export_version: Literal["ds2l-rrd-v3"] = "ds2l-rrd-v3"
     application_id: Literal["drivescene2label"] = "drivescene2label"
     rerun_recording_id: str
     timeline: Literal["sample"] = "sample"

@@ -41,7 +41,7 @@ it('tracks multipart transfer separately from server processing and completion',
   expect(screen.queryByText('10개 씬을 등록했습니다.')).not.toBeInTheDocument();
   act(() => request.onload?.());
   await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('10개 씬을 등록했습니다.'));
-  expect(screen.getByRole('link', { name: '씬 열기 · 자동 라벨링' })).toHaveAttribute('href', '/scenes?dataset=7');
+  expect(screen.getByRole('link', { name: '씬 목록에서 라벨링하기' })).toHaveAttribute('href', '/scenes?dataset=7');
 });
 
 it('explains a gateway timeout without reporting successful registration', async () => {

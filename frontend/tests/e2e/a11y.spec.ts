@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { DATASET, installMockApi } from './fixtures/mockApi';
+import { DATASET, installMockApi, openTab } from './fixtures/mockApi';
 
 /**
  * FU-06: basic keyboard / focus / reduced-motion / status-message checks on the route-fixture UI (@a11y).
@@ -41,7 +41,8 @@ test.describe('FU-06 기본 접근성 @a11y', () => {
     await page.keyboard.press('ArrowLeft');
     await expect(readout).toHaveText(/1\s*\/ 4/);
     // typing in an input must not move frames
-    const jobInput = page.getByPlaceholder('작업 번호로 열기');
+    await openTab(page, '자동 라벨링');
+    const jobInput = page.getByLabel('번호로 열기');
     await jobInput.focus();
     await page.keyboard.press('ArrowRight');
     await page.keyboard.type(' 4');
@@ -57,7 +58,7 @@ test.describe('FU-06 기본 접근성 @a11y', () => {
     await installMockApi(page);
     await page.goto(ws(21, '&view=six'));
     await expect(page.locator('.cam-media[data-state="ready"]')).toHaveCount(6);
-    const expand = page.getByRole('button', { name: '전방 카메라 크게 보기' });
+    const expand = page.getByRole('button', { name: '전방 CAM_FRONT 크게 보기' });
     await expand.focus();
     await page.keyboard.press('Enter');
     const dialog = page.getByRole('dialog');
@@ -103,7 +104,7 @@ test.describe('FU-06 기본 접근성 @a11y', () => {
     await expect(page.locator('.cam-media[data-state="ready"]').first()).toBeVisible();
     const d = await page.evaluate(() => {
       const spin = document.createElement('span');
-      spin.className = 'spin';
+      spin.className = 'spinner';
       document.body.appendChild(spin);
       const btn = document.querySelector('.btn') as HTMLElement;
       const out = { spin: getComputedStyle(spin).animationDuration, iter: getComputedStyle(spin).animationIterationCount, btn: getComputedStyle(btn).transitionDuration };
@@ -119,10 +120,11 @@ test.describe('FU-06 기본 접근성 @a11y', () => {
   test('상태 안내는 live region(status/alert)으로 노출된다', async ({ page }) => {
     const log = await installMockApi(page, { status: { origin: 'SYNTHETIC', vespa: 'UNAVAILABLE', vespaReason: 'SYNTHETIC_DATASET' } });
     await page.goto(ws(21));
+    await openTab(page, '자동 라벨링');
     const readiness = page.getByTestId('vespa-readiness-single');
     await expect(readiness).toHaveAttribute('role', 'status');
     await expect(readiness).toContainText(/테스트\(합성\) 데이터/);
-    await expect(page.locator('.toasts')).toHaveAttribute('aria-live', 'polite');
+    await expect(page.locator('.toast-wrap')).toHaveAttribute('aria-live', 'polite');
     // FU-01 message (status API unreachable) is announced in the same status region
     log.statusFailure = 500;
     await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));

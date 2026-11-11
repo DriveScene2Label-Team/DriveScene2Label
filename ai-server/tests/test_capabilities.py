@@ -107,6 +107,19 @@ def test_missing_services_are_unavailable_not_ready():
     assert snap["clip"]["reasonCode"] == "CLIP_NOT_DEPLOYED"
 
 
+def test_uploaded_recording_capability_is_scoped_without_default_dataset(env, monkeypatch):
+    key = "00000000-0000-4000-8000-000000000001"
+    upload = env / "uploads" / "datasets" / key
+    upload.mkdir(parents=True)
+    monkeypatch.setenv("UPLOAD_ROOT", str(env / "uploads"))
+    monkeypatch.setenv("UPLOAD_S3_BUCKET", "")
+    monkeypatch.setenv("NUSCENES_ROOT", str(env / "missing-default"))
+    svc = CapabilityService(recording_service=RecordingService())
+    assert svc.snapshot()["recording"]["state"] == "UNAVAILABLE"
+    assert svc.snapshot(dataset_key=key, dataset_version="v1.0-mini")["recording"]["state"] == "READY"
+    assert svc.snapshot()["recording"]["state"] == "UNAVAILABLE"
+
+
 def test_clip_failure_keeps_exporter_and_capabilities(env, monkeypatch):
     torch = pytest.importorskip("torch")  # main.py imports the CLIP stack
     from fastapi.testclient import TestClient

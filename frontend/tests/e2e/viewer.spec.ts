@@ -31,13 +31,27 @@ test.describe('Rerun Web Viewer 0.38.1', () => {
     await expect(host).toHaveAttribute('data-viewer-time', '2', { timeout: 10_000 });
     await expect(page.getByTestId('frame-readout-single')).toHaveText(/3\s*\/ 4/); // no ping-pong back
 
+    // App layer toggles follow into 3D: a prebuilt blueprint per combination is sent, then frame/timeline are restored.
+    await expect(host).toHaveAttribute('data-blueprint', 'gt1-pred1-names1');
+    await page.getByRole('button', { name: 'GT', exact: true }).click();
+    await expect(host).toHaveAttribute('data-blueprint', 'gt0-pred1-names1');
+    await page.getByRole('button', { name: '클래스 이름', exact: true }).click();
+    await expect(host).toHaveAttribute('data-blueprint', 'gt0-pred1-names0');
+    await page.waitForTimeout(1500);
+    await expect(page.getByTestId('frame-readout-single')).toHaveText(/3\s*\/ 4/);
+    await page.getByRole('button', { name: '다음 프레임' }).click();
+    await expect(host).toHaveAttribute('data-viewer-time', '3', { timeout: 10_000 });
+    await page.getByRole('button', { name: 'GT', exact: true }).click();
+    await page.getByRole('button', { name: '클래스 이름', exact: true }).click();
+    await expect(host).toHaveAttribute('data-blueprint', 'gt1-pred1-names1');
+
     // resize via the split handle
     const before = await host.boundingBox();
-    const divider = page.getByRole('separator', { name: '카메라와 LiDAR 영역 비율' });
+    const divider = page.getByRole('separator', { name: '카메라와 3D 영역 높이 비율' });
     await divider.focus();
-    await page.keyboard.press('ArrowLeft');
-    await page.keyboard.press('ArrowLeft');
-    await expect.poll(async () => (await host.boundingBox())!.width).toBeGreaterThan(before!.width + 20);
+    await page.keyboard.press('ArrowUp');
+    await page.keyboard.press('ArrowUp');
+    await expect.poll(async () => (await host.boundingBox())!.height).toBeGreaterThan(before!.height + 20);
     await page.waitForTimeout(1500);
     const canvas = await host.locator('canvas').boundingBox();
     const area = await host.boundingBox();
@@ -45,7 +59,7 @@ test.describe('Rerun Web Viewer 0.38.1', () => {
     await page.screenshot({ path: 'test-results/screens/rerun-viewer.png' });
 
     // switching to six-camera view unmounts the viewer (stop() frees it) without page errors
-    await page.getByRole('button', { name: /6개 카메라/ }).click();
+    await page.getByRole('group', { name: '보기 방식' }).getByRole('button', { name: '카메라', exact: true }).click();
     await expect(page.getByTestId('rerun-host')).toHaveCount(0);
     expect(errors).toEqual([]);
   });
@@ -70,7 +84,7 @@ test.describe('Rerun Web Viewer 0.38.1', () => {
     expect(hit).toBe(true);
     await expect(page.getByTestId('object-detail')).toContainText('GT');
     // the matching row in the object list is pressed (same key as the camera overlay)
-    await expect(page.locator('.obj-row[aria-pressed="true"]')).toHaveCount(1);
+    await expect(page.locator('.otable tbody tr.is-sel')).toHaveCount(1);
   });
 
   test('IT-09: a failed download of a READY recording is re-opened without creating anything', async ({ page }) => {

@@ -13,6 +13,12 @@ spec.loader.exec_module(cloud)
 
 
 class CloudTests(unittest.TestCase):
+    def test_redeploy_accepts_single_cli_deployment_and_rejects_ambiguity(self):
+        for response in ({'id': 'dpl_new'}, {'deploymentId': 'dpl_new'}, {'deployment': {'id': 'dpl_new'}}, {'deployments': [{'id': 'dpl_new'}]}):
+            self.assertEqual(cloud.created_deployment_id(response), 'dpl_new')
+        with self.assertRaises(RuntimeError):
+            cloud.created_deployment_id({'deployments': [{'id': 'dpl_a'}, {'id': 'dpl_b'}]})
+
     def test_running_database_is_never_restarted(self):
         with patch.object(cloud, 'database_state', return_value='available'), patch.object(cloud, 'aws') as aws:
             cloud.ensure_database()
@@ -48,13 +54,14 @@ class CloudTests(unittest.TestCase):
 
     def test_unchanged_connection_does_not_redeploy(self):
         origin = 'https://fixture-tunnel.trycloudflare.com'
-        current = {'id': 'dpl_old', 'projectId': cloud.PROJECT, 'target': 'production', 'readyState': 'READY'}
+        current = {'id': 'dpl_old', 'name': cloud.PROJECT_NAME, 'contextName': cloud.TEAM_SLUG, 'target': 'production', 'readyState': 'READY'}
+        row = {'key': 'BACKEND_URL', 'target': ['production'], 'value': 'encrypted-fixture', 'updatedAt': 1}
         with tempfile.TemporaryDirectory() as directory:
             state = Path(directory) / 'connection.json'
-            cloud.save_connection(state, {'origin': origin, 'deploymentId': current['id']})
+            cloud.save_connection(state, {'origin': origin, 'deploymentId': current['id'], 'envRevision': cloud.environment_revision(row)})
             with patch.object(cloud, 'require_auth_gate'), patch.object(cloud, 'vercel', side_effect=[
-                {'id': cloud.PROJECT, 'accountId': cloud.TEAM}, current,
-                {'envs': [{'key': 'BACKEND_URL', 'target': ['production'], 'value': origin}]}
+                {'id': cloud.PROJECT, 'owner': {'slug': cloud.TEAM_SLUG}}, current,
+                {'envs': [row]}
             ]) as vercel:
                 cloud.sync_vercel(origin, state)
                 self.assertEqual(vercel.call_count, 3)
@@ -64,11 +71,11 @@ class CloudTests(unittest.TestCase):
         old = {'id': 'dpl_old', 'projectId': cloud.PROJECT, 'target': 'production', 'readyState': 'READY'}
         ready = {**old, 'id': 'dpl_new'}
         project = {'id': cloud.PROJECT, 'accountId': cloud.TEAM}
-        env = {'envs': [{'key': 'BACKEND_URL', 'target': ['production'], 'value': origin}]}
+        env = {'envs': [{'key': 'BACKEND_URL', 'target': ['production'], 'value': 'encrypted-fixture', 'updatedAt': 1}]}
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / 'connection.json'
             with patch.object(cloud, 'require_auth_gate'), patch.object(cloud, 'vercel', side_effect=[
-                project, old, env, {'id': 'dpl_new'}, RuntimeError('network unavailable')
+                project, old, env, None, env, {'id': 'dpl_new'}, RuntimeError('network unavailable')
             ]):
                 with self.assertRaisesRegex(RuntimeError, 'network'):
                     cloud.sync_vercel(origin, path)
@@ -78,7 +85,20 @@ class CloudTests(unittest.TestCase):
             ]) as vercel:
                 cloud.sync_vercel(origin, path)
                 self.assertFalse(any(call.args[0] == 'redeploy' for call in vercel.call_args_list))
-            self.assertEqual(json.loads(path.read_text()), {'origin': origin, 'deploymentId': 'dpl_new'})
+            self.assertEqual(json.loads(path.read_text()), {'origin': origin, 'deploymentId': 'dpl_new', 'envRevision': cloud.environment_revision(env['envs'][0])})
+
+    def test_changed_environment_blocks_pending_resume(self):
+        with tempfile.TemporaryDirectory() as directory:
+            state = Path(directory) / 'connection.json'
+            cloud.save_connection(state, {'origin': 'https://fixture.trycloudflare.com', 'pending': True, 'envRevision': 'old'})
+            with patch.object(cloud, 'require_auth_gate'), patch.object(cloud, 'vercel', side_effect=[
+                {'id': cloud.PROJECT, 'owner': {'slug': cloud.TEAM_SLUG}},
+                {'id': 'dpl_old', 'name': cloud.PROJECT_NAME, 'contextName': cloud.TEAM_SLUG, 'target': 'production', 'readyState': 'READY'},
+                {'envs': [{'key': 'BACKEND_URL', 'target': ['production'], 'value': 'changed'}]}
+            ]) as cli:
+                with self.assertRaisesRegex(RuntimeError, 'environment changed'):
+                    cloud.sync_vercel('https://fixture.trycloudflare.com', state)
+                self.assertEqual(cli.call_count, 3)
 
     def test_project_mismatch_blocks_environment_changes(self):
         with tempfile.TemporaryDirectory() as directory, patch.object(cloud, 'require_auth_gate'), \

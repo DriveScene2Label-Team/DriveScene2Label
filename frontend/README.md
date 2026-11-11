@@ -1,6 +1,6 @@
 # DriveScene2Label 프론트
 
-React 19 + TypeScript + Vite 8 앱이다. 브라우저는 Spring `/api/*`만 호출한다. 개발·미리보기 서버는 `/api`(JSON, JPG, `.rrd`)를 Spring으로 proxy하며 FastAPI·DB 주소는 프론트에 두지 않는다. 기준 문서는 [개발 기획서](../docs/frontend-product-plan.md), [구현 체크리스트](../docs/frontend-implementation-checklist.md), [REST 계약](../README_API.md), [Rerun recording 계약](../docs/rerun-recording.md)이다.
+React 19 + TypeScript + Vite 8 앱이다. 화면 디자인은 [리뉴얼 목업](../docs/frontend-design/renewal-mockup.html) 기준이며 차이·검증은 [리뉴얼 기록](../docs/frontend-renewal.md)에 있다. 브라우저는 Spring `/api/*`만 호출한다. 개발·미리보기 서버는 `/api`(JSON, JPG, `.rrd`)를 Spring으로 proxy하며 FastAPI·DB 주소는 프론트에 두지 않는다. 기준 문서는 [개발 기획서](../docs/frontend-product-plan.md), [구현 체크리스트](../docs/frontend-implementation-checklist.md), [REST 계약](../README_API.md), [Rerun recording 계약](../docs/rerun-recording.md)이다.
 
 ## 실행
 
@@ -19,7 +19,7 @@ Vercel 구성은 [`vercel.json`](vercel.json)에 있다. Root Directory를 `fron
 |---|---|
 | `npm run typecheck` | `tsc -b --noEmit` |
 | `npm run build` | 타입 검사 + 제품 빌드(`dist/`). Rerun WASM(약 51MB, gzip 16MB)은 별도 asset이며 작업대 화면에서만 lazy load |
-| `npm test` | Vitest 단위 테스트(기하·DTO 변환·시간·재시도·receipt·A/B 상태·이미지 캐시) |
+| `npm test` | Vitest 단위 테스트(기하·DTO 변환·라벨 편집 필드·시간·재시도·receipt·A/B 상태·배치 규칙·이미지 캐시) |
 | `npm run test:e2e` | Playwright. `/api/*`를 실제 DTO 형식 route fixture로 응답하는 UI 흐름 검증(실제 서버 연동 아님). `webkit-1440` project는 `@a11y` 검사만 Playwright headless WebKit으로 실행(Safari 앱 검수 아님, `npx playwright install webkit` 필요) |
 
 Rerun 기술 검증 e2e는 실제 rerun-sdk 0.38.1로 만든 `.rrd`가 있을 때만 실행된다.
@@ -55,15 +55,18 @@ src/
   pages/        SceneSearchPage, SceneWorkspacePage, SceneComparePage
   features/
     frames/     useFrameBundle·usePaneFrames: requested/displayed 프레임, prefetch, 재생
-    cameras/    CameraGrid/Tile/Overlay/Dialog
-    timeline/   FrameTimeline
-    objects/    LayerToggles, ObjectInspector, 예측 연결
-    labeling/   JobPanel(생성·receipt·polling·소속 검증), jobLogic
+    cameras/    CameraGrid(3×2/2×3)/Tile/Overlay(투영 박스·이름표)
+    timeline/   FrameTimeline(예측·선택 GT 프레임 띠)
+    objects/    objectKeys(GT instance/예측 박스 키), 예측 연결
+    labeling/   useJobState(생성·receipt·polling·소속 검증), jobLogic
+    inspector/  Inspector 탭: ObjectsPanel(편집기·표), JobsPanel, EditsPanel(수정 기록)
     viewer/     RecordingPanel, RerunViewer, recordingMap
-    workspace/  PaneView, 단축키·숨김 탭 정지
-  stores/       workspace(single/A/B 패널 상태), layout(선호), toast
-  lib/          geometry(투영), time(timeline), jobs(idempotency·receipt), classes(VESPA mapping), imageCache
-  styles/       index.css(시안 토큰 + 컴포넌트 스타일)
+    layout/     Split(세로/가로 분할·자동 비율)
+    workspace/  Hud, CameraBody, Overlays(크게 보기·삭제 확인·단축키), WorkspaceToolbar, 단축키·숨김 탭 정지
+  components/   Icon(디자인 아이콘 sprite), MoreMenu(배치·테마·단축키), ToastHost, ThemeSync
+  stores/       workspace(single/A/B 패널 상태), layout(테마·배치·탭 선호), overlay, toast
+  lib/          geometry(투영), time(timeline), jobs(idempotency·receipt), edits(라벨 편집 API·조사), classes(VESPA mapping), imageCache
+  styles/       index.css(리뉴얼 목업 토큰·컴포넌트 + 실제 데이터 상태 보완)
 tests/e2e/      Playwright + fixtures/mockApi.ts
 tests/live/     실제 Spring 대상 검증
 ```
@@ -73,9 +76,9 @@ tests/live/     실제 Spring 대상 검증
 | 위치 | 내용 |
 |---|---|
 | TanStack Query | dataset·scene·samples·sample detail·GT·calibration(`calibratedSensorToken`별)·pose(파일별)·검색·job·recording |
-| Zustand | 패널별 dataset/scene/requested·displayed sample/재생/속도/레이어/선택/classMode/job/결과 job/recording/보기 |
+| Zustand | 패널별 dataset/scene/requested·displayed sample/재생/속도/레이어(GT·예측·클래스 이름)/선택(객체 키)/숨긴 객체/classMode/job/결과 job/recording/보기, 겹침 창, 토스트 |
 | URL | `/scenes?dataset&q`, `/scenes/:id?dataset&sample&job&view=split|six`, `/compare?datasetA&sceneA&sampleA&jobA&…&sync=relative&active=B` |
-| localStorage | 배치 선호(`ds2l.layout`), job 생성 receipt(`ds2l.jobReceipts.v2`, 서버 instanceId별, 최대 120개). v1 `ds2l.jobReceipts`는 읽기만 하고 수정·연결하지 않음. 이미지·점군·결과는 저장하지 않음 |
+| localStorage | 화면 색·배치·분할·인스펙터·탭 선호(`ds2l.layout` v2), job 생성 receipt(`ds2l.jobReceipts.v2`, 서버 instanceId별, 최대 120개). v1 `ds2l.jobReceipts`는 읽기만 하고 수정·연결하지 않음. 이미지·점군·결과는 저장하지 않음 |
 | 메모리 | 카메라 JPG blob URL LRU(참조 중인 이미지 유지, 나머지 48개 초과 시 revoke·다운로드 취소) |
 
 ## 주요 구현 결정

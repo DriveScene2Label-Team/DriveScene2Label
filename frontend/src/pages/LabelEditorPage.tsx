@@ -5,7 +5,6 @@ import { Download, Upload, Save, ArrowLeft, RotateCcw, Plus, Trash2 } from 'luci
 import { getLabel, labelHistory, labelsFromJob, listLabels, saveLabel, uploadLabels, type LabelBox, type LabelData, type LabelDetail } from '@/api/labels';
 import { describeError, isApiError } from '@/api/http';
 import { changeBox, EDIT_CLASSES, invalidGeometry, newBox, rotateBox } from '@/features/labeling/editing';
-import { DatasetUpload } from '@/features/labeling/DatasetUpload';
 import '@/styles/labels.css';
 
 export default function LabelEditorPage() {
@@ -73,7 +72,6 @@ export default function LabelEditorPage() {
       </header>
       <main className="labels-layout">
         <aside className="labels-library">
-          <DatasetUpload disabled={busy || dirty} />
           <h2>라벨 JSON 업로드</h2>
           <p className="note">nuScenes / VESPA의 results 형식 · 최대 20MB</p>
           <input aria-label="라벨 JSON 파일" type="file" accept=".json,application/json" disabled={busy} onChange={(e) => setFile(e.currentTarget.files?.[0] ?? null)} />
