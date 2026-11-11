@@ -20,15 +20,25 @@ public class DatasetUploadService {
  private final NuscenesImporter importer;
  private final long maxExpanded;
  private final UploadArchiveStore archives;
- public DatasetUploadService(DatasetStorage storage,NuscenesImporter importer,UploadArchiveStore archives,@Value("${uploads.max-expanded-bytes:8589934592}") long maxExpanded) {
-  this.storage=storage;this.importer=importer;this.maxExpanded=maxExpanded;this.archives=archives;
+ private final org.springframework.jdbc.core.simple.JdbcClient jdbc;
+ public DatasetUploadService(DatasetStorage storage,NuscenesImporter importer,UploadArchiveStore archives,org.springframework.jdbc.core.simple.JdbcClient jdbc,@Value("${uploads.max-expanded-bytes:8589934592}") long maxExpanded) {
+  this.storage=storage;this.importer=importer;this.maxExpanded=maxExpanded;this.archives=archives;this.jdbc=jdbc;
  }
  public record Uploaded(long datasetId,String version,int sceneCount) {}
  public Uploaded upload(MultipartFile file) throws IOException {
+  return upload(file,UUID.randomUUID().toString());
+ }
+ public Uploaded upload(MultipartFile file,String key) throws IOException {
+  if(!UUID.fromString(key).toString().equals(key)) throw bad("Invalid upload identifier");
+  // A worker retry after import committed must return the same dataset.
+  var existing=jdbc.sql("SELECT d.id AS dataset_id,d.version,(SELECT count(*)::integer FROM scene s WHERE s.dataset_id=d.id) AS scene_count FROM dataset d WHERE storage_key='uploads' AND root_relative_path=:k").param("k",key).query(Uploaded.class).optional();
+  if(existing.isPresent()) return existing.get();
   if(file.isEmpty()) throw bad("비어 있지 않은 nuScenes ZIP 파일을 선택해 주세요.");
   if(file.getSize()>UploadArchiveStore.MAX_ARCHIVE_BYTES) throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE,"nuScenes ZIP은 5GB 이하만 지원합니다.");
-  String key=UUID.randomUUID().toString();
   Path root=storage.uploads().resolve("datasets").resolve(key), archive=storage.uploads().resolve("archives").resolve(key+".zip");
+  // Only this upload's UUID paths can be remnants of an interrupted import.
+  if(Files.exists(root)) try(var paths=Files.walk(root)) { for(Path path:paths.sorted(Comparator.reverseOrder()).toList()) Files.deleteIfExists(path); }
+  Files.deleteIfExists(archive);
   Files.createDirectories(root); Files.createDirectories(archive.getParent());
   boolean remoteStored=false;
   try {

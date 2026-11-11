@@ -207,6 +207,7 @@ export interface PredictionDto {
   /** VESPA constant 1.0 (scoreType=VESPA_CONSTANT). Never shown as confidence. */
   detectionScore: number;
   attributeName: string;
+  trackId?: number | null;
 }
 
 export interface ArtifactDto {

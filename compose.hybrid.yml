@@ -25,6 +25,8 @@ services:
       AUTO_LABEL_READ_TIMEOUT: ${AUTO_LABEL_READ_TIMEOUT:-7300s}
       # Review restored pending jobs before enabling workers.
       AUTO_LABEL_WORKER_ENABLED: ${AUTO_LABEL_WORKER_ENABLED:-false}
+      UPLOAD_WORKER_ENABLED: ${UPLOAD_WORKER_ENABLED:-false}
+      EMBEDDING_INDEX_WORKER_ENABLED: ${EMBEDDING_INDEX_WORKER_ENABLED:-false}
       RECORDING_WORKER_ENABLED: ${RECORDING_WORKER_ENABLED:-false}
       RECORDING_READ_TIMEOUT: ${RECORDING_READ_TIMEOUT:-660s}
       RECORDING_ROOT: /recordings
@@ -56,6 +58,7 @@ services:
       dockerfile: ai-server/Dockerfile
     environment:
       VESPA_EXECUTOR: local
+      AI_REQUIRE_GPU: "true"
       VESPA_DATASET_VERSION: ${NUSCENES_VERSION:-v1.0-mini}
       VESPA_NUM_THREADS: ${VESPA_NUM_THREADS:-1}
       VESPA_TIMEOUT_SECONDS: ${VESPA_TIMEOUT_SECONDS:-7200}
@@ -81,5 +84,6 @@ volumes:
   nuscenes_data:
   model_cache:
     name: ${MODEL_CACHE_VOLUME:-drivescene-hybrid_model_cache}
+    external: ${MODEL_CACHE_EXTERNAL:-false}
   vespa_results:
   rerun_recordings:

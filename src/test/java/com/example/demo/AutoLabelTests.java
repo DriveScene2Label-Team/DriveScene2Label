@@ -85,6 +85,29 @@ class AutoLabelTests {
   assertThat(boxes(job)).isEqualTo(2);
   mvc.perform(post("/api/label-documents/from-job/{id}",job)).andExpect(jsonPath("$.document.id").value(id)).andExpect(jsonPath("$.revision").value(1));
  }
+ @Test void postprocessValidatesReferenceAndPreservesSourceAndIdempotency() throws Exception {
+  long source=create("rigid-base");new AutoLabelWorker(jobs,client).runNextJob();
+  jdbc.sql("UPDATE predicted_annotation SET raw_payload=jsonb_set(raw_payload,'{track_id}',to_jsonb(box_index)) WHERE job_id=:j").param("j",source).update();
+  var original=jobs.results(source);
+  mvc.perform(get("/api/auto-label/jobs/{id}/results",source)).andExpect(jsonPath("$.boxes[0].trackId").value(0));
+  String path="/api/auto-label/jobs/"+source+"/postprocess";
+  for(String refs:List.of("{}","{\"99\":\"sample-a\"}","{\"0\":\"sample-empty\"}","{\"-1\":\"sample-a\"}"))
+   mvc.perform(post(path).contentType("application/json").content("{\"references\":"+refs+"}")).andExpect(status().isBadRequest());
+  String body="{\"references\":{\"0\":\"sample-a\"}}";
+  var answer=mvc.perform(post(path).header("Idempotency-Key","rigid-copy").contentType("application/json").content(body)).andExpect(status().isAccepted()).andReturn().getResponse().getContentAsString();
+  long copy=JSON.readTree(answer).path("jobId").asLong();
+  assertThat(copy).isNotEqualTo(source);
+  mvc.perform(post(path).header("Idempotency-Key","rigid-copy").contentType("application/json").content(body)).andExpect(jsonPath("$.jobId").value(copy));
+  mvc.perform(post(path).header("Idempotency-Key","rigid-copy").contentType("application/json").content("{\"references\":{\"1\":\"sample-a\"}}")).andExpect(status().isConflict());
+  var work=jobs.claim().orElseThrow();
+  assertThat(work.id()).isEqualTo(copy);
+  assertThat(work.sourceArtifactPath()).isEqualTo("run/result.json");
+  assertThat(JSON.readTree(work.referenceFrames()).path("0").asString()).isEqualTo("sample-a");
+  jobs.complete(work,client.run(work));
+  assertThat(jobs.status(copy).status()).isEqualTo("COMPLETED");
+  assertThat(jobs.results(source)).isEqualTo(original);
+  assertThat(jdbc.sql("SELECT source_job_id FROM auto_label_job WHERE id=:j").param("j",copy).query(Long.class).single()).isEqualTo(source);
+ }
  @Test void pendingThenHttpResultCompletedAndEmptySample() throws Exception {
   long gt=jdbc.sql("SELECT count(*) FROM gt_annotation").query(Long.class).single();
   long job=create("success"); assertThat(jobs.status(job).status()).isEqualTo("PENDING");

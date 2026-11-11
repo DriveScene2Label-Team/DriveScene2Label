@@ -17,7 +17,12 @@ public class AutoLabelClient {
  }
  public AiResponse run(Work job) {
   return client.post().uri("/auto-label").contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
-   .body(new AiRequest(job.sceneName(),Integer.parseInt(job.mappingName().replace("class","")),job.id(),job.executionToken(),job.datasetKey(),job.datasetVersion()))
+   .body(new AiRequest(job.sceneName(),Integer.parseInt(job.mappingName().replace("class","")),job.id(),job.executionToken(),job.datasetKey(),job.datasetVersion(),job.sourceArtifactPath(),references(job.referenceFrames())))
    .retrieve().body(AiResponse.class);
+ }
+ private static java.util.Map<String,String> references(String value) {
+  var result=new java.util.HashMap<String,String>();
+  if(value!=null) { var tree=new tools.jackson.databind.ObjectMapper().readTree(value); tree.properties().forEach(entry->result.put(entry.getKey(),entry.getValue().asString())); }
+  return result;
  }
 }

@@ -84,6 +84,7 @@ export interface BoxView {
   numLidarPts: number | null;
   velocityXY: [number, number] | null;
   attributeName: string | null;
+  trackId?: number | null;
 }
 
 export interface SearchHit {

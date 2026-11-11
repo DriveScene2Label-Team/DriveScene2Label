@@ -3,6 +3,8 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router';
 import { afterEach, expect, it, vi } from 'vitest';
 import { DatasetUpload } from './DatasetUpload';
+import { uploadChunks } from './chunkedUpload';
+vi.mock('./chunkedUpload', () => ({ uploadChunks: vi.fn() }));
 
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
@@ -25,14 +27,14 @@ function chooseFile(size: number, name = 'mini.zip') {
   fireEvent.click(screen.getByRole('button', { name: '데이터셋 업로드' }));
 }
 
-it('tracks a large archive transfer separately from server processing and completion', async () => {
+it('tracks multipart transfer separately from server processing and completion', async () => {
   const request = mockUpload();
-  chooseFile(4_200_000_000);
+  chooseFile(4_000_000);
   expect(request.open).toHaveBeenCalledWith('POST', '/api/dataset-uploads');
   expect(request.send).toHaveBeenCalledWith(expect.any(FormData));
-  act(() => request.upload.onprogress?.({ lengthComputable: true, loaded: 2_100_000_000, total: 4_200_000_000 } as ProgressEvent));
+  act(() => request.upload.onprogress?.({ lengthComputable: true, loaded: 2_000_000, total: 4_000_000 } as ProgressEvent));
   expect(screen.getByRole('progressbar')).toHaveAttribute('value', '50');
-  expect(screen.getByRole('status')).toHaveTextContent('2100 / 4200 MB');
+  expect(screen.getByRole('status')).toHaveTextContent('2 / 4 MB');
   act(() => request.upload.onload?.());
   expect(screen.getByRole('status')).toHaveTextContent('파일 전송 완료');
   expect(screen.getByRole('button', { name: '서버 검증 중…' })).toBeDisabled();
@@ -46,7 +48,7 @@ it('explains a gateway timeout without reporting successful registration', async
   const request = mockUpload();
   request.status = 502;
   request.responseText = 'Bad Gateway';
-  chooseFile(4_200_000_000);
+  chooseFile(4_000_000);
   act(() => request.onload?.());
   await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('HTTP 502'));
   expect(screen.getByRole('alert')).toHaveTextContent('씬 목록에서 등록 여부');
@@ -58,6 +60,13 @@ it('rejects archives over 5GB without starting a request', () => {
   chooseFile(5_000_000_001);
   expect(screen.getByRole('alert')).toHaveTextContent('5GB 이하');
   expect(request.send).not.toHaveBeenCalled();
+});
+
+it('uses resumable chunks for archives larger than one proxy request', async () => {
+  vi.mocked(uploadChunks).mockResolvedValue({ datasetId: 8, sceneCount: 10 });
+  chooseFile(4_200_000_000);
+  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('10개 씬을 등록했습니다.'));
+  expect(uploadChunks).toHaveBeenCalledWith(expect.any(File), expect.any(Function), expect.any(Function));
 });
 
 it('explains conversion when a tgz archive is selected', () => {

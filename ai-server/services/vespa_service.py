@@ -16,6 +16,7 @@ from uuid import uuid4
 
 from schemas.auto_label import AutoLabelRequest, AutoLabelResponse
 from services.uploaded_dataset import UploadedDatasetCache
+from services.gpu_health import gpu_available
 from botocore.exceptions import BotoCoreError, ClientError
 
 # Child of uvicorn.error so INFO progress lines (slurm job id, state) reach the server log.
@@ -120,6 +121,10 @@ class VespaService:
         return scoped
 
     def generate(self, request: AutoLabelRequest):
+        if self.executor == "local" and not request.source_artifact_path and not gpu_available():
+            raise VespaError(503, "GPU_UNAVAILABLE", "The NVIDIA GPU is unavailable; recover the host GPU and restart AI.")
+        if request.source_artifact_path and self.executor != "local":
+            raise VespaError(409, "RIGID_EXECUTOR_UNSUPPORTED", "Rigid postprocessing requires the local executor.")
         if request.dataset_key is not None:
             scoped = self.for_dataset(request.dataset_key, request.dataset_version)
             return scoped.generate(request.model_copy(update={"dataset_key": None, "dataset_version": None}))
@@ -151,6 +156,15 @@ class VespaService:
                        "--repo", str(self.repo), "--config", str(self.repo / "configs/vlm/p_final.yaml"),
                        "--scene", request.scene_name, "--class-mode", str(request.class_mode),
                        "--output-root", str(run_dir), "--data-root", str(self.data_root), "--dataset-version", self.version]
+            if os.environ.get("VESPA_RIGID_ENABLED", "true").lower() == "true":
+                command += ["--rigid"]
+            if request.source_artifact_path:
+                source = self._source_run(request.source_artifact_path)
+                if "--rigid" not in command:
+                    raise VespaError(409, "RIGID_DISABLED", "Rigid postprocessing is disabled.")
+                refs_path = run_dir / "references.json"
+                refs_path.write_text(json.dumps(request.references))
+                command += ["--source-run", str(source), "--references", str(refs_path)]
             # Small RANSAC linear solves suffer from BLAS oversubscription.
             env = os.environ.copy()
             for key in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS"):
@@ -178,6 +192,22 @@ class VespaService:
             raise VespaError(503, "VESPA_LAUNCH_FAILED", "Could not launch VESPA or write its run files.") from exc
         mapping = f"{request.class_mode}class"
         return run_dir / "outs/vlm/p_final/#out_labels" / f"vlm_p_final_{request.scene_name}_{mapping}.json"
+
+    def _source_run(self, relative):
+        from uuid import UUID
+        try:
+            candidate = Path(relative)
+            if candidate.is_absolute() or ".." in candidate.parts or "\\" in relative or ":" in relative:
+                raise ValueError("Invalid source path")
+            run = self.output_root / str(UUID(candidate.parts[0]))
+            path = (self.output_root / candidate).resolve()
+            if not path.is_relative_to(run.resolve()) or not run.resolve().is_relative_to(self.output_root.resolve()) or not path.is_file():
+                raise ValueError("Invalid source artifact")
+            if not (run / "rigid-manifest.json").is_file() or not (run / "rigid-state.pkl.gz").is_file():
+                raise ValueError("Source has no rigid cache")
+            return run
+        except (OSError, ValueError, IndexError) as exc:
+            raise VespaError(409, "RIGID_CACHE_UNAVAILABLE", "Source postprocessing cache is unavailable; generate a new base result.") from exc
 
     # ---------- ssh executor (remote Slurm) ----------
     def _ssh_command(self, remote_command):

@@ -17,6 +17,7 @@ import { useServer } from '@/stores/server';
 import { useWorkspace, type PaneId } from '@/stores/workspace';
 import { pollInterval, STATUS_KO, verifyJob } from './jobLogic';
 import { useReceipts } from './useReceipts';
+import { PostprocessPanel } from './PostprocessPanel';
 
 interface Props {
   paneId: PaneId;
@@ -235,6 +236,7 @@ export function JobPanel({ paneId, scene, samples, paneLabel }: Props) {
             )}
           </div>
         )}
+        {completed && ownership?.kind === 'verified' && resultsQ.data && <PostprocessPanel key={resultsQ.data.jobId} paneId={paneId} scene={scene} samples={samples} results={resultsQ.data} disabled={blocked || !paneMatches} />}
         <JobHistory paneId={paneId} jobIds={sceneReceipts.map((r) => r.jobId)} current={jobId} />
         <LegacyNote paneId={paneId} count={unverifiedReceiptsForScene(receipts, scene.datasetId, scene.token).length} />
         <JobLookup onOpen={(id) => watchJob(paneId, id)} />

@@ -89,7 +89,7 @@ export function predictionToBox(p: PredictionDto, jobId: number, datasetId: numb
     label: p.detectionName, categoryToken: null,
     center: [p.centerX, p.centerY, p.centerZ], sizeWLH: [p.sizeW, p.sizeL, p.sizeH],
     rotation: { w: p.rotationW, x: p.rotationX, y: p.rotationY, z: p.rotationZ }, coordinateFrame: 'WORLD',
-    instanceToken: null, numLidarPts: null, velocityXY: [p.velocityX, p.velocityY], attributeName: p.attributeName || null,
+    instanceToken: null, numLidarPts: null, velocityXY: [p.velocityX, p.velocityY], attributeName: p.attributeName || null, trackId: p.trackId ?? null,
   };
 }
 

@@ -11,6 +11,8 @@ class AutoLabelRequest(BaseModel):
     execution_token: UUID | None = None
     dataset_key: str | None = Field(default=None, pattern=r"^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$")
     dataset_version: Literal["v1.0-mini", "v1.0-trainval"] | None = None
+    source_artifact_path: str | None = None
+    references: dict[str, str] = Field(default_factory=dict, max_length=1000)
 
     @model_validator(mode="after")
     def paired_identity(self):
@@ -18,6 +20,10 @@ class AutoLabelRequest(BaseModel):
             raise ValueError("job_id and execution_token must be supplied together")
         if (self.dataset_key is None) != (self.dataset_version is None):
             raise ValueError("dataset_key and dataset_version must be supplied together")
+        if bool(self.source_artifact_path) != bool(self.references):
+            raise ValueError("Source result and references must be supplied together")
+        if any(not key.isascii() or not key.isdecimal() or int(key) < 0 or not token for key, token in self.references.items()):
+            raise ValueError("Invalid track reference")
         return self
 
 class PredictedBox(BaseModel):
@@ -29,6 +35,7 @@ class PredictedBox(BaseModel):
     detection_name: str
     detection_score: FiniteFloat = Field(ge=0, le=1)
     attribute_name: str = ""
+    track_id: int | None = Field(default=None, ge=0)
 
     @model_validator(mode="after")
     def valid_geometry(self):

@@ -23,6 +23,18 @@ public class AutoLabelService {
   this.repo=repo;this.readiness=readiness;this.json=json;this.tx=new TransactionTemplate(manager);this.version=version;this.modelVersion=modelVersion;this.storage=storage;
  }
  public Created create(CreateRequest request,String key) {
+  return create(request,key,null,Map.of());
+ }
+ public Created postprocess(long sourceJob,PostprocessRequest request,String key) {
+  var source=status(sourceJob);
+  if(!"COMPLETED".equals(source.status())) throw new ResponseStatusException(HttpStatus.CONFLICT,"Source job must be completed");
+  if(request.references()==null || request.references().isEmpty() || request.references().size()>1000) throw bad("Select at least one reference box");
+  for(var reference:request.references().entrySet()) {
+   if(reference.getKey()==null || !reference.getKey().matches("0|[1-9][0-9]{0,8}") || !repo.hasReference(sourceJob,reference.getKey(),reference.getValue())) throw bad("Reference track/frame is not in the source result");
+  }
+  return create(new CreateRequest(source.sceneToken(),source.datasetId(),source.classMode()),key,sourceJob,request.references());
+ }
+ private Created create(CreateRequest request,String key,Long sourceJob,Map<String,String> references) {
   if(!Set.of(1,3,8).contains(request.classMode()) || (request.datasetId()!=null && request.datasetId()<=0)) throw bad("Invalid classMode/datasetId");
   String requestKey=key==null?UUID.randomUUID().toString():key.strip();
   if(requestKey.isEmpty() || requestKey.length()>200) throw bad("Idempotency-Key must be 1..200 characters");
@@ -33,7 +45,7 @@ public class AutoLabelService {
    if(targets.size()!=1) throw new ResponseStatusException(HttpStatus.CONFLICT,"Specify datasetId for this scene token");
    return targets.getFirst();
   });
-  var replay=tx.execute(status->repo.findExisting(target.datasetId(),requestKey).map(old->replay(old,target,request)));
+  var replay=tx.execute(status->repo.findExisting(target.datasetId(),requestKey).map(old->replay(old,target,request,sourceJob,references)));
   if(replay!=null && replay.isPresent()) return replay.get();
   if(!"uploads".equals(target.storageKey()) && !version.equals(target.version())) throw bad("Dataset version must match the configured VESPA dataset");
   // 2) New job only: the server checks VESPA readiness itself, outside any DB transaction.
@@ -42,14 +54,15 @@ public class AutoLabelService {
   return tx.execute(status->{
    var samples=repo.sceneSamples(target); if(samples.isEmpty()) throw bad("Scene has no samples");
    var inserted=repo.insert(target,requestKey,request.classMode(),json.writeValueAsString(classes(request.classMode())),modelVersion,
-      json.writeValueAsString(Map.of("dataset_version",target.version(),"config_name","configs/vlm/p_final.yaml")));
-   if(inserted.isEmpty()) return replay(repo.existing(target.datasetId(),requestKey),target,request);
+      json.writeValueAsString(Map.of("dataset_version",target.version(),"config_name","configs/vlm/p_final.yaml")),sourceJob,json.writeValueAsString(references));
+   if(inserted.isEmpty()) return replay(repo.existing(target.datasetId(),requestKey),target,request,sourceJob,references);
    long job=inserted.get(); for(String token:samples) repo.target(job,target.datasetId(),token);
    return new Created(job,"PENDING");
   });
  }
- private Created replay(AutoLabelRepository.Existing old,AutoLabelRepository.Target target,CreateRequest request) {
-  if(!old.sceneToken().equals(target.token()) || !old.mappingName().equals(request.classMode()+"class")) throw new ResponseStatusException(HttpStatus.CONFLICT,"Idempotency key refers to another request");
+ private Created replay(AutoLabelRepository.Existing old,AutoLabelRepository.Target target,CreateRequest request,Long sourceJob,Map<String,String> references) {
+  if(!old.sceneToken().equals(target.token()) || !old.mappingName().equals(request.classMode()+"class") || !Objects.equals(old.sourceJobId(),sourceJob)
+    || !json.readTree(old.referenceFrames()).equals(json.valueToTree(references))) throw new ResponseStatusException(HttpStatus.CONFLICT,"Idempotency key refers to another request");
   return new Created(old.id(),repo.status(old.id()).orElseThrow().status());
  }
  public Optional<Work> claim() { return tx.execute(s->repo.claim()); }
@@ -81,7 +94,7 @@ public class AutoLabelService {
   for(var e:r.results().entrySet()) {
    if(e.getValue()==null) throw new IllegalArgumentException("Missing sample result");
    for(Box b:e.getValue()) {
-    if(b==null || !e.getKey().equals(b.sampleToken()) || !classes(r.classMode()).contains(b.detectionName()) || b.detectionScore()==null || b.detectionScore()!=1.0) throw new IllegalArgumentException("Invalid predicted box metadata");
+    if(b==null || !e.getKey().equals(b.sampleToken()) || !classes(r.classMode()).contains(b.detectionName()) || b.detectionScore()==null || b.detectionScore()!=1.0 || (b.trackId()!=null && b.trackId()<0)) throw new IllegalArgumentException("Invalid predicted box metadata");
     numbers(b.translation(),3); numbers(b.size(),3); numbers(b.rotation(),4); numbers(b.velocity(),2);
     if(b.size().stream().anyMatch(v->v<=0) || Math.abs(b.rotation().stream().mapToDouble(v->v*v).sum()-1)>0.001) throw new IllegalArgumentException("Invalid predicted geometry");
    }

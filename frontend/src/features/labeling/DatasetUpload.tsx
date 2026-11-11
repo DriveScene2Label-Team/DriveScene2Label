@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { toApiError } from '@/api/http';
+import { uploadChunks } from './chunkedUpload';
 
 type UploadedDataset = { datasetId: number; sceneCount: number };
 type Transfer = { loaded: number; total: number; bytesPerSecond: number };
 
 function uploadDataset(file: File, progress: (value: Transfer) => void, transferred: () => void): Promise<UploadedDataset> {
+  if (file.size > 4_000_000) return uploadChunks(file, progress, transferred);
   return new Promise((resolve, reject) => {
     const request = new XMLHttpRequest();
     const started = Date.now();
@@ -67,7 +69,7 @@ export function DatasetUpload({ disabled }: { disabled: boolean }) {
   return <section className="labels-dataset-upload">
     <h2>원본 데이터 업로드</h2>
     <p className="note">nuScenes ZIP · 최대 5GB, 압축 해제 후 8GiB. 최상위에 v1.0-mini 또는 v1.0-trainval 메타데이터와 해당 samples/sweeps 파일이 필요합니다.</p>
-    <p className="note">라벨 JSON은 없어도 됩니다. 원본 ZIP을 올리고 씬을 열어 자동 라벨링을 실행하세요.</p>
+    <p className="note">라벨 JSON은 없어도 됩니다. 큰 ZIP은 나눠 전송하며, 연결이 끊기면 같은 파일을 다시 선택해 이어서 올릴 수 있어요.</p>
     <p className="note">.tgz 원본은 압축을 푼 뒤 위 폴더들을 ZIP으로 묶어 주세요. 파일 확장자만 바꾸면 업로드할 수 없습니다.</p>
     <p className="note">일반 JPG·MP4만으로는 3D 자동 라벨링을 할 수 없습니다. 카메라 보정·센서·위치 정보가 필요합니다.</p>
     <input aria-label="원본 데이터 ZIP" type="file" accept=".zip,application/zip" disabled={disabled || busy} onChange={(e) => { setFile(e.currentTarget.files?.[0] ?? null); setError(''); }} />
@@ -81,7 +83,7 @@ export function DatasetUpload({ disabled }: { disabled: boolean }) {
       <p>{phase === 'processing' ? '검증 대기' : '전송 경과'} {elapsed}초 · 완료될 때까지 이 페이지를 유지해 주세요.</p>
     </div>}
     {error && <p className="labels-error" role="alert">{error}</p>}
-    {dataset && <div role="status"><p>{dataset.sceneCount}개 씬을 등록했습니다.</p>
+    {dataset && <div role="status"><p>{dataset.sceneCount}개 씬을 등록했습니다. 이미지 검색 준비는 서버에서 자동으로 진행되며 씬 화면에서 상태를 확인할 수 있어요.</p>
       <Link className="btn btn--primary" to={`/scenes?dataset=${dataset.datasetId}`}>씬 열기 · 자동 라벨링</Link>
       <a className="btn btn--weak" href={`/api/dataset-uploads/${dataset.datasetId}/original`}>원본 ZIP 다운로드</a>
     </div>}

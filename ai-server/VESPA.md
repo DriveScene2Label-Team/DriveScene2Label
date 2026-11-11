@@ -1,5 +1,15 @@
 # VESPA wrapper (MVP)
 
+## 2026-11-11 로컬 rigid 후처리 연결
+
+로컬 executor는 기본적으로 팀의 `vespa-remote/main_pseudo_vlm_scene_ver2.py`를 사용한다. 최초 작업은 기존 검출·추적 단계를 실행한 뒤 필터 전 scene/tracklet/config를 작업별 `rigid-cache`에 보관하고, 최종 박스에 `track_id`를 연결한다. upstream checkout 자체는 수정하지 않는다. `VESPA_RIGID_ENABLED=false`는 기존 경로를 선택한다.
+
+Spring의 후처리 작업이 `source_artifact_path`와 `references`(track 번호 → sample token)를 함께 전달하면 새 run에서 기준 크기·yaw 보정을 수행한다. 이미 계산한 detector/segmentation/backbone을 재실행하지 않는다. 입력 artifact는 결과 root 안의 UUID 작업에 한정하고, 버전·dataset root·scene·class mode·SHA-256 manifest를 검사한 서버 생성 캐시만 역직렬화한다. 캐시 파일은 외부 업로드 형식이 아니다. 원본 결과/캐시는 변경하지 않으며 새 작업에도 보정 후 필터 전 상태를 남겨 후속 보정을 이어갈 수 있다.
+
+T1/frame0, T3/frame18은 팀의 특정 씬 예시이며 기본값으로 강제하지 않는다. 실제 프레임에 존재하는 객체만 선택한다. 캐시가 없는 이전 작업은 최초 생성이 필요하다. SSH executor의 후처리는 이번 범위에 포함하지 않는다.
+
+혼합 Compose는 `AI_REQUIRE_GPU=true`다. NVML 조회에 실패하면 capability와 새 GPU 연산 요청을 `GPU_UNAVAILABLE`로 표시한다. 이 검사는 드라이버 장애를 수리하거나 긴 작업의 안정성을 보장하지 않는다. 후처리 알고리즘/캐시 재실행은 실제 VESPA 클래스 기반 fixture에서 확인했고, 신규 전체 씬의 검출 정확도·성능은 별도로 검증해야 한다.
+
 ## 구조
 
 `POST /auto-label` -> router -> VespaService -> 별도 VESPA Python subprocess -> vespa_runner.py -> upstream process_scene() -> upstream _get_annotation_dict() -> 최종 JSON -> schema 검증 -> Spring 응답.

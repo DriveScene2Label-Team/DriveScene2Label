@@ -14,6 +14,7 @@ from collections import OrderedDict
 from datetime import datetime, timezone
 from pathlib import Path
 from threading import Lock
+from services.gpu_health import gpu_available
 
 logger = logging.getLogger(__name__)
 
@@ -84,6 +85,8 @@ class CapabilityService:
     # ---------------- CLIP ----------------
     def _clip(self):
         base = {"modelName": None, "imagePreprocess": [], "textPreprocess": "clip-text-tokenizer", "dimension": None, "device": None}
+        if not gpu_available():
+            return {"state": "UNAVAILABLE", "reasonCode": "GPU_UNAVAILABLE", **base}
         if self.clip is None:
             return {"state": "UNAVAILABLE", "reasonCode": "CLIP_NOT_DEPLOYED", **base}
         try:
@@ -103,6 +106,8 @@ class CapabilityService:
                     "metadataChecksum": None, "checkedAt": None, "expiresAt": None}
         v = self.vespa
         out = {"executor": v.executor, "datasetVersion": v.version, "metadataChecksum": None}
+        if v.executor == "local" and not gpu_available():
+            return {**out, "state": "UNAVAILABLE", "reasonCode": "GPU_UNAVAILABLE", "checkedAt": _iso(now), "expiresAt": None}
         if not v.configured():
             self.vespa_check = None
             return {**out, "state": "UNAVAILABLE", "reasonCode": "VESPA_NOT_CONFIGURED", "checkedAt": _iso(now), "expiresAt": None}

@@ -1,6 +1,14 @@
 # 혼합 배포 실행 준비
 
-기준: `release-version`, 2026-11-11. 구성은 **Vercel 프론트 + 로컬 Spring/FastAPI/GPU + S3 원본 + RDS DB**다. 초기 준비 절차와 실제 연결 기록을 구분한다. 최신 상태는 아래 **2026-11-11 실제 연결·배포와 재개 지점** 및 저장소 README에 있다. 성능 최적화·전체 기능 검증까지 완료했다는 뜻은 아니다.
+기준: `release-version`, 2026-11-11. 구성은 **Vercel 프론트 + 로컬 Spring/FastAPI/GPU + S3 원본 + RDS DB**다. 최신 기능·검증 범위는 [11월 11일 MVP 갱신 기록](hybrid-mvp-update-2026-11-11.md)과 저장소 README를 기준으로 한다. 아래 초기 준비와 과거 연결 기록은 당시 상태를 보존한 것이다.
+
+## 최신 운영 설정
+
+앱 데이터 초기화와 백업 보존을 완료했다. 현재 업로드·검색 인덱스·자동 라벨 작업자는 `UPLOAD_WORKER_ENABLED=true`, `EMBEDDING_INDEX_WORKER_ENABLED=true`, `AUTO_LABEL_WORKER_ENABLED=true`로 운영한다. 업로드 데이터셋의 recording은 지원하지 않아 `RECORDING_WORKER_ENABLED=false`를 유지한다. 예제 파일의 기본값은 복원 직후 기존 작업을 검토하도록 모두 false다.
+
+업로드 ZIP은 4MB 조각으로 전송하고 서버에서 비동기로 검증·등록한다. 원본 등록 후 검색 임베딩을 자동 생성하며, 진행률과 재시도를 씬 화면에서 제공한다. 자동 라벨 작업과 인덱스 생성은 같은 GPU 작업자를 공유해 동시에 실행하지 않는다. 완료된 신규 VESPA 작업에는 객체별 기준 프레임 후처리를 사용할 수 있다. 이전 캐시 없는 작업은 기본 라벨 생성부터 다시 수행해야 한다.
+
+기존 모델 캐시는 `MODEL_CACHE_VOLUME=demo_model_cache`, `MODEL_CACHE_EXTERNAL=true`로 연결했다. 새 PC는 기본값 false로 자체 캐시를 만들면 된다. 재부팅 후 `scripts/hybrid.ps1 -Action start`를 실행하고 터널 주소가 바뀌면 Vercel의 `BACKEND_URL` 갱신과 재배포가 필요하다. `stop`은 로컬만 정지하며 RDS 과금은 계속된다.
 
 ## 준비한 파일
 
@@ -74,7 +82,7 @@ Vercel의 `/api` 요청은 `${BACKEND_URL}/api`로 전달한다. 공개 주소�
 
 API는 캐시하지 않고 기존 상태 polling을 유지한다. 정적 WASM/JS 파일은 filesystem 단계에서 제공한 뒤 `/scenes/...`, `/labels` 등의 SPA 경로를 index로 전달한다. 실제 배포에서 API 실패가 HTML 200으로 바뀌지 않는지, Rerun WASM 응답과 새로고침을 확인해야 한다. [Vercel routing 설정](https://vercel.com/docs/project-configuration/vercel-json), [외부 rewrite 캐시](https://vercel.com/docs/routing/rewrites)
 
-4.34GB ZIP을 이 프록시 경로로 공개 업로드하는 것은 아직 검증되지 않았다. S3 직접 multipart 업로드도 아직 구현하지 않았다. 현재 설정만으로 대용량 공개 업로드까지 완료됐다고 보지 않는다. 먼저 로컬 API에서 원본 등록·캐시를 준비하고, 공개 대용량 업로드는 별도 구현·검증한다.
+4.34GB ZIP 전체를 공개 경로로 전송하는 최종 검증은 남아 있다. 4MB 조각 전송·진행 저장·같은 파일 재선택 시 재개·비동기 등록을 구현했다. S3 직접 multipart 방식은 아니다. 로컬 테스트 서버 검증과 실제 공개 경로의 4.34GB 검증은 구분한다.
 
 ## 이번 검증 기록
 

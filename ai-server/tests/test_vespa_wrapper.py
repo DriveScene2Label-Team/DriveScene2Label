@@ -13,6 +13,7 @@ import clip_core
 
 @pytest.fixture
 def service(tmp_path,monkeypatch):
+    monkeypatch.setenv('VESPA_RIGID_ENABLED','false')  # Legacy subprocess fixture has no tracklet implementation.
     repo=tmp_path/'repo'; (repo/'configs/vlm').mkdir(parents=True)
     (repo/'configs/vlm/p_final.yaml').write_text('type: vlm\ndata:\n  dataset: nuscenes\ngrounding_sam:\n  class_names: [car]\n')
     (repo/'main_pseudo_union.py').write_text("from pathlib import Path\nEXP_PSEUDO_OUT_PATH=Path('outs')\ndef get_out_dir(config,module):\n p=EXP_PSEUDO_OUT_PATH/config['type']/config['exp_name']/module\n p.mkdir(parents=True,exist_ok=True)\n return p\n")
@@ -79,6 +80,19 @@ def test_busy_unknown_and_unconfigured(service):
     service.python=Path('/no-python')
     with pytest.raises(VespaError) as caught: service.generate(AutoLabelRequest(scene_name='scene-0061'))
     assert caught.value.status_code==503
+
+def test_postprocess_source_is_confined_and_requires_cache(service, tmp_path):
+    from uuid import uuid4
+    run = service.output_root / str(uuid4())
+    run.mkdir(parents=True)
+    (run / 'result.json').write_text('{}')
+    relative = str((run / 'result.json').relative_to(service.output_root))
+    with pytest.raises(VespaError): service._source_run(relative)
+    (run / 'rigid-manifest.json').write_text('{}')
+    (run / 'rigid-state.pkl.gz').write_bytes(b'fixture')
+    assert service._source_run(relative) == run
+    for path in ('../result.json', str(run / 'result.json'), 'invalid/result.json', 'a\\b'):
+        with pytest.raises(VespaError): service._source_run(path)
 
 
 def test_api(service):

@@ -5,7 +5,7 @@ import { comparisonClass } from '@/lib/classes';
 /** Short tag on the image: source plus class. GT never borrows a prediction's class name. */
 export function boxShortLabel(box: BoxView): string {
   if (box.source === 'GT') return box.label ? `GT ${box.label}` : 'GT · 클래스 정보 없음';
-  return `예측 ${box.label ?? ''}`.trim();
+  return `예측 ${box.label ?? ''}${box.trackId != null ? ` · T${box.trackId}` : ''}`.trim();
 }
 
 /** Class name shown in lists: original category for GT, detectionName for predictions. */

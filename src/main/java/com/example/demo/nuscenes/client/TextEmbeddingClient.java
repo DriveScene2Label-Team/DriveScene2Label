@@ -25,9 +25,14 @@ public class TextEmbeddingClient {
   client=RestClient.builder().baseUrl(baseUrl).requestFactory(factory).build();
  }
  public TextEmbeddingResponse image(String path,String preprocess) {
+  return image(path,preprocess,null);
+ }
+ public TextEmbeddingResponse image(String path,String preprocess,String datasetKey) {
   try {
+   var body=new java.util.HashMap<String,String>(); body.put("image_path",path); body.put("preprocess",preprocess);
+   if(datasetKey!=null) body.put("dataset_key",datasetKey);
    return client.post().uri("/embedding/image").contentType(MediaType.APPLICATION_JSON)
-    .body(java.util.Map.of("image_path",path,"preprocess",preprocess)).retrieve().body(TextEmbeddingResponse.class);
+    .body(body).retrieve().body(TextEmbeddingResponse.class);
   } catch(ResourceAccessException e) { throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,"AI server unavailable or timed out",e);
   } catch(org.springframework.web.client.HttpClientErrorException e) {
    if(e.getStatusCode().value()==404) throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Image not found on AI server",e);

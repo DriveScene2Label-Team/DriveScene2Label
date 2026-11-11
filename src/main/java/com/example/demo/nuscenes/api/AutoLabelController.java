@@ -12,5 +12,7 @@ public class AutoLabelController {
  @PostMapping @ResponseStatus(HttpStatus.ACCEPTED)
  public Created create(@Valid @RequestBody CreateRequest body,@RequestHeader(value="Idempotency-Key",required=false) String key) { var result=jobs.create(body,key); org.slf4j.LoggerFactory.getLogger(getClass()).info("[VESPA] job={} status={} accepted",result.jobId(),result.status()); return result; }
  @GetMapping("/{id}/results") public Results results(@PathVariable long id) { return jobs.results(id); }
+ @PostMapping("/{id}/postprocess") @ResponseStatus(HttpStatus.ACCEPTED)
+ public Created postprocess(@PathVariable long id,@Valid @RequestBody PostprocessRequest body,@RequestHeader(value="Idempotency-Key",required=false) String key) { return jobs.postprocess(id,body,key); }
  @GetMapping("/{id}") public JobStatus status(@PathVariable long id) { return jobs.status(id); }
 }

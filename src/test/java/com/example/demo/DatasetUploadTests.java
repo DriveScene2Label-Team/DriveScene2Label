@@ -29,6 +29,8 @@ class DatasetUploadTests {
  @Autowired MockMvc mvc;
  @Autowired JdbcClient jdbc;
  @Autowired ObjectMapper json;
+ @Autowired com.example.demo.nuscenes.service.ChunkedDatasetUploadService chunks;
+ @Autowired com.example.demo.nuscenes.service.DatasetUploadService uploads;
  @AfterAll static void files() throws IOException { try(var paths=Files.walk(ROOT)) { for(Path path:paths.sorted(Comparator.reverseOrder()).toList()) Files.delete(path); } }
  byte[] zip(Map<String,byte[]> entries) throws IOException {
   var bytes=new ByteArrayOutputStream();
@@ -73,5 +75,32 @@ class DatasetUploadTests {
    .andExpect(status().isPayloadTooLarge());
   assertThat(jdbc.sql("SELECT count(*) FROM dataset").query(Long.class).single()).isEqualTo(before);
   try(var paths=Files.list(ROOT.resolve("datasets"))) { assertThat(paths.count()).isEqualTo(directories); }
+ }
+ @Test void chunkedUploadRetriesAndCompletesWithoutDuplicatingDataset() throws Exception {
+  byte[] archive=zip(fixture());
+  String created=mvc.perform(post("/api/dataset-uploads/sessions").contentType("application/json").content(json.writeValueAsString(Map.of("filename","mini.zip","sizeBytes",archive.length))))
+   .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+  UUID id=UUID.fromString(json.readTree(created).path("id").asString());String path="/api/dataset-uploads/sessions/"+id;
+  mvc.perform(post(path+"/complete")).andExpect(status().isConflict());
+  for(int retry=0;retry<2;retry++) mvc.perform(post(path+"/parts").param("offset","0").contentType("application/octet-stream").content(archive)).andExpect(status().isOk()).andExpect(jsonPath("$.receivedBytes").value(archive.length));
+  var changed=archive.clone();changed[0]^=1;
+  mvc.perform(post(path+"/parts").param("offset","0").contentType("application/octet-stream").content(changed)).andExpect(status().isConflict());
+  for(int retry=0;retry<2;retry++) mvc.perform(post(path+"/complete")).andExpect(status().isAccepted()).andExpect(jsonPath("$.status").value("QUEUED"));
+  chunks.process(chunks.claim().orElseThrow());
+  var done=chunks.status(id);assertThat(done.status()).isEqualTo("COMPLETED");assertThat(done.sceneCount()).isEqualTo(1);
+  mvc.perform(get("/api/dataset-uploads/{id}/original",done.datasetId())).andExpect(content().bytes(archive));
+  var replay=uploads.upload(new MockMultipartFile("file","mini.zip","application/zip",archive),id.toString());
+  assertThat(replay.datasetId()).isEqualTo(done.datasetId());
+  assertThat(chunks.claim()).isEmpty();
+ }
+ @Test void chunkSizeOrderAndResumeOffsetAreEnforced() throws Exception {
+  int size=com.example.demo.nuscenes.service.ChunkedDatasetUploadService.CHUNK_BYTES;
+  var session=chunks.create("large.zip",size+3L);
+  assertThatThrownBy(()->chunks.part(session.id(),size,new ByteArrayInputStream(new byte[3]))).isInstanceOf(org.springframework.web.server.ResponseStatusException.class);
+  chunks.part(session.id(),0,new ByteArrayInputStream(new byte[size]));
+  assertThat(chunks.status(session.id()).receivedBytes()).isEqualTo(size);
+  assertThatThrownBy(()->chunks.part(session.id(),size,new ByteArrayInputStream(new byte[4]))).isInstanceOf(org.springframework.web.server.ResponseStatusException.class);
+  chunks.part(session.id(),size,new ByteArrayInputStream(new byte[3]));
+  assertThat(chunks.status(session.id()).receivedBytes()).isEqualTo(size+3L);
  }
 }

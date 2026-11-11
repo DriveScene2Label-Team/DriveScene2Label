@@ -52,6 +52,8 @@ class SceneSearchTests {
  @BeforeEach void resetAi() { STATUS.set(200); RESPONSE.set(aiResponse()); CALLS.set(0); }
  @Autowired JdbcClient jdbc;
  @Autowired MockMvc mvc;
+ @Autowired com.example.demo.nuscenes.service.DatasetSearchIndexService indexes;
+ @Autowired com.example.demo.nuscenes.storage.DatasetStorage storage;
 
  private static String vector(double cosine) {
   var b=new StringBuilder("[").append(cosine).append(',').append(Math.sqrt(1-cosine*cosine));
@@ -104,6 +106,32 @@ class SceneSearchTests {
  @Test void emptySceneSearchAndMissingRequest() throws Exception {
   mvc.perform(get("/api/search/scenes").param("q","road")).andExpect(status().isOk()).andExpect(jsonPath("$.scenes.length()").value(0));
   mvc.perform(get("/api/search/scenes")).andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("INVALID_REQUEST"));
+ }
+ @Test void uploadedSearchIndexRetriesOnlyMissingKeyframes() throws Exception {
+  long d=dataset("uploaded-index"); scene(d,"a","A",1,.8);
+  String key=java.util.UUID.randomUUID().toString();
+  jdbc.sql("UPDATE dataset SET storage_key='uploads',root_relative_path=:k WHERE id=:d").param("k",key).param("d",d).update();
+  var file=storage.uploads().resolve("datasets").resolve(key).resolve("samples/a-file-1.jpg");
+  java.nio.file.Files.createDirectories(file.getParent());java.nio.file.Files.writeString(file,"AI is stubbed; backend validates the scoped path");
+  jdbc.sql("DELETE FROM image_embedding WHERE dataset_id=:d AND sample_data_token='a-file-1'").param("d",d).update();
+  image(d,"a",10,.5,false,MODEL,PREPROCESS);
+  try {
+   mvc.perform(get("/api/datasets/{id}/search-index",d)).andExpect(status().isOk()).andExpect(jsonPath("$.totalImages").value(2)).andExpect(jsonPath("$.indexedImages").value(1));
+   indexes.enqueue(d); STATUS.set(503);
+   indexes.process(indexes.claim().orElseThrow());
+   assertThat(indexes.status(d).status()).isEqualTo("FAILED");
+   assertThat(indexes.status(d).indexedImages()).isEqualTo(1);
+   STATUS.set(200); RESPONSE.set(aiResponse().replace("clip-text-tokenizer",PREPROCESS));
+   indexes.enqueue(d); indexes.process(indexes.claim().orElseThrow());
+   assertThat(indexes.status(d).status()).isEqualTo("COMPLETED");
+   assertThat(indexes.status(d).indexedImages()).isEqualTo(2);
+   assertThat(REQUEST.get()).contains("dataset_key",key,"samples/a-file-1.jpg");
+   assertThat(CALLS.get()).isEqualTo(2);
+   indexes.enqueue(d); assertThat(indexes.claim()).isEmpty();
+   mvc.perform(get("/api/datasets/999999/search-index")).andExpect(status().isNotFound());
+  } finally {
+   java.nio.file.Files.deleteIfExists(file); java.nio.file.Files.deleteIfExists(file.getParent()); java.nio.file.Files.deleteIfExists(file.getParent().getParent());
+  }
  }
  @Test void unavailableAiReturnsServiceUnavailable() throws Exception {
   int unused;

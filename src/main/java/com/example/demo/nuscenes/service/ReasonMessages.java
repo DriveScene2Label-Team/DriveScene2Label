@@ -19,6 +19,8 @@ public final class ReasonMessages {
   Map.entry("AI_HTTP_ERROR","AI 서버가 오류를 반환했어요."),
   Map.entry("LEGACY_NOT_VERIFIED","이전 버전 AI 서버라 실행 준비를 확인할 수 없어요."),
   Map.entry("MODEL_NOT_READY","검색 모델(CLIP)이 준비되지 않았어요."),
+  Map.entry("GPU_UNAVAILABLE","로컬 GPU에 접근할 수 없어요. GPU 연결·드라이버를 복구한 뒤 AI 서버를 다시 시작해 주세요."),
+  Map.entry("RIGID_CACHE_UNAVAILABLE","이 작업의 후처리 캐시가 없어요. 새 기본 라벨을 생성한 뒤 다시 시도해 주세요."),
   Map.entry("CLIP_LOAD_FAILED","검색 모델(CLIP)을 불러오지 못했어요."),
   Map.entry("CLIP_NOT_DEPLOYED","연결된 AI 서버에 검색 모델이 없어요."),
   Map.entry("MODEL_MISMATCH","AI 서버의 검색 모델·전처리가 저장된 임베딩 설정과 달라요."),

@@ -38,7 +38,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def process_scene_rigid(scene_name: str, obj_info: dict, config: dict, refs: dict):
+def process_scene_rigid(scene_name: str, obj_info: dict, config: dict, refs: dict, prepared=None):
     scene = load_dataset_scene(config['data'], scene_name)
     scene = remove_ground(scene, config['remove_ground'], get_out_dir(config, '01_remove_ground'))
     scene = generate_segmentation_masks(scene, config['grounding_sam'], get_out_dir(config, '02_grounding_sam'))
@@ -60,9 +60,21 @@ def process_scene_rigid(scene_name: str, obj_info: dict, config: dict, refs: dic
     # yaw heuristic and inflation keep frame.objects 1:1, so track indices stay valid
     scene = estimate_yaw_from_tracking_and_shape(scene, obj_info, config['yaw_heuristic'])
     scene = inflate_bboxes_to_common_size(scene, obj_info, config['bbox_inflation'])
+    if prepared is not None:
+        prepared(scene, tracks)
+    return finish_scene_rigid(scene, tracks, config, refs)
+
+
+def finish_scene_rigid(scene, tracks, config: dict, refs: dict, prepared=None):
+    """CPU-only replay of the same pre-filter state; never reruns stages 01–07."""
+    for tid, frame in refs.items():
+        if tid < 0 or tid >= len(tracks) or not any(t == frame for t, _ in tracks[tid]):
+            raise ValueError("Reference must belong to the selected track")
     if refs:
         logger.info(f"Propagating {len(refs)} reference boxes")
         scene = propagate(scene, tracks, refs, config['yaw_heuristic']['speed_threshold'])
+    if prepared is not None:
+        prepared(scene, tracks)
 
     # filtering drops objects and later steps copy them, but every copy shares the bbox_to_lidar array
     track_of = {(t, i): tid for tid, track in enumerate(tracks) for t, i in track}

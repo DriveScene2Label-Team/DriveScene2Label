@@ -8,6 +8,7 @@ import { compareUrl, parseId, searchUrl } from '@/app/urls';
 import { Logo } from '@/components/Logo';
 import { StateBox } from '@/components/StateBox';
 import { SceneCard } from '@/features/scenes/SceneCard';
+import { SearchIndexStatus } from '@/features/scenes/SearchIndexStatus';
 import { capabilityMessage, stateLabel } from '@/api/system';
 import { DataOriginBadge } from '@/features/system/DataOriginBadge';
 import { useSystemStatus } from '@/features/system/useSystemStatus';
@@ -104,7 +105,8 @@ export function SceneSearchPage() {
             <input id="q" type="search" autoComplete="off" spellCheck={false} placeholder="예: rainy night road" value={input} onChange={(e) => setInput(e.currentTarget.value)} maxLength={500} />
             <button className="btn btn--primary" type="submit" disabled={!input.trim() || datasetId == null || searchBlocked}>검색</button>
           </form>
-          {datasetId != null && searchCap.state !== 'READY' && searchCap.reasonCode !== 'STATUS_CHECKING' && (
+          {datasetId != null && <SearchIndexStatus key={datasetId} datasetId={datasetId} />}
+          {datasetId != null && searchCap.state !== 'READY' && searchCap.reasonCode !== 'STATUS_CHECKING' && searchCap.reasonCode !== 'EMBEDDINGS_NOT_READY' && (
             <div className="search-note" role="status" data-testid="search-readiness" data-reason={searchCap.reasonCode ?? ''}>
               <span className={`status status--${searchCap.state === 'UNAVAILABLE' ? 'FAILED' : 'UNKNOWN'}`}><i />검색 {stateLabel(searchCap.state)}</span>
               <span>{capabilityMessage(searchCap)}{searchBlocked ? ' 씬 목록 탐색은 그대로 쓸 수 있어요.' : ''}</span>
@@ -123,7 +125,7 @@ export function SceneSearchPage() {
               {describeError(datasets.error)}
             </StateBox>
           ) : datasets.data && datasets.data.length === 0 ? (
-            <StateBox title="등록된 데이터셋이 없어요">서버에 nuScenes 메타데이터를 가져온 뒤 다시 열어 주세요.</StateBox>
+            <StateBox title="등록된 데이터셋이 없어요" actions={<Link className="btn btn--primary" to="/labels">원본 데이터 업로드</Link>}>nuScenes ZIP을 업로드하면 씬 탐색·검색 준비·자동 라벨링을 시작할 수 있어요.</StateBox>
           ) : datasetParam != null && datasets.data && !dataset ? (
             <StateBox kind="error" title="링크의 데이터셋을 찾을 수 없어요" actions={<button type="button" className="btn btn--weak" onClick={() => navigate(searchUrl(null))}>데이터셋 다시 고르기</button>}>
               dataset {datasetParam}은(는) 이 서버에 없어요.

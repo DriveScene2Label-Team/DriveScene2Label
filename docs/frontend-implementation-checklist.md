@@ -1,5 +1,16 @@
 # 프론트 구현 체크리스트
 
+## 2026-11-11 혼합 MVP 후속 검증
+
+- [x] 업로드 데이터셋 검색 인덱스 진행률·자동 생성·재시도 UI 및 실제 GPU CLIP 이미지 1개 인덱싱/검색 검증(별도 테스트 DB).
+- [x] 4MB 분할 전송·세션 재개·비동기 등록 UI, 서버 조각 순서·중복 전송 검증.
+- [x] 신규 VESPA 결과의 trackId 표시 및 객체별 기준 프레임 후처리 UI. 원본 작업을 유지하고 새 작업을 생성하며, 재시도 시 idempotency key를 유지한다.
+- [x] 프론트 빌드와 75개 테스트 통과. Spring 49개 테스트와 별도 AI/실제 VESPA 객체 기반 후처리 fixture 검증 통과.
+- [ ] 사용자 공개 경로에서 실제 4.34GB ZIP 업로드부터 전체 씬 VESPA·후처리까지 완료.
+- [ ] 반복 eGPU TDR의 근본 원인 규명 및 장시간 안정성 검증.
+
+세부 결과와 제한은 [MVP 갱신 기록](hybrid-mvp-update-2026-11-11.md)에 있다. 아래는 기존 개발 시점의 기록이다.
+
 > 후속 개선은 [개선 기획서](frontend-integration-plan.md)와 [별도 개선 체크리스트](frontend-integration-checklist.md)에서 추적한다. 아래 M1~M6 및 V-01~V-10은 기존 구현·검증 범위의 기록이며 새 개선 완료로 옮겨 체크하지 않는다.
 
 기준: [개발 기획서 v1.2](frontend-product-plan.md). 작업 브랜치: `codex/frontend-implementation` (시작 HEAD `501da08`, 이번 작업은 미커밋 작업 트리). 기능별 세부 요구는 기획서 FR-01~24, 검증은 QA-01~17을 따른다.

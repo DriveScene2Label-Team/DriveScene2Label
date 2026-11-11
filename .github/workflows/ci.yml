@@ -81,7 +81,7 @@ jobs:
         run: |
           python3 -m venv /tmp/ai-contract-tests
           /tmp/ai-contract-tests/bin/pip install -r ai-server/requirements-contract-test.txt
-          /tmp/ai-contract-tests/bin/python -m pytest -q ai-server/tests/test_uploaded_datasets.py
+          /tmp/ai-contract-tests/bin/python -m pytest -q ai-server/tests/test_uploaded_datasets.py ai-server/tests/test_rigid_cache.py ai-server/tests/test_gpu_health.py
       - name: Live label save and download against Spring
         env:
           DB_URL: jdbc:postgresql://localhost:55432/drivescene_test

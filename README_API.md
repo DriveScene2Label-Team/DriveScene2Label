@@ -1,5 +1,23 @@
 # DriveScene2Label Backend API Specification
 
+## 2026-11-11 추가 계약
+
+기존 단일 ZIP 업로드 API도 유지한다. 브라우저는 4MB 초과 파일에 아래 세션 API를 사용한다. 공개 배포의 모든 `/api`는 기존 팀 로그인 게이트웨이를 통과한다.
+
+| API | 요청 및 결과 |
+|---|---|
+| `POST /api/dataset-uploads/sessions` | `{filename,sizeBytes}`. ZIP, 최대 5,000,000,000바이트. 201 세션 응답 |
+| `GET /api/dataset-uploads/sessions/{uuid}` | `id,status,sizeBytes,receivedBytes,chunkBytes,datasetId,sceneCount,errorMessage,workerEnabled` |
+| `POST /api/dataset-uploads/sessions/{uuid}/parts?offset=0` | `application/octet-stream`, 최대 4,000,000바이트. 지정 순서와 정확한 마지막 조각 길이를 검증. 같은 바이트의 중복 조각은 허용하고 충돌은 409 |
+| `POST /api/dataset-uploads/sessions/{uuid}/complete` | 전송 완료 후 202 반환, 별도 worker가 검증·S3 저장·카탈로그 등록. 상태는 RECEIVING → QUEUED → PROCESSING → COMPLETED/FAILED |
+| `GET /api/datasets/{id}/search-index` | 키프레임 카메라의 인덱스 준비 상태·대상/완료 수·오류·worker 활성 여부 |
+| `POST /api/datasets/{id}/search-index` | 인덱스 생성/실패 재시도. 이미 저장한 동일 모델·전처리 임베딩은 재사용 |
+| `POST /api/auto-label/jobs/{id}/postprocess` | `{references:{"0":"sample-token"}}`, `Idempotency-Key`. 완료된 원본 작업과 해당 프레임의 trackId를 검증하고 새로운 작업을 202 반환 |
+
+`references`의 키는 현재 원본 작업의 trackId(0 포함), 값은 기준 프레임 sample token이다. T1/T3의 번호는 씬 전체에서 고정된 객체 식별자가 아니다. 예측 박스에 선택 필드 `trackId`를 추가했다. 좌표 WORLD, 크기 WLH, quaternion WXYZ는 유지한다. 원본 결과는 덮어쓰지 않는다. 캐시가 없으면 `RIGID_CACHE_UNAVAILABLE`, 요구 GPU가 사라지면 `GPU_UNAVAILABLE`로 실패 원인을 제공한다.
+
+AI 내부 `/embed/image`에는 선택 필드 `dataset_key`가 추가되어 준비된 업로드 디렉터리 안의 상대 경로만 읽는다. `/auto-label`에는 함께 전달해야 하는 `source_artifact_path`와 `references`가 추가됐다. 서버가 만든 검증된 rigid 캐시만 읽으며 브라우저가 파일 경로나 pickle을 전달할 수 없다. V9~V11 migration이 인덱스 작업·후처리 출처·분할 업로드 세션을 저장한다.
+
 검증 기준: 2026-10-03, origin/main `ffb6dc8` 위 로컬 통합 변경. Docker 통합과 함께 제공하는 REST 계약이다.
 2026-10-04 `codex/frontend-implementation`: GT category 필드, job status 문맥 필드, Rerun recording API(9장) 추가. 기존 필드는 유지한다.
 

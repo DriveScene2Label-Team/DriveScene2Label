@@ -82,6 +82,22 @@ def test_startup_failure(monkeypatch):
                 pass
 
 
+def test_uploaded_image_scope_and_traversal(client, monkeypatch):
+    c, _, root = client
+    uploads = root / "uploads"
+    key = "12345678-1234-1234-1234-123456789abc"
+    target = uploads / "datasets" / key
+    target.mkdir(parents=True)
+    Image.new("RGB", (8, 8)).save(target / "uploaded.jpg")
+    monkeypatch.setenv("UPLOAD_ROOT", str(uploads))
+    assert c.post("/embedding/image", json={"image_path": "uploaded.jpg", "dataset_key": key}).status_code == 200
+    assert c.post("/embedding/image", json={"image_path": "uploaded.jpg"}).status_code == 404
+    assert c.post("/embedding/image", json={"image_path": "../../../image.jpg", "dataset_key": key}).status_code == 400
+    assert c.post("/embedding/image", json={"image_path": "image.jpg", "dataset_key": "../invalid"}).status_code == 422
+    (target / "escape.jpg").symlink_to(root / "image.jpg")
+    assert c.post("/embedding/image", json={"image_path": "escape.jpg", "dataset_key": key}).status_code == 400
+
+
 @pytest.mark.parametrize("cuda,mps,expected",[(True,True,["cuda","mps","cpu"]),(False,True,["mps","cpu"]),(False,False,["cpu"])])
 def test_device_preference(cuda,mps,expected):
     with patch.object(torch.cuda,"is_available",return_value=cuda), patch.object(torch.backends.mps,"is_available",return_value=mps):
