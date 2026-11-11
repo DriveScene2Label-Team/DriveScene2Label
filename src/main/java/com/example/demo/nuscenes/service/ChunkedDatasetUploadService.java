@@ -1,6 +1,7 @@
 package com.example.demo.nuscenes.service;
 
 import com.example.demo.nuscenes.storage.DatasetStorage;
+import com.example.demo.nuscenes.storage.DatasetArchive;
 import com.example.demo.nuscenes.storage.UploadArchiveStore;
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -26,8 +27,8 @@ public class ChunkedDatasetUploadService {
   this.jdbc=jdbc;this.uploads=uploads;this.incoming=storage.uploads().resolve("incoming");this.tx=new TransactionTemplate(manager);this.enabled=enabled;
  }
  public Status create(String filename,long size) throws IOException {
-  if(filename==null || filename.length()>255 || !filename.toLowerCase(Locale.ROOT).endsWith(".zip") || size<=0) throw bad("유효한 nuScenes ZIP을 선택해 주세요.");
-  if(size>UploadArchiveStore.MAX_ARCHIVE_BYTES) throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE,"ZIP은 5GB 이하만 지원합니다.");
+  if(filename==null || filename.length()>255 || !DatasetArchive.supported(filename) || size<=0) throw bad("nuScenes ZIP, TGZ 또는 TAR.GZ를 선택해 주세요.");
+  if(size>UploadArchiveStore.MAX_ARCHIVE_BYTES) throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE,"압축 파일은 5GB 이하만 지원합니다.");
   Files.createDirectories(incoming);
   if(Files.getFileStore(incoming).getUsableSpace()<size*2+9L*1024*1024*1024) throw new ResponseStatusException(HttpStatus.INSUFFICIENT_STORAGE,"로컬 서버의 압축 해제·보관 공간이 부족합니다.");
   UUID id=UUID.randomUUID();
@@ -95,7 +96,7 @@ public class ChunkedDatasetUploadService {
  public void heartbeat(Row work) { jdbc.sql("UPDATE dataset_upload_session SET updated_at=now() WHERE id=:id AND execution_token=:t AND status='PROCESSING'").param("id",work.id()).param("t",work.executionToken()).update(); }
  private record ArchiveFile(Path path,String originalFilename) implements MultipartFile {
   public String getName() { return "file"; } public String getOriginalFilename() { return originalFilename; }
-  public String getContentType() { return "application/zip"; }
+  public String getContentType() { return "application/octet-stream"; }
   public boolean isEmpty() { return getSize()==0; }
   public long getSize() { try { return Files.size(path); } catch(IOException e) { throw new UncheckedIOException(e); } }
   public byte[] getBytes() { throw new UnsupportedOperationException("Use streaming access for archives"); }

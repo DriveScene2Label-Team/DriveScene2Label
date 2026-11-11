@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
 /** Optional durable archive storage. Credentials come from the ECS task role/default SDK chain. */
 @Component
@@ -23,23 +24,27 @@ public class UploadArchiveStore {
    .overrideConfiguration(c->c.apiCallTimeout(Duration.ofMinutes(10))).build();
  }
  public boolean enabled() { return s3!=null; }
- private String objectKey(String key) {
+ private String objectKey(String key,DatasetArchive.Format format) {
   if(!key.matches("[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}")) throw new IllegalArgumentException("Invalid upload key");
-  return "uploads/"+key+".zip";
+  return "uploads/"+key+format.extension;
  }
- public void put(String key,Path archive) {
-  if(s3!=null) s3.putObject(r->r.bucket(bucket).key(objectKey(key)).contentType("application/zip"),RequestBody.fromFile(archive));
+ public void put(String key,Path archive) throws IOException {
+  var format=DatasetArchive.detect(archive);
+  if(s3!=null) s3.putObject(r->r.bucket(bucket).key(objectKey(key,format)).contentType(format.contentType),RequestBody.fromFile(archive));
  }
- public void remove(String key) { if(s3!=null) s3.deleteObject(r->r.bucket(bucket).key(objectKey(key))); }
+ public void remove(String key,DatasetArchive.Format format) { if(s3!=null) s3.deleteObject(r->r.bucket(bucket).key(objectKey(key,format))); }
  public void fetch(String key,Path target) throws IOException {
   if(s3==null) throw new IOException("Upload archive is not on this server and S3 is not configured");
-  try(var input=s3.getObject(r->r.bucket(bucket).key(objectKey(key)));
+  for(var format:DatasetArchive.Format.values()) {
+  try(var input=s3.getObject(r->r.bucket(bucket).key(objectKey(key,format)));
       var output=Files.newOutputStream(target,StandardOpenOption.CREATE_NEW)) {
    long total=0;byte[] buffer=new byte[65536];int count;
    while((count=input.read(buffer))!=-1) {
     total+=count;if(total>MAX_ARCHIVE_BYTES) throw new IOException("S3 upload archive exceeds 5GB");
     output.write(buffer,0,count);
    }
+   return;
+  } catch(NoSuchKeyException missing) { if(format==DatasetArchive.Format.TGZ) throw missing; }
   }
  }
  @PreDestroy public void close() { if(s3!=null) s3.close(); }

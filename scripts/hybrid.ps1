@@ -13,6 +13,8 @@ Push-Location $repoRoot
 try {
     if ($Action -eq 'status') {
         & docker @composeArgs ps
+        & python scripts/hybrid/operations.py status --env-file $runtimeEnv
+        if ($LASTEXITCODE -ne 0) { throw 'Cannot verify the backend maintenance state.' }
         & nvidia-smi -L
         if (Test-Path "$localRoot/tunnel.stderr.log") {
             Select-String -Path "$localRoot/tunnel.stderr.log" -Pattern 'https://[^ ]+\.trycloudflare.com'
@@ -41,11 +43,15 @@ try {
     }
     & python scripts/hybrid/refresh-s3-session.py --directory (Join-Path $runtimeRoot 'aws')
     if ($LASTEXITCODE -ne 0) { throw 'Renew AWS login with aws login --profile ds2l-seoul, then retry.' }
+    & python scripts/hybrid/operations.py prepare --env-file $runtimeEnv
+    if ($LASTEXITCODE -ne 0) { throw 'Local operations credential preparation failed.' }
     & docker @composeArgs config --quiet
     if ($LASTEXITCODE -ne 0) { throw 'Compose configuration failed' }
     if ($WebOnly) { & docker @composeArgs up -d --no-build --no-deps backend auth-gateway }
     else { & docker @composeArgs up -d --no-build }
     if ($LASTEXITCODE -ne 0) { throw 'Local service startup failed' }
+    & python scripts/hybrid/operations.py resume --env-file $runtimeEnv
+    if ($LASTEXITCODE -ne 0) { throw 'Backend started but writes remain unavailable. Check maintenance state before using the app.' }
     $helpers = @(
         @{ Name='aws-refresh'; File=(Get-Command python).Source; Args=('"' + (Join-Path $repoRoot 'scripts/hybrid/refresh-s3-session.py') + '" --directory "' + (Join-Path $runtimeRoot 'aws') + '" --watch') },
         @{ Name='tunnel'; File=(Join-Path $repoRoot '.local/tools/cloudflared.exe'); Args='tunnel --no-autoupdate --url http://127.0.0.1:4180 --protocol http2' }

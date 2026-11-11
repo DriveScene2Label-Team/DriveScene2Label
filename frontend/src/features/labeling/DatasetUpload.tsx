@@ -56,8 +56,8 @@ export function DatasetUpload({ disabled }: { disabled: boolean }) {
   }, [busy, phaseStarted]);
   const upload = async () => {
     if (!file) return;
-    if (!file.name.toLowerCase().endsWith('.zip')) { setError('ZIP 파일을 선택해 주세요. .tgz는 압축을 푼 뒤 ZIP으로 다시 압축해야 합니다.'); return; }
-    if (file.size > 5_000_000_000) { setError('5GB 이하의 nuScenes ZIP을 선택해 주세요.'); return; }
+    if (!/\.(zip|tgz|tar\.gz)$/i.test(file.name)) { setError('nuScenes ZIP, TGZ 또는 TAR.GZ 파일을 선택해 주세요.'); return; }
+    if (file.size > 5_000_000_000) { setError('5GB 이하의 nuScenes 압축 파일을 선택해 주세요.'); return; }
     setBusy(true); setError(''); setDataset(null);
     setPhase('transfer'); setTransfer(null); setPhaseStarted(Date.now());
     try {
@@ -68,11 +68,11 @@ export function DatasetUpload({ disabled }: { disabled: boolean }) {
   };
   return <section className="labels-dataset-upload">
     <h2>원본 데이터 업로드</h2>
-    <p className="note">nuScenes ZIP · 최대 5GB, 압축 해제 후 8GiB. 최상위에 v1.0-mini 또는 v1.0-trainval 메타데이터와 해당 samples/sweeps 파일이 필요합니다.</p>
-    <p className="note">라벨 JSON은 없어도 됩니다. 큰 ZIP은 나눠 전송하며, 연결이 끊기면 같은 파일을 다시 선택해 이어서 올릴 수 있어요.</p>
-    <p className="note">.tgz 원본은 압축을 푼 뒤 위 폴더들을 ZIP으로 묶어 주세요. 파일 확장자만 바꾸면 업로드할 수 없습니다.</p>
+    <p className="note">nuScenes ZIP · TGZ · TAR.GZ, 최대 5GB, 압축 해제 후 8GiB. 최상위에 v1.0-mini 또는 v1.0-trainval 메타데이터와 해당 samples/sweeps 파일이 필요합니다.</p>
+    <p className="note">라벨 JSON은 없어도 됩니다. 큰 파일은 나눠 전송하며, 연결이 끊기면 같은 파일을 다시 선택해 이어서 올릴 수 있어요.</p>
+    <p className="note">공식 v1.0-mini.tgz를 재압축 없이 올릴 수 있어요. 다운로드나 압축 작업이 끝난 파일을 선택해 주세요.</p>
     <p className="note">일반 JPG·MP4만으로는 3D 자동 라벨링을 할 수 없습니다. 카메라 보정·센서·위치 정보가 필요합니다.</p>
-    <input aria-label="원본 데이터 ZIP" type="file" accept=".zip,application/zip" disabled={disabled || busy} onChange={(e) => { setFile(e.currentTarget.files?.[0] ?? null); setError(''); }} />
+    <input aria-label="원본 데이터 압축 파일" type="file" accept=".zip,.tgz,.tar.gz,application/zip,application/gzip,application/x-gzip" disabled={disabled || busy} onChange={(e) => { setFile(e.currentTarget.files?.[0] ?? null); setError(''); }} />
     <button className="btn btn--weak" disabled={!file || disabled || busy} onClick={() => void upload()}>{busy ? (phase === 'transfer' ? '파일 전송 중…' : '서버 검증 중…') : '데이터셋 업로드'}</button>
     {busy && <div role="status">
       {phase === 'transfer' ? <>
@@ -85,7 +85,7 @@ export function DatasetUpload({ disabled }: { disabled: boolean }) {
     {error && <p className="labels-error" role="alert">{error}</p>}
     {dataset && <div role="status"><p>{dataset.sceneCount}개 씬을 등록했습니다. 이미지 검색 준비는 서버에서 자동으로 진행되며 씬 화면에서 상태를 확인할 수 있어요.</p>
       <Link className="btn btn--primary" to={`/scenes?dataset=${dataset.datasetId}`}>씬 열기 · 자동 라벨링</Link>
-      <a className="btn btn--weak" href={`/api/dataset-uploads/${dataset.datasetId}/original`}>원본 ZIP 다운로드</a>
+      <a className="btn btn--weak" href={`/api/dataset-uploads/${dataset.datasetId}/original`}>원본 압축 파일 다운로드</a>
     </div>}
   </section>;
 }

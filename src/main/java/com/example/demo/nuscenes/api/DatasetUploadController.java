@@ -2,6 +2,7 @@ package com.example.demo.nuscenes.api;
 
 import com.example.demo.nuscenes.service.DatasetUploadService;
 import com.example.demo.nuscenes.storage.DatasetStorage;
+import com.example.demo.nuscenes.storage.DatasetArchive;
 import java.io.IOException;
 import java.nio.file.Files;
 import org.springframework.core.io.FileSystemResource;
@@ -26,8 +27,8 @@ public class DatasetUploadController {
   String key=jdbc.sql("SELECT root_relative_path FROM dataset WHERE id=:id AND storage_key='uploads'").param("id",datasetId).query(String.class).optional()
    .orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"업로드 데이터셋을 찾을 수 없습니다."));
   var file=storage.archive(key);
-  if(!Files.isRegularFile(file)) throw new ResponseStatusException(HttpStatus.NOT_FOUND,"원본 ZIP 파일이 없습니다.");
+  if(!Files.isRegularFile(file)) throw new ResponseStatusException(HttpStatus.NOT_FOUND,"원본 압축 파일이 없습니다.");
   return ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM).contentLength(Files.size(file))
-   .header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=\"dataset-"+datasetId+".zip\"").header("X-Content-Type-Options","nosniff").body(new FileSystemResource(file));
+   .header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=\"dataset-"+datasetId+DatasetArchive.detect(file).extension+"\"").header("X-Content-Type-Options","nosniff").body(new FileSystemResource(file));
  }
 }

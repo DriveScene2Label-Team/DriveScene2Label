@@ -44,6 +44,28 @@ class DatasetUploadTests {
   for(String table:List.of("sample_data","map")) for(var row:json.readTree(entries.get("v1.0-mini/"+table+".json"))) entries.put(row.path("filename").asText(),"synthetic-media".getBytes());
   return entries;
  }
+ byte[] tgz(Map<String,byte[]> entries) throws IOException {
+  var bytes=new ByteArrayOutputStream();
+  try(var gzip=new GZIPOutputStream(bytes);var tar=new org.apache.commons.compress.archivers.tar.TarArchiveOutputStream(gzip)) {
+   for(var item:entries.entrySet()) {
+    var entry=new org.apache.commons.compress.archivers.tar.TarArchiveEntry("./"+item.getKey());entry.setSize(item.getValue().length);
+    tar.putArchiveEntry(entry);tar.write(item.getValue());tar.closeArchiveEntry();
+   }
+  }
+  return bytes.toByteArray();
+ }
+ @Test void tgzUploadAndChunkRetryPreserveOriginalFormat() throws Exception {
+  byte[] archive=tgz(fixture());
+  for(String filename:List.of("mini.tgz","mini.tar.gz")) {
+   var session=chunks.create(filename,archive.length);
+   chunks.part(session.id(),0,new ByteArrayInputStream(archive));chunks.complete(session.id());
+   chunks.process(chunks.claim().orElseThrow());
+   var done=chunks.status(session.id());assertThat(done.status()).isEqualTo("COMPLETED");assertThat(done.sceneCount()).isEqualTo(1);
+   mvc.perform(get("/api/dataset-uploads/{id}/original",done.datasetId())).andExpect(status().isOk())
+    .andExpect(header().string("Content-Disposition","attachment; filename=\"dataset-"+done.datasetId()+".tar.gz\""))
+    .andExpect(content().bytes(archive));
+  }
+ }
  @Test void uploadCatalogMediaAndDownloadOriginal() throws Exception {
   byte[] archive=zip(fixture());
   var large=new MockMultipartFile("file","data.zip","application/zip",archive) {

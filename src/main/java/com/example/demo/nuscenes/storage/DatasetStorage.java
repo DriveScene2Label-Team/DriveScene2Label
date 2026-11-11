@@ -33,13 +33,14 @@ public class DatasetStorage {
  }
  public synchronized Path archive(String key) throws IOException {
   validateKey(key);
-  Path target=uploads.resolve("archives").resolve(key+".zip");
-  if(Files.isRegularFile(target)) return target;
-  Files.createDirectories(target.getParent());
-  Path partial=target.resolveSibling(key+"."+UUID.randomUUID()+".part");
-  try { archives.fetch(key,partial); Files.move(partial,target); }
+  Path directory=uploads.resolve("archives");
+  for(var format:DatasetArchive.Format.values()) {
+   Path cached=directory.resolve(key+format.extension);if(Files.isRegularFile(cached)) return cached;
+  }
+  Files.createDirectories(directory);
+  Path partial=directory.resolve(key+"."+UUID.randomUUID()+".part");
+  try { archives.fetch(key,partial);return Files.move(partial,directory.resolve(key+DatasetArchive.detect(partial).extension)); }
   finally { Files.deleteIfExists(partial); }
-  return target;
  }
  private synchronized void restore(String key,Path target) throws IOException {
   if(Files.isDirectory(target)) return;

@@ -12,6 +12,16 @@ import static org.mockito.Mockito.*;
 
 class UploadStorageTests {
  @TempDir Path root;
+ @Test void anotherServerRestoresTarGzipWithoutChangingOriginal() throws Exception {
+  var remote=mock(UploadArchiveStore.class);String key=UUID.randomUUID().toString();
+  byte[] archive=DatasetArchiveTests.tgz("./samples/front.jpg","image-data".getBytes(),org.apache.commons.compress.archivers.tar.TarConstants.LF_NORMAL);
+  doAnswer(call->{Files.write(call.getArgument(1,Path.class),archive);return null;}).when(remote).fetch(eq(key),any(Path.class));
+  var storage=new DatasetStorage(new DatasetFiles(root.resolve("base").toString()),root.toString(),remote,1024);
+  assertThat(Files.readString(storage.files("uploads",key).resolve("samples/front.jpg"))).isEqualTo("image-data");
+  assertThat(storage.archive(key).getFileName().toString()).endsWith(".tar.gz");
+  assertThat(Files.readAllBytes(storage.archive(key))).isEqualTo(archive);
+  verify(remote,times(1)).fetch(eq(key),any(Path.class));
+ }
  @Test void anotherServerRestoresOriginalAndMediaFromDurableArchive() throws Exception {
   var remote=mock(UploadArchiveStore.class);
   String key=UUID.randomUUID().toString();

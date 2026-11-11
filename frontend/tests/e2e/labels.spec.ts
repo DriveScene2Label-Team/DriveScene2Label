@@ -100,9 +100,9 @@ test('데이터셋 ZIP 업로드 후 씬과 원본 다운로드로 연결한다'
   await page.route('**/api/label-documents**', (route) => route.fulfill({ json: [] }));
   await page.route('**/api/dataset-uploads', (route) => route.fulfill({ status: 201, json: { datasetId: 18, sceneCount: 2, version: 'v1.0-mini' } }));
   await page.goto('/labels');
-  await page.getByLabel('원본 데이터 ZIP').setInputFiles({ name: 'data.zip', mimeType: 'application/zip', buffer: Buffer.from('fixture upload') });
+  await page.getByLabel('원본 데이터 압축 파일').setInputFiles({ name: 'data.zip', mimeType: 'application/zip', buffer: Buffer.from('fixture upload') });
   await page.getByRole('button', { name: '데이터셋 업로드', exact: true }).click();
   await expect(page.getByText('2개 씬을 등록했습니다.')).toBeVisible();
   await expect(page.getByRole('link', { name: '씬 열기 · 자동 라벨링' })).toHaveAttribute('href', '/scenes?dataset=18');
-  await expect(page.getByRole('link', { name: '원본 ZIP 다운로드' })).toHaveAttribute('href', '/api/dataset-uploads/18/original');
+  await expect(page.getByRole('link', { name: '원본 압축 파일 다운로드' })).toHaveAttribute('href', '/api/dataset-uploads/18/original');
 });

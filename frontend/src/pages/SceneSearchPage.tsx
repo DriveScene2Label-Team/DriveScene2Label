@@ -125,7 +125,7 @@ export function SceneSearchPage() {
               {describeError(datasets.error)}
             </StateBox>
           ) : datasets.data && datasets.data.length === 0 ? (
-            <StateBox title="등록된 데이터셋이 없어요" actions={<Link className="btn btn--primary" to="/labels">원본 데이터 업로드</Link>}>nuScenes ZIP을 업로드하면 씬 탐색·검색 준비·자동 라벨링을 시작할 수 있어요.</StateBox>
+            <StateBox title="등록된 데이터셋이 없어요" actions={<Link className="btn btn--primary" to="/labels">원본 데이터 업로드</Link>}>nuScenes ZIP 또는 TGZ를 업로드하면 씬 탐색·검색 준비·자동 라벨링을 시작할 수 있어요.</StateBox>
           ) : datasetParam != null && datasets.data && !dataset ? (
             <StateBox kind="error" title="링크의 데이터셋을 찾을 수 없어요" actions={<button type="button" className="btn btn--weak" onClick={() => navigate(searchUrl(null))}>데이터셋 다시 고르기</button>}>
               dataset {datasetParam}은(는) 이 서버에 없어요.

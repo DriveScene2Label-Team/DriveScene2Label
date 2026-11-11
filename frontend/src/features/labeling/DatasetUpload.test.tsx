@@ -23,7 +23,7 @@ function chooseFile(size: number, name = 'mini.zip') {
   render(<MemoryRouter><QueryClientProvider client={new QueryClient()}><DatasetUpload disabled={false} /></QueryClientProvider></MemoryRouter>);
   const file = new File(['fixture'], name, { type: 'application/zip' });
   Object.defineProperty(file, 'size', { value: size });
-  fireEvent.change(screen.getByLabelText('원본 데이터 ZIP'), { target: { files: [file] } });
+  fireEvent.change(screen.getByLabelText('원본 데이터 압축 파일'), { target: { files: [file] } });
   fireEvent.click(screen.getByRole('button', { name: '데이터셋 업로드' }));
 }
 
@@ -69,9 +69,16 @@ it('uses resumable chunks for archives larger than one proxy request', async () 
   expect(uploadChunks).toHaveBeenCalledWith(expect.any(File), expect.any(Function), expect.any(Function));
 });
 
-it('explains conversion when a tgz archive is selected', () => {
+it.each(['v1.0-mini.tgz', 'v1.0-mini.tar.gz'])('uploads %s without ZIP conversion', async (name) => {
+  vi.mocked(uploadChunks).mockResolvedValue({ datasetId: 8, sceneCount: 10 });
+  chooseFile(4_168_148_189, name);
+  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('10개 씬을 등록했습니다.'));
+  expect(uploadChunks).toHaveBeenCalledWith(expect.objectContaining({ name }), expect.any(Function), expect.any(Function));
+});
+
+it('rejects unsupported archives before transmission', () => {
   const request = mockUpload();
-  chooseFile(4_200_000_000, 'v1.0-mini.tgz');
-  expect(screen.getByRole('alert')).toHaveTextContent('.tgz는 압축을 푼 뒤 ZIP으로 다시 압축');
+  chooseFile(4_200_000_000, 'v1.0-mini.7z');
+  expect(screen.getByRole('alert')).toHaveTextContent('ZIP, TGZ 또는 TAR.GZ');
   expect(request.send).not.toHaveBeenCalled();
 });

@@ -2,11 +2,11 @@
 
 ## 2026-11-11 추가 계약
 
-기존 단일 ZIP 업로드 API도 유지한다. 브라우저는 4MB 초과 파일에 아래 세션 API를 사용한다. 공개 배포의 모든 `/api`는 기존 팀 로그인 게이트웨이를 통과한다.
+기존 단일 업로드 API도 유지하며 ZIP·TGZ·TAR.GZ를 지원한다. 브라우저는 4MB 초과 파일에 아래 세션 API를 사용한다. 공개 배포의 모든 `/api`는 기존 팀 로그인 게이트웨이를 통과한다. 원본 다운로드는 실제 형식에 맞는 `.zip`/`.tar.gz` 파일명을 반환하며, 압축 원본 바이트는 변환하지 않는다.
 
 | API | 요청 및 결과 |
 |---|---|
-| `POST /api/dataset-uploads/sessions` | `{filename,sizeBytes}`. ZIP, 최대 5,000,000,000바이트. 201 세션 응답 |
+| `POST /api/dataset-uploads/sessions` | `{filename,sizeBytes}`. ZIP/TGZ/TAR.GZ, 최대 5,000,000,000바이트. 201 세션 응답 |
 | `GET /api/dataset-uploads/sessions/{uuid}` | `id,status,sizeBytes,receivedBytes,chunkBytes,datasetId,sceneCount,errorMessage,workerEnabled` |
 | `POST /api/dataset-uploads/sessions/{uuid}/parts?offset=0` | `application/octet-stream`, 최대 4,000,000바이트. 지정 순서와 정확한 마지막 조각 길이를 검증. 같은 바이트의 중복 조각은 허용하고 충돌은 409 |
 | `POST /api/dataset-uploads/sessions/{uuid}/complete` | 전송 완료 후 202 반환, 별도 worker가 검증·S3 저장·카탈로그 등록. 상태는 RECEIVING → QUEUED → PROCESSING → COMPLETED/FAILED |

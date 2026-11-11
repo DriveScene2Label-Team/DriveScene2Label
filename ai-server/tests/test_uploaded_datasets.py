@@ -1,5 +1,7 @@
 """Uploaded dataset contract tests. No model weights, GPU or torch installation required."""
 import json
+import io
+import tarfile
 import zipfile
 import shutil
 import sys
@@ -116,9 +118,9 @@ def test_s3_cache_downloads_once_and_publishes_only_complete_directory(tmp_path,
         output.writestr("samples/image.jpg", b"fixture-image")
     calls = []
     class Client:
-        def head_object(self, **kwargs):
+        def get_object(self, **kwargs):
             assert kwargs == {"Bucket": "contract-test-bucket", "Key": f"uploads/{key}.zip"}
-            return {"ContentLength": 600 * 1024 ** 2}
+            return {"ContentLength": 600 * 1024 ** 2, "Body": io.BytesIO()}
         def download_file(self, bucket, object_key, filename, **kwargs):
             calls.append(object_key)
             shutil.copyfile(archive, filename)
@@ -134,8 +136,8 @@ def test_s3_archive_over_five_gb_is_rejected_before_download(tmp_path, monkeypat
     monkeypatch.setenv("UPLOAD_ROOT", str(tmp_path / "cache"))
     monkeypatch.setenv("UPLOAD_S3_BUCKET", "contract-test-bucket")
     class Client:
-        def head_object(self, **kwargs):
-            return {"ContentLength": 5_000_000_001}
+        def get_object(self, **kwargs):
+            return {"ContentLength": 5_000_000_001, "Body": io.BytesIO()}
         def download_file(self, *args, **kwargs):
             pytest.fail("Oversized archives must not be downloaded")
     cache = UploadedDatasetCache()
@@ -155,3 +157,46 @@ def test_archive_rejects_escape_and_excessive_expansion(tmp_path, name, size, li
     with pytest.raises(ValueError):
         extract_archive(archive, root, limit)
     assert not (tmp_path / "outside").exists()
+
+
+@pytest.mark.parametrize('kind', ['valid', 'escape', 'symlink', 'hardlink', 'oversized', 'truncated'])
+def test_tar_gzip_paths_types_limits_and_footer(tmp_path, kind):
+    archive = tmp_path / 'source.tgz'
+    with tarfile.open(archive, 'w:gz', format=tarfile.PAX_FORMAT) as output:
+        folder = tarfile.TarInfo('./');folder.type = tarfile.DIRTYPE;output.addfile(folder)
+        entry = tarfile.TarInfo('../outside' if kind == 'escape' else './samples/camera.jpg')
+        if kind in ('symlink', 'hardlink'):
+            entry.type = tarfile.SYMTYPE if kind == 'symlink' else tarfile.LNKTYPE
+            entry.linkname = '../outside';output.addfile(entry)
+        else:
+            content = b'image-data';entry.size = len(content);output.addfile(entry, io.BytesIO(content))
+    if kind == 'truncated': archive.write_bytes(archive.read_bytes()[:-8])
+    root = tmp_path / 'data';root.mkdir()
+    if kind == 'valid':
+        extract_archive(archive, root, 1024)
+        assert (root / 'samples/camera.jpg').read_bytes() == b'image-data'
+    else:
+        with pytest.raises((ValueError, EOFError, tarfile.TarError)):
+            extract_archive(archive, root, 1 if kind == 'oversized' else 1024)
+    assert not (tmp_path / 'outside').exists()
+
+
+def test_s3_tar_gzip_fallback_closes_probe_and_restores(tmp_path, monkeypatch):
+    monkeypatch.setenv('UPLOAD_ROOT', str(tmp_path / 'cache'))
+    monkeypatch.setenv('UPLOAD_S3_BUCKET', 'contract-test-bucket')
+    archive = tmp_path / 'source.tgz'
+    with tarfile.open(archive, 'w:gz') as output:
+        entry = tarfile.TarInfo('samples/front.jpg');entry.size = 4;output.addfile(entry, io.BytesIO(b'data'))
+    class Missing(Exception): pass
+    class Client:
+        class exceptions: NoSuchKey = Missing
+        probe = io.BytesIO()
+        def get_object(self, **kwargs):
+            if kwargs['Key'].endswith('.zip'): raise Missing()
+            return {'ContentLength': archive.stat().st_size, 'Body': self.probe}
+        def download_file(self, bucket, key, filename, **kwargs):
+            assert key.endswith('.tar.gz');shutil.copyfile(archive, filename)
+    cache = UploadedDatasetCache();cache.client = Client()
+    target = cache.ensure(str(uuid4()))
+    assert (target / 'samples/front.jpg').read_bytes() == b'data'
+    assert cache.client.probe.closed

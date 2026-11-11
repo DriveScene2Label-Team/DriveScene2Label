@@ -4,6 +4,8 @@
 
 ## 최신 운영 설정
 
+`scripts/hybrid.ps1 -Action start`는 보호된 `compose.env`에 로컬 운영 토큰을 준비하고 backend 기동 후 인증된 resume API를 호출한다. DB 스냅샷에 남은 `deployment_control.maintenance=true`를 명시적으로 해제하며, 실제 업로드 쓰기 경로가 검증 단계에 도달하는지 확인한다. `status`도 maintenance 상태를 출력한다. 일반 GET healthcheck만으로 쓰기 가능 상태를 판정하지 않는다. 현재 파일 형식은 ZIP·TGZ·TAR.GZ이며 공식 mini.tgz 재압축은 필요 없다.
+
 앱 데이터 초기화와 백업 보존을 완료했다. 현재 업로드·검색 인덱스·자동 라벨 작업자는 `UPLOAD_WORKER_ENABLED=true`, `EMBEDDING_INDEX_WORKER_ENABLED=true`, `AUTO_LABEL_WORKER_ENABLED=true`로 운영한다. 업로드 데이터셋의 recording은 지원하지 않아 `RECORDING_WORKER_ENABLED=false`를 유지한다. 예제 파일의 기본값은 복원 직후 기존 작업을 검토하도록 모두 false다.
 
 업로드 ZIP은 4MB 조각으로 전송하고 서버에서 비동기로 검증·등록한다. 원본 등록 후 검색 임베딩을 자동 생성하며, 진행률과 재시도를 씬 화면에서 제공한다. 자동 라벨 작업과 인덱스 생성은 같은 GPU 작업자를 공유해 동시에 실행하지 않는다. 완료된 신규 VESPA 작업에는 객체별 기준 프레임 후처리를 사용할 수 있다. 이전 캐시 없는 작업은 기본 라벨 생성부터 다시 수행해야 한다.
