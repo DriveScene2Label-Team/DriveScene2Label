@@ -77,7 +77,7 @@ public class AutoLabelRepository {
  public Optional<JobStatus> status(long id) {
   return jdbc.sql("""
    SELECT j.id AS job_id,j.dataset_id,j.status,j.failure_reason AS error_message,j.created_at,j.started_at,j.completed_at,
-    j.requested_targets->>0 AS scene_token,s.id AS scene_id,s.name AS scene_name,CAST(replace(j.mapping_name,'class','') AS integer) AS class_mode,j.mapping_name,j.error_code
+    j.requested_targets->>0 AS scene_token,s.id AS scene_id,s.name AS scene_name,CAST(replace(j.mapping_name,'class','') AS integer) AS class_mode,j.mapping_name,j.error_code,j.model_version
    FROM auto_label_job j LEFT JOIN scene s ON s.dataset_id=j.dataset_id AND s.token=j.requested_targets->>0 WHERE j.id=:j
    """).param("j",id).query(JobStatus.class).optional();
  }
@@ -85,7 +85,7 @@ public class AutoLabelRepository {
  public List<JobStatus> byScene(long sceneId) {
   return jdbc.sql("""
    SELECT j.id AS job_id,j.dataset_id,j.status,j.failure_reason AS error_message,j.created_at,j.started_at,j.completed_at,
-    j.requested_targets->>0 AS scene_token,s.id AS scene_id,s.name AS scene_name,CAST(replace(j.mapping_name,'class','') AS integer) AS class_mode,j.mapping_name,j.error_code
+    j.requested_targets->>0 AS scene_token,s.id AS scene_id,s.name AS scene_name,CAST(replace(j.mapping_name,'class','') AS integer) AS class_mode,j.mapping_name,j.error_code,j.model_version
    FROM scene s JOIN auto_label_job j ON s.dataset_id=j.dataset_id AND s.token=j.requested_targets->>0
    WHERE s.id=:s AND j.target_type='SCENE' AND jsonb_array_length(j.requested_targets)=1
    ORDER BY j.created_at DESC,j.id DESC LIMIT 50

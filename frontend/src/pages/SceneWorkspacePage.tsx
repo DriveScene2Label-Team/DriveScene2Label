@@ -37,8 +37,8 @@ export default function SceneWorkspacePage() {
   useEffect(() => {
     if (location.search === written.current) return;
     if (params.datasetId == null || params.sceneId == null) return;
-    openScene('single', { datasetId: params.datasetId, sceneId: params.sceneId, sampleToken: params.sample, jobId: params.job });
-  }, [location.search, params.datasetId, params.sceneId, params.sample, params.job, openScene]);
+    openScene('single', { datasetId: params.datasetId, sceneId: params.sceneId, sampleToken: params.sample, jobId: params.job, compareJobId: params.cmp });
+  }, [location.search, params.datasetId, params.sceneId, params.sample, params.job, params.cmp, openScene]);
 
   const frames = usePaneFrames('single');
   const pred = usePredictions(pane.resultJobId, frames.displayed.sample);
@@ -55,7 +55,7 @@ export default function SceneWorkspacePage() {
     const path = window.location.pathname;
     const t = window.setTimeout(() => {
       if (window.location.pathname !== path || path !== `/scenes/${pane.sceneId}`) return;
-      const url = workspaceUrl({ datasetId: pane.datasetId!, sceneId: pane.sceneId!, sample: pane.displayedSampleToken, job: pane.jobId, view: params.view });
+      const url = workspaceUrl({ datasetId: pane.datasetId!, sceneId: pane.sceneId!, sample: pane.displayedSampleToken, job: pane.jobId, cmp: pane.compareJobId, view: params.view });
       const search = url.slice(url.indexOf('?'));
       if (search !== location.search) {
         written.current = search;
@@ -63,7 +63,7 @@ export default function SceneWorkspacePage() {
       }
     }, 250);
     return () => window.clearTimeout(t);
-  }, [pane.playing, frames.buffering, pane.datasetId, pane.sceneId, pane.displayedSampleToken, pane.jobId, params.view, location.search, navigate]);
+  }, [pane.playing, frames.buffering, pane.datasetId, pane.sceneId, pane.displayedSampleToken, pane.jobId, pane.compareJobId, params.view, location.search, navigate]);
 
   useEffect(() => { if (scene) document.title = `${scene.name} - DriveScene2Label`; }, [scene]);
 
@@ -79,7 +79,7 @@ export default function SceneWorkspacePage() {
     }
     const view: WorkspaceView = m === 'cams' ? 'six' : 'split';
     if (view === params.view) return;
-    navigate(workspaceUrl({ datasetId: pane.datasetId, sceneId: pane.sceneId, sample: pane.displayedSampleToken, job: pane.jobId, view }));
+    navigate(workspaceUrl({ datasetId: pane.datasetId, sceneId: pane.sceneId, sample: pane.displayedSampleToken, job: pane.jobId, cmp: pane.compareJobId, view }));
   };
 
   if (params.datasetId == null || params.sceneId == null) {

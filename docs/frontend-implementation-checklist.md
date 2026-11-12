@@ -209,3 +209,17 @@
 ### 배포 후 화면 파일 복구
 
 Spring 정적 리소스는 `Cache-Control: no-cache`로 재검증한다. 이미 열려 있던 페이지가 삭제된 이전 JS 청크를 요청하면 같은 URL에서 한 번 새로고침한다. 60초 동안 추가 자동 새로고침을 막고, 계속 실패하거나 저장소 사용이 차단된 브라우저에는 한국어 복구 버튼을 표시한다. 일반 애플리케이션 오류는 자동 새로고침하지 않는다. 브라우저 테스트는 청크 요청 1회 실패 후 복구와 지속 실패 시 무한 루프 방지를 확인한다. 수정 배포 전에 이미 오류가 난 이전 버전 탭은 사용자가 한 번 새로고침해야 새 복구 코드가 적용된다.
+
+### 비교 작업 박스 겹쳐 보기 (2026-11-12, `feat/vespa-ver2-compare`)
+
+같은 씬의 다른 완료 작업(예: VESPA ver2)을 기존 예측 위에 다른 색으로 겹쳐 본다. 옛 박스는 그대로 두고 비교 박스만 추가한다.
+
+- [x] job status에 `modelVersion` 추가(Spring). 프론트는 접미사(`+ver2-rigid` 등)로 작업을 구분한다.
+- [x] 패널별 `compareJobId`와 `cmp` 레이어, URL `cmp` 파라미터. 씬이 바뀌면 비교 선택을 지운다.
+- [x] HUD `비교` 드롭다운(현재 결과를 제외한 완료 작업)과 보이기 토글. 비교 박스는 초록 `#19d67a` 점선, 태그 `ver2-rigid · 클래스`. 선택·편집·숨김 대상이 아니다.
+- [x] 원본과 같은 비교 박스(같은 클래스, 위치·크기 5 cm, 방향 ~0.9° 이내)는 선만 그리고 태그를 생략한다. HUD에 작업 전체 `같음·달라짐·추가·없어짐` 요약(#26 대비 #35: 987·0·0·0, #23 P1/P2: 872·53·381·62).
+- [x] 로컬 Colab shim의 `COLAB_RESULTS_DIR`를 `results`로 되돌림(`results-ver2-base`에는 scene-0061만 있어 다른 씬 라벨 생성이 실패). ai-server shim 이미지 재빌드 후 vespa/recording READY, scene-0061 라벨 생성 job 36 완료(1306개)와 recording 생성 확인.
+- [x] 실제 데이터: dataset 1 / scene-0061 / job 26(원본 VESPA, 987) + job 35(ver2 rigid base, 987, trackId 포함). 1600×1000 Chromium 카메라 6대 화면에서 예측 19개와 비교 19개가 함께 그려지는 것을 확인했다. ver2 base는 원본과 바이트 단위로 같은 라벨이라 박스가 정확히 겹친다(차이는 refs 적용 2단계에서 생긴다).
+- [x] 프론트 단위 108개, Spring 71개(Docker), 프론트 build 통과.
+- [ ] 3D(Rerun recording)에 비교 박스 레이어 추가: recording `compare_job_id`, exporter `world/prediction_cmp`, 블루프린트 조합 16개.
+- [ ] A/B 비교 화면 URL에 `cmpA/cmpB` 보존(현재는 패널 상태로만 유지).

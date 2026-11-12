@@ -192,6 +192,8 @@ export interface JobStatusDto {
   mappingName?: string | null;
   /** Stable failure identifier (V6+). null for running/completed jobs and rows written before it existed. */
   errorCode?: string | null;
+  /** VESPA commit plus patch/post-process suffixes (e.g. "+ds2l-p1-p2", "+ver2-rigid"). Older servers omit it. */
+  modelVersion?: string | null;
 }
 
 export interface PredictionDto {

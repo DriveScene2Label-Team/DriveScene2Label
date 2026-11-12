@@ -125,7 +125,15 @@ export function toJobStatus(j: JobStatusDto): JobStatus {
     jobId: j.jobId, datasetId: j.datasetId, status: j.status, errorMessage: j.errorMessage,
     createdAt: time(j.createdAt) ?? Date.now(), startedAt: time(j.startedAt), completedAt: time(j.completedAt),
     sceneToken: j.sceneToken ?? null, classMode: isClassMode(mode) ? mode : null, errorCode: j.errorCode ?? null,
+    variant: jobVariant(j.modelVersion),
   };
+}
+
+/** "acb2…+ds2l-p1-p2+ver2-rigid" → "ds2l-p1-p2+ver2-rigid"; a bare commit → ""; missing → null. */
+export function jobVariant(modelVersion: string | null | undefined): string | null {
+  if (modelVersion == null) return null;
+  const i = modelVersion.indexOf('+');
+  return i < 0 ? '' : modelVersion.slice(i + 1);
 }
 
 export function toJobResults(r: JobResultsDto): JobResults {

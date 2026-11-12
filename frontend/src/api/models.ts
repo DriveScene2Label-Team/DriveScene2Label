@@ -91,6 +91,12 @@ export interface BoxView {
   velocityXY: [number, number] | null;
   attributeName: string | null;
   trackId?: number | null;
+  /** Box of the comparison job (pane compareJobId): drawn in its own colour, never selectable or editable. */
+  compare?: boolean;
+  /** Short name of the comparison job shown in front of its tags (e.g. "ver2-rigid" or "#35"). */
+  compareTag?: string;
+  /** Comparison box against the shown predictions of the same sample (features/objects/compareBoxes). */
+  compareKind?: 'same' | 'changed' | 'added';
 }
 
 export interface SearchHit {
@@ -127,6 +133,8 @@ export interface JobStatus {
   sceneToken: string | null;
   classMode: ClassMode | null;
   errorCode: string | null;
+  /** Model version suffixes after the commit ("ds2l-p1-p2+ver2-rigid"), "" for plain VESPA, null if unknown. */
+  variant: string | null;
 }
 
 export interface JobResults {

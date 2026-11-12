@@ -1,6 +1,7 @@
+import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { BoxView, JobResults, SampleRef } from '@/api/models';
-import { jobResultsQuery } from '@/api/queries';
+import { jobResultsQuery, jobStatusQuery } from '@/api/queries';
 
 export type PredState =
   | { kind: 'none' }
@@ -26,9 +27,29 @@ export function usePredictions(resultJobId: number | null, sample: SampleRef | n
   return boxes ? { kind: 'ready', jobId: resultJobId, boxes } : { kind: 'not-in-job', jobId: resultJobId };
 }
 
-export function visibleBoxes(gt: BoxView[] | null, pred: PredState, layers: { gt: boolean; pred: boolean }): BoxView[] {
+/**
+ * Boxes of the comparison job for one sample, marked `compare` so the cameras draw them in their own colour.
+ * The same job as the shown result is not compared with itself.
+ */
+export function useComparePredictions(compareJobId: number | null, resultJobId: number | null, sample: SampleRef | null): BoxView[] {
+  const id = compareJobId != null && compareJobId !== resultJobId ? compareJobId : null;
+  const state = usePredictions(id, sample);
+  const status = useQuery({ ...jobStatusQuery(id ?? -1), enabled: id != null });
+  const tag = id == null ? '' : compareTagOf(id, status.data?.variant ?? null);
+  const boxes = state.kind === 'ready' ? state.boxes : null;
+  return useMemo(() => (boxes ? boxes.map((b) => ({ ...b, compare: true, compareTag: tag })) : []), [boxes, tag]);
+}
+
+/** Last model-version suffix ("ds2l-p1-p2+ver2-rigid" → "ver2-rigid"), else "#<jobId>". */
+export function compareTagOf(jobId: number, variant: string | null): string {
+  const last = variant ? variant.split('+').pop() : '';
+  return last || `#${jobId}`;
+}
+
+export function visibleBoxes(gt: BoxView[] | null, pred: PredState, layers: { gt: boolean; pred: boolean; cmp?: boolean }, compare: BoxView[] = []): BoxView[] {
   const out: BoxView[] = [];
   if (layers.gt && gt) out.push(...gt);
   if (layers.pred && pred.kind === 'ready') out.push(...pred.boxes);
+  if (layers.cmp && compare.length) out.push(...compare);
   return out;
 }

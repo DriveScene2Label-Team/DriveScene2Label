@@ -161,11 +161,13 @@ sceneToken/classMode 필수, datasetId 선택 양수. 동일 token이 여러 dat
 
 ```json
 {"jobId":12,"datasetId":1,"status":"RUNNING","errorMessage":null,"createdAt":"2026-10-03T12:00:00Z","startedAt":"2026-10-03T12:00:01Z","completedAt":null,
- "sceneToken":"scene-token","sceneId":7,"sceneName":"scene-0061","classMode":8,"mappingName":"8class","errorCode":null}
+ "sceneToken":"scene-token","sceneId":7,"sceneName":"scene-0061","classMode":8,"mappingName":"8class","errorCode":null,"modelVersion":"acb2b6e8…+ds2l-p1-p2"}
 ```
 
 `sceneToken`은 job 생성 시 대상(`requested_targets[0]`), `sceneId/sceneName`은 같은 dataset의 scene JOIN으로 없으면 null, `classMode`(1/3/8)는 `mappingName`에서 계산한다. 새로고침 후 receipt 없이도 대상 문맥을 복원할 수 있다.
 404 job 없음. FAILED는 errorMessage 및 completedAt이 채워진다. DB 컬럼명은 `failure_reason`, 외부 필드는 `errorMessage`다.
+`modelVersion`: `auto_label_job.model_version` 그대로(VESPA commit + `+ds2l-p1-p2`, `+track-refine-v2`, `+ver2-rigid` 같은 patch·후처리 접미사). 프론트는 접미사로 같은 씬의 실행을 구분해 비교 대상(`cmp`)을 고른다.
+
 `errorCode`(V6, nullable): 실패 지점의 안정 식별자. `AI_ENDPOINT_UNSUPPORTED`(AI에 `/auto-label` 라우트 없음, HTTP 404), `AI_UNREACHABLE`(연결 거부·DNS·connect timeout), `AI_TIMEOUT`(응답 대기 초과), `AI_HTTP_ERROR`(AI 코드 없는 HTTP 오류), AI가 보낸 `VESPA_*`/`SCENE_NOT_FOUND`, `RESULT_VALIDATION_FAILED`(결과가 job·sample과 불일치), `RESULT_STORAGE_FAILED`(DB 저장 실패). V6 이전 행은 null이며 기존 message를 다시 해석하지 않는다. HTTP 502 자체를 모델 실패로 보지 않는다.
 job 생성과 sample snapshot은 한 transaction. worker가 PENDING을 claim하고 짧은 transaction으로 RUNNING을 저장한 다음 HTTP 호출한다. 프론트엔드는 2~5초 간격으로 조회하고 terminal 상태에서 중단한다. 최대 예상 대기시간은 배포 timeout에 맞춰 안내한다.
 
