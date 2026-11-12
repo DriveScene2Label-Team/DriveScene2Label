@@ -222,6 +222,7 @@ Spring 정적 리소스는 `Cache-Control: no-cache`로 재검증한다. 이미 
 - [x] 원본과 같은 비교 박스(같은 클래스, 위치·크기 5 cm, 방향 ~0.9° 이내)는 선만 그리고 태그를 생략한다. HUD에 작업 전체 `같음·달라짐·추가·없어짐` 요약(#26 대비 #35: 987·0·0·0, #23 P1/P2: 872·53·381·62).
 - [x] 로컬 Colab shim의 `COLAB_RESULTS_DIR`를 `results`로 되돌림(`results-ver2-base`에는 scene-0061만 있어 다른 씬 라벨 생성이 실패). ai-server shim 이미지 재빌드 후 vespa/recording READY, scene-0061 라벨 생성 job 36 완료(1306개)와 recording 생성 확인.
 - [x] 실제 데이터: dataset 1 / scene-0061 / job 26(원본 VESPA, 987) + job 35(ver2 rigid base, 987, trackId 포함). 1600×1000 Chromium 카메라 6대 화면에서 예측 19개와 비교 19개가 함께 그려지는 것을 확인했다. ver2 base는 원본과 바이트 단위로 같은 라벨이라 박스가 정확히 겹친다(차이는 refs 적용 2단계에서 생긴다).
+- [x] ver2 2단계(refs `{T3: 18, T1: 0}`)를 저장된 base 라벨·track에 `rigid_tracklet.propagate`와 같은 식으로 적용(p_final `object_filtering: null`이라 1:1). 로컬 job 39: #26 대비 같음 946 · 달라짐 41. 달라진 비교 박스 태그는 겹치거나 30 m 밖이어도 표시.
 - [x] 프론트 단위 108개, Spring 71개(Docker), 프론트 build 통과.
 - [ ] 3D(Rerun recording)에 비교 박스 레이어 추가: recording `compare_job_id`, exporter `world/prediction_cmp`, 블루프린트 조합 16개.
 - [ ] A/B 비교 화면 URL에 `cmpA/cmpB` 보존(현재는 패널 상태로만 유지).

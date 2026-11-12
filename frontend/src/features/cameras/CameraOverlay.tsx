@@ -90,7 +90,8 @@ export const CameraOverlay = memo(function CameraOverlay({ items, width, height,
     const top = 34 * s;
     for (const it of order) {
       const strong = it.key === selectedKey;
-      if (!strong && (compact || anySel || it.dist > 30)) continue;
+      const diff = it.box.compare === true && it.box.compareKind !== 'same';
+      if (!strong && (compact || anySel || (it.dist > 30 && !diff))) continue;
       const cmp = it.box.compare === true;
       // An unchanged comparison box only adds its line (blue shows through the green dashes); its tag would repeat the prediction's.
       if (cmp && it.box.compareKind === 'same' && !strong) continue;
@@ -101,9 +102,13 @@ export const CameraOverlay = memo(function CameraOverlay({ items, width, height,
       const clampY = (y: number) => Math.min(Math.max(y, top), height - ph - s);
       const hit = (x0: number, y0: number) => placed.some((r) => x0 < r[2] && x0 + pw > r[0] && y0 < r[3] && y0 + ph > r[1]);
       let y = clampY(gt ? it.bbox[1] - ph - s : it.bbox[3] + s);
-      // A comparison tag usually lands on the prediction tag of the same object: stack it one row lower.
-      if (cmp && hit(x, y)) y = clampY(y + ph + 2 * s);
-      if (!strong && hit(x, y)) continue;
+      // A comparison tag usually lands on the prediction tag of the same object: try the next rows below, then above
+      // the box. A changed/added comparison box is what the view is for, so its tag is drawn even if all spots are taken.
+      if (cmp && hit(x, y)) {
+        const spots = [1, 2, 3].map((n) => clampY(y + n * (ph + 2 * s))).concat(clampY(it.bbox[1] - ph - s));
+        y = spots.find((c) => !hit(x, c)) ?? spots[0]!;
+      }
+      if (!strong && !cmp && hit(x, y)) continue;
       placed.push([x, y, x + pw, y + ph]);
       out.push({ key: it.key, x, y, w: pw, h: ph, text, src: toneOf(it.box), strong });
     }
