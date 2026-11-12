@@ -3,7 +3,7 @@
  * and never substituted for each other.
  *
  *   /scenes?dataset=1&q=...
- *   /scenes/7?dataset=1&sample=TOKEN&job=12&view=split|six
+ *   /scenes/7?dataset=1&sample=TOKEN&job=12&cmp=35&view=split|six   (cmp: comparison job drawn in another colour)
  *   /compare?datasetA=1&sceneA=7&sampleA=..&jobA=..&datasetB=1&sceneB=7&sampleB=..&sync=relative&active=B
  */
 export type WorkspaceView = 'split' | 'six';
@@ -23,6 +23,7 @@ export interface WorkspaceParams {
   sceneId: number | null;
   sample: string | null;
   job: number | null;
+  cmp: number | null;
   view: WorkspaceView;
 }
 
@@ -32,14 +33,16 @@ export function parseWorkspace(sceneParam: string | undefined, sp: URLSearchPara
     sceneId: parseId(sceneParam ?? null),
     sample: parseToken(sp.get('sample')),
     job: parseId(sp.get('job')),
+    cmp: parseId(sp.get('cmp')),
     view: sp.get('view') === 'six' ? 'six' : 'split',
   };
 }
 
-export function workspaceUrl(p: { datasetId: number; sceneId: number; sample?: string | null; job?: number | null; view?: WorkspaceView }): string {
+export function workspaceUrl(p: { datasetId: number; sceneId: number; sample?: string | null; job?: number | null; cmp?: number | null; view?: WorkspaceView }): string {
   const sp = new URLSearchParams({ dataset: String(p.datasetId) });
   if (p.sample) sp.set('sample', p.sample);
   if (p.job != null) sp.set('job', String(p.job));
+  if (p.cmp != null) sp.set('cmp', String(p.cmp));
   sp.set('view', p.view ?? 'split');
   return `/scenes/${p.sceneId}?${sp.toString()}`;
 }

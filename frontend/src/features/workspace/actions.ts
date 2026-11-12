@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
 import type { BoxView } from '@/api/models';
 import type { PaneFrames } from '@/features/frames/usePaneFrames';
+import { pairBoxes } from '@/features/objects/compareBoxes';
 import { objectKey } from '@/features/objects/objectKeys';
-import { visibleBoxes, type PredState } from '@/features/objects/useFrameBoxes';
+import { useComparePredictions, visibleBoxes, type PredState } from '@/features/objects/useFrameBoxes';
 import { useLayout } from '@/stores/layout';
 import { announce } from '@/stores/toast';
 import { useWorkspace, type PaneId } from '@/stores/workspace';
@@ -20,12 +21,20 @@ export function selectObject(paneId: PaneId, key: string | null, box?: BoxView |
   }
 }
 
-/** Boxes drawn in the cameras of a pane: layers applied, hidden objects removed. */
+/** Boxes drawn in the cameras of a pane: layers applied, hidden objects removed, comparison job boxes added. */
 export function usePaneBoxes(paneId: PaneId, frames: PaneFrames, pred: PredState): BoxView[] {
   const layers = useWorkspace((s) => s.panes[paneId].layers);
   const hidden = useWorkspace((s) => s.panes[paneId].hidden);
+  const compareJobId = useWorkspace((s) => s.panes[paneId].compareJobId);
+  const resultJobId = useWorkspace((s) => s.panes[paneId].resultJobId);
+  const compare = useComparePredictions(compareJobId, resultJobId, frames.displayed.sample);
+  const marked = useMemo(() => {
+    if (!compare.length || pred.kind !== 'ready') return compare;
+    const { kinds } = pairBoxes(compare, pred.boxes);
+    return compare.map((b, i) => ({ ...b, compareKind: kinds[i] }));
+  }, [compare, pred]);
   return useMemo(() => {
     const set = new Set(hidden);
-    return visibleBoxes(frames.displayed.gt, pred, layers).filter((b) => !set.has(objectKey(b)));
-  }, [frames.displayed.gt, pred, layers, hidden]);
+    return visibleBoxes(frames.displayed.gt, pred, layers, marked).filter((b) => b.compare || !set.has(objectKey(b)));
+  }, [frames.displayed.gt, pred, layers, hidden, marked]);
 }

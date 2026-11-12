@@ -42,7 +42,7 @@ describe('A/B pane independence', () => {
     expect(useWorkspace.getState().panes.A.selectedBoxKey).toBe('pred:12:900');
     s.toggleLayer('A', 'pred');
     expect(useWorkspace.getState().panes.A.selectedBoxKey).toBeNull();
-    expect(useWorkspace.getState().panes.A.layers).toEqual({ gt: false, pred: false, names: false });
+    expect(useWorkspace.getState().panes.A.layers).toEqual({ gt: false, pred: false, names: false, cmp: true });
   });
 
   it('keeps hidden objects per pane and resets them for another scene', () => {
@@ -66,6 +66,21 @@ describe('A/B pane independence', () => {
     s.openScene('A', { datasetId: 1, sceneId: 8 });
     const A = useWorkspace.getState().panes.A;
     expect([A.sceneId, A.requestedSampleToken, A.jobId, A.resultJobId]).toEqual([8, null, null, null]);
+  });
+
+  it('keeps the comparison job per pane and drops it with the scene', () => {
+    const s = useWorkspace.getState();
+    s.openScene('A', { datasetId: 1, sceneId: 7, compareJobId: 35 });
+    s.openScene('B', { datasetId: 1, sceneId: 7 });
+    expect([useWorkspace.getState().panes.A.compareJobId, useWorkspace.getState().panes.B.compareJobId]).toEqual([35, null]);
+    s.selectBox('A', 'pred:26:1');
+    s.toggleLayer('A', 'cmp');
+    expect(useWorkspace.getState().panes.A.selectedBoxKey).toBe('pred:26:1');
+    s.setCompareJob('A', null);
+    expect(useWorkspace.getState().panes.A.compareJobId).toBeNull();
+    s.setCompareJob('A', 35);
+    s.openScene('A', { datasetId: 1, sceneId: 8 });
+    expect(useWorkspace.getState().panes.A.compareJobId).toBeNull();
   });
 
   it('only marks a frame displayed when told, keeping requested and displayed apart', () => {

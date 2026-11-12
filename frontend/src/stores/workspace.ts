@@ -11,12 +11,14 @@ export type PaneId = 'single' | 'A' | 'B';
 export type CompareSide = 'A' | 'B';
 export type ChangeOrigin = 'user' | 'playback' | 'sync' | 'viewer' | 'url' | 'init';
 export type PaneView = 'both' | 'cams' | 'lidar';
-export type LayerKey = 'gt' | 'pred' | 'names';
+export type LayerKey = 'gt' | 'pred' | 'names' | 'cmp';
 export interface Layers {
   gt: boolean;
   pred: boolean;
   /** Class name tags on camera boxes. */
   names: boolean;
+  /** Boxes of the comparison job (compareJobId), drawn on top of the shown predictions in another colour. */
+  cmp: boolean;
 }
 
 export interface PaneState {
@@ -44,6 +46,11 @@ export interface PaneState {
   jobId: number | null;
   /** Completed job whose predictions are drawn. Kept while a newer run is pending or failed. */
   resultJobId: number | null;
+  /**
+   * Second completed job drawn next to resultJobId for a before/after look (e.g. a VESPA ver2 run against the
+   * original). Display only: its boxes cannot be selected or edited.
+   */
+  compareJobId: number | null;
   recordingId: number | null;
   /** Compare panes only: cameras + 3D, camera grid or 3D. */
   paneView: PaneView;
@@ -63,13 +70,14 @@ export const initialPane = (): PaneState => ({
   changeSeq: 0,
   playing: false,
   speed: 1,
-  layers: { gt: true, pred: true, names: true },
+  layers: { gt: true, pred: true, names: true, cmp: true },
   selectedBoxKey: null,
   hidden: [],
   focusCamera: null,
   classMode: 8,
   jobId: null,
   resultJobId: null,
+  compareJobId: null,
   recordingId: null,
   paneView: 'both',
   generation: 0,
@@ -83,6 +91,7 @@ interface OpenScene {
   sceneId: number;
   sampleToken?: string | null;
   jobId?: number | null;
+  compareJobId?: number | null;
 }
 
 interface WorkspaceStore {
@@ -104,6 +113,7 @@ interface WorkspaceStore {
   setClassMode: (pane: PaneId, mode: ClassMode) => void;
   watchJob: (pane: PaneId, jobId: number | null) => void;
   showResult: (pane: PaneId, jobId: number | null) => void;
+  setCompareJob: (pane: PaneId, jobId: number | null) => void;
   setRecording: (pane: PaneId, recordingId: number | null) => void;
   setPaneView: (pane: PaneId, view: PaneView) => void;
   setActivePane: (pane: CompareSide) => void;
@@ -136,6 +146,7 @@ export const useWorkspace = create<WorkspaceStore>()((set) => ({
         next.jobId = o.jobId;
         if (o.jobId === null) next.resultJobId = null;
       }
+      if (o.compareJobId !== undefined && o.compareJobId !== next.compareJobId) next.compareJobId = o.compareJobId;
       if (same && next === cur) return s;
       return patch(s, pane, next);
     }),
@@ -144,7 +155,7 @@ export const useWorkspace = create<WorkspaceStore>()((set) => ({
   resetServerContext: () =>
     set((s) => {
       // A different backend instance: job/recording ids of the old one mean nothing here.
-      const clear = (p: PaneState): PaneState => ({ ...p, jobId: null, resultJobId: null, recordingId: null, selectedBoxKey: null, generation: nextGeneration() });
+      const clear = (p: PaneState): PaneState => ({ ...p, jobId: null, resultJobId: null, compareJobId: null, recordingId: null, selectedBoxKey: null, generation: nextGeneration() });
       return { panes: { single: clear(s.panes.single), A: clear(s.panes.A), B: clear(s.panes.B) } };
     }),
 
@@ -167,7 +178,7 @@ export const useWorkspace = create<WorkspaceStore>()((set) => ({
       const layers = { ...cur.layers, [layer]: !cur.layers[layer] };
       // Hiding a source also drops a selection of that source (it would no longer be visible anywhere).
       const sel = cur.selectedBoxKey;
-      const dropSel = !layers[layer] && layer !== 'names' && sel != null && sel.startsWith(layer === 'gt' ? 'gt:' : 'pred:');
+      const dropSel = !layers[layer] && (layer === 'gt' || layer === 'pred') && sel != null && sel.startsWith(layer === 'gt' ? 'gt:' : 'pred:');
       return patch(s, pane, { layers, ...(dropSel ? { selectedBoxKey: null } : {}) });
     }),
   toggleHidden: (pane, key) =>
@@ -181,6 +192,7 @@ export const useWorkspace = create<WorkspaceStore>()((set) => ({
   setClassMode: (pane, classMode) => set((s) => patch(s, pane, { classMode })),
   watchJob: (pane, jobId) => set((s) => patch(s, pane, { jobId })),
   showResult: (pane, resultJobId) => set((s) => (s.panes[pane].resultJobId === resultJobId ? s : patch(s, pane, { resultJobId }))),
+  setCompareJob: (pane, compareJobId) => set((s) => (s.panes[pane].compareJobId === compareJobId ? s : patch(s, pane, { compareJobId }))),
   setRecording: (pane, recordingId) => set((s) => (s.panes[pane].recordingId === recordingId ? s : patch(s, pane, { recordingId }))),
   setPaneView: (pane, paneView) => set((s) => patch(s, pane, { paneView })),
   setActivePane: (activePane) => set({ activePane }),

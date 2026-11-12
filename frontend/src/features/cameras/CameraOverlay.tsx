@@ -31,9 +31,15 @@ export function projectAll(camera: CompiledCamera | null, boxes: readonly BoxVie
   return out;
 }
 
-/** Box colours of the design: GT yellow dashed, prediction blue solid (line style also names the source). */
-export const BOX_COLOR = { GT: '#ffc800', VESPA: '#3d8bff' } as const;
-const INK = { GT: '#191f28', VESPA: '#ffffff' } as const;
+/**
+ * Box colours of the design: GT yellow dashed, prediction blue solid (line style also names the source).
+ * CMP: comparison job (e.g. VESPA ver2) in green, short dashes drawn over the prediction, so where both runs give
+ * the same box the blue line shows through the gaps and where they differ the green box stands apart.
+ */
+export const BOX_COLOR = { GT: '#ffc800', VESPA: '#3d8bff', CMP: '#19d67a' } as const;
+const INK = { GT: '#191f28', VESPA: '#ffffff', CMP: '#06281a' } as const;
+type Tone = keyof typeof BOX_COLOR;
+const toneOf = (box: BoxView): Tone => (box.compare ? 'CMP' : box.source);
 const FONT = '-apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Segoe UI", "Malgun Gothic", "Noto Sans KR", sans-serif';
 
 let measureCtx: CanvasRenderingContext2D | null | undefined;
@@ -73,26 +79,33 @@ export const CameraOverlay = memo(function CameraOverlay({ items, width, height,
     const [x0, y0, x1, y1] = i.bbox;
     const r = [Math.max(0, x0), Math.max(0, y0), Math.min(width, x1), Math.min(height, y1)] as const;
     return { i, r, area: (r[2] - r[0]) * (r[3] - r[1]) };
-  }).filter((h) => h.r[2] - h.r[0] > 1 && h.r[3] - h.r[1] > 1).sort((a, b) => b.area - a.area), [items, width, height]);
+  }).filter((h) => !h.i.box.compare).filter((h) => h.r[2] - h.r[0] > 1 && h.r[3] - h.r[1] > 1).sort((a, b) => b.area - a.area), [items, width, height]);
 
   const tags = useMemo(() => {
     if (!names) return [];
     const placed: Array<[number, number, number, number]> = [];
-    const out: Array<{ key: string; x: number; y: number; w: number; h: number; text: string; src: 'GT' | 'VESPA'; strong: boolean }> = [];
+    const out: Array<{ key: string; x: number; y: number; w: number; h: number; text: string; src: Tone; strong: boolean }> = [];
     const order = [...items].sort((a, b) => Number(b.key === selectedKey) - Number(a.key === selectedKey) || a.dist - b.dist);
     const ph = 19 * s;
     const top = 34 * s;
     for (const it of order) {
       const strong = it.key === selectedKey;
       if (!strong && (compact || anySel || it.dist > 30)) continue;
-      const text = it.box.cls;
+      const cmp = it.box.compare === true;
+      // An unchanged comparison box only adds its line (blue shows through the green dashes); its tag would repeat the prediction's.
+      if (cmp && it.box.compareKind === 'same' && !strong) continue;
+      const text = cmp ? `${it.box.compareTag ?? '비교'} · ${it.box.cls}` : it.box.cls;
       const pw = (textWidth(text) + 16) * s;
       const gt = it.box.source === 'GT';
       const x = Math.min(Math.max(it.bbox[0], s), width - pw - s);
-      const y = Math.min(Math.max(gt ? it.bbox[1] - ph - s : it.bbox[3] + s, top), height - ph - s);
-      if (!strong && placed.some((r) => x < r[2] && x + pw > r[0] && y < r[3] && y + ph > r[1])) continue;
+      const clampY = (y: number) => Math.min(Math.max(y, top), height - ph - s);
+      const hit = (x0: number, y0: number) => placed.some((r) => x0 < r[2] && x0 + pw > r[0] && y0 < r[3] && y0 + ph > r[1]);
+      let y = clampY(gt ? it.bbox[1] - ph - s : it.bbox[3] + s);
+      // A comparison tag usually lands on the prediction tag of the same object: stack it one row lower.
+      if (cmp && hit(x, y)) y = clampY(y + ph + 2 * s);
+      if (!strong && hit(x, y)) continue;
       placed.push([x, y, x + pw, y + ph]);
-      out.push({ key: it.key, x, y, w: pw, h: ph, text, src: it.box.source, strong });
+      out.push({ key: it.key, x, y, w: pw, h: ph, text, src: toneOf(it.box), strong });
     }
     return out;
   }, [items, names, compact, anySel, selectedKey, s, width, height]);
@@ -105,7 +118,7 @@ export const CameraOverlay = memo(function CameraOverlay({ items, width, height,
         return (
           <g key={box.key} data-box-key={box.key} data-object-key={key} data-source={box.source} opacity={anySel && !selected ? 0.45 : 1}>
             {selected && <path d={d} stroke="rgba(255,255,255,.85)" strokeWidth={4.5} vectorEffect="non-scaling-stroke" fill="none" />}
-            <path d={d} stroke={BOX_COLOR[box.source]} strokeWidth={selected ? 2.5 : 1.5} strokeDasharray={box.source === 'GT' ? '6 4' : undefined}
+            <path d={d} stroke={BOX_COLOR[toneOf(box)]} strokeWidth={selected ? 2.5 : 1.5} strokeDasharray={box.compare ? '3 3' : box.source === 'GT' ? '6 4' : undefined}
               vectorEffect="non-scaling-stroke" fill="none" />
           </g>
         );
