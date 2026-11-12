@@ -65,6 +65,8 @@ jobs:
       - name: Frontend dependencies
         working-directory: frontend
         run: npm ci
+      - name: Hybrid startup and measurement contracts
+        run: python3 -m unittest discover -s scripts/hybrid/tests -v
       - name: Frontend tests and production build
         working-directory: frontend
         run: |

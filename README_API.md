@@ -312,3 +312,11 @@ Auto-label job_id/execution_token은 둘 다 생략하거나 둘 다 제공하�
 ## 업로드·라벨 편집 API 추가 (2026-11-09)
 
 새 `/api/label-documents`와 `/api/dataset-uploads` API, 요청·응답·제한·저장 의미는 [파일 업로드·라벨 편집 문서](docs/label-editing.md#api)를 참고하세요. 기존 자동 라벨 결과와 GT는 보존하고 별도 편집 버전을 저장합니다.
+
+## 요청·업로드 계측 (2026-11-12)
+
+Spring `/api/*` 응답의 `X-Request-ID`는 서버가 생성한다. `[HTTP]` 로그는 동일 ID, method, route template, status, 서버 경계 소요 시간을 기록한다. query·body·cookie는 이 로그에 포함하지 않는다. 파일 스트리밍/비동기 응답의 이 값이 브라우저 수신 완료 시간은 아니다.
+
+`POST /api/dataset-uploads/sessions/{id}/metrics`는 선택적인 브라우저 관측을 받으며 성공 시 `204`다. JSON: `{ "transferMs": 1234, "processingMs": 5678, "totalMs": 6912, "sentBytes": 4194304, "resumedBytes": 0, "outcome": "completed" }`. 시간은 0~86,400,000ms, 바이트는 0~5,000,000,000, outcome은 `completed|failed`. 없는 세션은 404, 잘못된 값은 400이다. 서버는 파일명/본문을 받지 않고 `[UPLOAD_CLIENT]`로 기록한다. 자기 보고 수치이며 저장 성공·권한·과금의 판단 근거가 아니다. 업로드 등록 자체와 독립적으로 전송되므로 계측 전달 실패가 업로드를 취소하지 않는다.
+
+큰 파일의 `transferMs`에는 세션 조회·재시도·프록시 왕복까지 포함되고 `processingMs`에는 완료 요청과 polling 대기가 포함된다. `sentBytes`는 이번 시도에서 서버 응답을 확인한 조각 바이트이며 재전송한 실제 네트워크 바이트와 다를 수 있다. 작은 파일의 multipart 경로는 이 브라우저 지표를 보내지 않는다. 분석 경계와 수집 명령은 [계측 문서](docs/architecture-and-measurement-2026-11-12.md)를 참고한다.

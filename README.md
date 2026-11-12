@@ -1,586 +1,199 @@
 # DriveScene2Label
 
-nuScenes 기반 **3D Auto-Labeling + 자연어 Scene Retrieval + 라벨 편집** 웹 애플리케이션입니다. 카메라 이미지를 CLIP 벡터로 저장하고 자연어로 scene을 검색합니다. 선택한 scene은 VESPA로 3D pseudo-label을 생성하여 GT와 분리해 저장합니다. 업로드한 라벨이나 완료된 자동 라벨 결과를 UI에서 수정하고, 원본을 보존하면서 수정본을 서버에 저장·다운로드할 수 있습니다.
+nuScenes 원본을 올리고, 주행 씬을 찾아 **선택한 씬의 3D 라벨을 생성·확인·수정하는 웹 애플리케이션**입니다. CLIP 자연어 검색, 6개 카메라와 LiDAR 3D 작업대, VESPA 자동 라벨링, 객체 기준 후처리와 편집 이력을 제공합니다.
 
-배포 기준 브랜치는 **`release-version`**, AWS 리전은 **서울 `ap-northeast-2`**입니다. [이번 릴리스 변경사항과 JPA 선택 이유](#15-release-version-변경사항), [AWS 구성·선택 이유·배포 방법](#16-aws-배포와-구성-이유)을 먼저 확인하세요.
+**[서비스 열기](https://drivescene2label.vercel.app) · [API 명세](README_API.md) · [구조·병목 분석·면접 학습 문서](docs/architecture-and-measurement-2026-11-12.md)**
 
-현재 MVP 주소: **[DriveScene2Label](https://drivescene2label.vercel.app)**. 프론트는 Vercel, 백엔드·GPU는 로컬 PC, 원본 저장소는 S3, 메타데이터·라벨 DB는 RDS를 사용합니다. 기존 ECS 공개 주소는 종료된 환경의 주소입니다. 아래 AWS 전체 배포 설명은 이전 구성의 참고 자료이며 현재 MVP 실행에 사용하지 않습니다.
+기준: **2026-11-12 · `release-version`**. 현재 프론트는 Vercel, 백엔드와 GPU는 로컬 PC, 원본은 AWS S3, 메타데이터·라벨은 RDS에 둡니다. **EC2·ECS·EKS는 이번 MVP에 사용하지 않습니다.** 과거 전체 AWS 운영 명령과 검증 기록은 [별도 이력 문서](docs/aws-deployment-history-2026-11-09.md)로 옮겼습니다.
 
-## 현재 MVP와 재부팅 후 재개 (2026-11-11)
+## 사용 흐름
 
-**현재 사용 흐름은 `원본 업로드 → 씬 선택 → 선택한 씬 라벨링 → 같은 작업대에서 결과 확인·편집`입니다.** `scene-0103`에서 실행하면 그 씬의 40개 키프레임만 대상으로 합니다. `scene-0061`은 39개입니다. 전체 데이터셋의 10개 씬을 자동으로 실행하지 않으며, 현재 프레임 한 장만 처리하는 기능도 아닙니다.
+1. **원본 업로드:** `/uploads`에서 nuScenes ZIP·TGZ·TAR.GZ를 선택합니다. 공식 `v1.0-mini.tgz`는 재압축 없이 사용하며 라벨 JSON은 필요하지 않습니다. 최대 5GB, 압축 해제 후 8GiB입니다. 일반 JPG·MP4만으로는 3D 라벨링할 수 없습니다.
+2. **씬 등록·검색 준비:** 파일은 4,000,000바이트 조각으로 전송하고 서버가 압축 검증 → S3 원본 보관 → RDS 등록을 처리합니다. 등록 후 CLIP 이미지 임베딩을 자동 생성합니다. **임베딩 완료 전에도 등록된 씬은 열 수 있습니다.** 자연어 검색 준비와 자동 라벨 생성은 별도 작업입니다.
+3. **씬 선택·라벨 생성:** `scene-0103`을 선택하면 그 씬의 **40개 키프레임**을 대상으로 실행합니다. `scene-0061`은 39개입니다. 10개 씬을 한꺼번에 실행하지 않으며 현재 프레임 한 장만 처리하는 것도 아닙니다.
+4. **결과 확인·편집:** 같은 작업대에서 GT·예측, 카메라·LiDAR, 작업 기록을 확인합니다. 완료 결과를 서버에서 다시 조회하므로 새로고침 때문에 재추론할 필요가 없습니다. 객체의 클래스 변경·삭제·되돌리기와 편집 이력을 지원합니다.
+5. **객체 기준 후처리:** 객체와 기준 프레임을 지정해 저장된 중간 상태에서 새 결과를 만듭니다. 기존 작업을 보존하고 이미지 검출·분할은 반복하지 않습니다. 캐시가 없는 과거 작업은 새 기본 결과가 필요합니다.
 
-최신 UI는 `main`에 없던 `feature/frontend-renewal`의 `b8376e4`까지 통합했습니다. 업로드 화면은 원본 등록에 집중하고, 씬 작업대에 카메라·3D·객체 편집·자동 라벨링·작업 기록을 모았습니다. 완료 결과는 서버에서 씬별로 조회해 새로고침 뒤에도 복원합니다. **UI·3D·결과 재사용과 단계별 계측을 적용했습니다. SAM의 작은 비교 시험은 개선됐지만 전체 씬의 추론 단축률은 아직 측정하지 않았습니다.**
+팀에서 공유한 **T1/0프레임, T3/18프레임**은 특정 작업의 예시입니다. 모든 씬에 고정 적용하지 않으며, 해당 예시를 동일하게 재현한 성능·품질 시험은 아직 하지 않았습니다. 객체 번호는 작업 내부에서만 유효합니다.
 
-`scene-0103` 작업 #5는 **40프레임·1,247개 박스**, 실행 약 **28분 16초**에 완료했습니다(UI는 초 미만을 버려 28분 15초 표시). 이 중 **이미지 검출·분할 약 21분 7초**가 가장 길었습니다. 추론 중 네트워크 표본은 작았으므로 이 실행의 주 병목을 S3/RDS 통신으로 설명할 근거는 없습니다. 업로드 때는 별도로 S3 원본 보관에 약 358초가 관찰됐습니다.
+## 현재 화면과 확인 상태
 
-업로드 조각·압축 검증·S3 보관/복원·CLIP·RDS 결과 저장·VESPA 내부 단계·3D 생성에 시간을 기록하고, VESPA run별 `stage-events.jsonl`을 남깁니다. SAM에 `inference_mode`를 적용한 실제 1이미지·3박스 시험에서는 마스크가 동일했고 최대 CUDA 할당량이 8,042→2,796MiB, 시간 중앙값이 0.793→0.697초였습니다. **이는 SAM 부분 시험이며 전체 작업의 속도·VRAM 개선율은 아닙니다.** 측정 조건과 로그 명령은 [트러블슈팅 문서](docs/troubleshooting-2026-11-11.md#추가한-로그와-읽는-방법)에 있습니다.
+아래 작업대는 11월 11일 실제 `scene-0061`의 6개 카메라·LiDAR·완료 작업 #3의 예측을 표시한 기록입니다.
 
-### 실제 공개 UI
-
-2026-11-11 로그인된 Vercel에서 직접 확인한 화면입니다. 작업대는 사용자가 업로드한 nuScenes mini의 `scene-0061`, 완료 작업 #3의 985개 예측과 실제 LiDAR를 표시합니다. 합성 목업이 아닙니다.
-
-![scene-0061의 카메라 6장, 실제 3D 점군과 객체 편집 패널](docs/images/scene-workspace-2026-11-11.jpg)
+![카메라와 LiDAR 3D를 함께 보여주는 씬 작업대](docs/images/scene-workspace-2026-11-11.jpg)
 
 <details>
-<summary>원본 업로드 · 씬 목록 · 씬별 작업 기록 보기</summary>
+<summary>업로드 화면·단일 씬 결과·초기화 후 화면</summary>
 
-![원본 데이터 업로드 전용 화면](docs/images/upload-2026-11-11.jpg)
-
-![업로드한 데이터셋의 씬 목록과 검색 준비 상태](docs/images/scenes-2026-11-11.jpg)
-
-![선택한 씬의 실행 범위와 서버에 저장된 작업 기록](docs/images/scene-jobs-2026-11-11.jpg)
-
-![scene-0103 완료: 40프레임·1,247개 예측과 실제 3D](docs/images/scene-0103-completed-2026-11-11.jpg)
+![원본 업로드 전용 화면](docs/images/upload-2026-11-11.jpg)
+![scene-0103의 40프레임 라벨 생성 완료](docs/images/scene-0103-completed-2026-11-11.jpg)
+![2026-11-12 초기화 직후 공개 씬 목록](docs/images/empty-scenes-2026-11-12.jpg)
 
 </details>
 
-[문제·원인·수정·검증·남은 최적화 상세](docs/troubleshooting-2026-11-11.md)에서 실제 완료 범위와 개선 계획을 구분했습니다.
+11월 12일 새 코드 배포 → 팀 로그인 → 기존 10개 씬 조회를 확인했습니다. 이후 사용자 요청에 따라 **앱 데이터만 초기화**했습니다. DB 덤프를 별도 DB에 실제 복원해 **33개 테이블의 행 수 일치**를 확인했고, **S3 10개 객체의 key·size·ETag와 로컬 캐시·계정은 보존**했습니다. 새 원본 업로드·씬 추론은 사용자가 직접 수행하며 이전 실행의 결과와 구분해 계측합니다.
+
+## 현재 구조
 
 ```mermaid
 flowchart TB
-  U[사용자 브라우저] <-->|화면 · API 요청| V[Vercel · React 프론트]
-  V <-->|/api · /oauth2| T[Cloudflare HTTPS 터널]
-  subgraph LOCAL[내 노트북 · Docker / WSL2]
-    L[로그인 게이트웨이 · 팀 계정 인증] <--> B[Spring 백엔드 · 업로드 · 작업 관리 · 저장]
-    B <-->|추론 요청 · 결과| G[FastAPI · CLIP / VESPA · RTX 5060 Ti 16GB]
-    B <-->|파일 준비 · 읽기| CACHE[(로컬 데이터 · 모델 · 후처리 캐시)]
-    G <-->|이미지 읽기 · 캐시 사용| CACHE
+  U[사용자 브라우저] -->|화면·동일 출처 API| V[Vercel · React]
+  V -->|서버 전용 connect 토큰| T[Microsoft 비공개 Dev Tunnel]
+  subgraph PC[로컬 PC · Docker / WSL2]
+    A[oauth2-proxy · 팀 로그인] --> B[Spring · 업로드·작업·DB 저장]
+    B -->|작업 요청| G[FastAPI · CLIP / VESPA · RTX 5060 Ti 16GB]
+    B <--> F[(원본·해제 데이터 캐시)]
+    F --> G
+    G --> R[(모델·후처리 캐시·RRD)]
   end
-  subgraph AWS[AWS · 저장소와 로그인]
-    C[Cognito · 팀 사용자 계정]
+  T --> A
+  subgraph AWS[AWS 서울 · 저장소와 인증]
+    C[Cognito · 팀 사용자]
     S[(S3 · 원본 ZIP / TGZ)]
-    D[(RDS PostgreSQL / pgvector · 메타데이터 · 임베딩 · 라벨)]
+    D[(RDS PostgreSQL / pgvector)]
   end
-  T <--> L
-  L <-.->|로그인 연동| C
-  B <-->|원본 보관 · 필요 시 복원| S
-  B <-->|TLS · 현재 PC IP만 허용| D
+  A <-. OIDC .-> C
+  B <-->|HTTPS · 보관·복원| S
+  B <-->|TLS · PC IP 제한| D
 ```
 
-사용자는 Vercel 주소 하나로 접속합니다. `/api/*`와 `/oauth2/*`는 로컬 로그인 게이트웨이로 전달되며 기존 Cognito `team` 그룹만 API를 사용할 수 있습니다. EC2·ECS·EKS는 시작하지 않습니다.
-
-### 각 구성의 역할과 선택 이유
-
-|구성|역할|이 구성을 사용하는 이유와 조건|
-|---|---|---|
-|Vercel|React 정적 화면 제공, API를 인증 게이트웨이로 전달|공유할 HTTPS 주소를 유지. 장시간 GPU 연산은 로컬에서 수행|
-|Cloudflare 터널|공개 HTTPS 요청을 로컬 게이트웨이로 전달|공유기 포트 개방 없이 연결. 임시 주소는 재시작 때 바뀔 수 있음|
-|Cognito + 로컬 게이트웨이|팀 로그인·세션 확인|브라우저에 DB/S3 비밀을 배포하지 않고 기존 팀 계정을 사용|
-|Spring|압축 파일 등록, DB 조회·저장, 작업 큐, 결과 API|DB 소유권을 한 서비스에 모음. 브라우저는 Spring API만 호출|
-|FastAPI + eGPU|CLIP 검색 임베딩, VESPA 라벨 생성, 캐시 기반 후처리|보유 RTX 5060 Ti 16GB 사용. 노트북·GPU·Docker가 실행 중이어야 함|
-|S3|업로드한 원본 압축 파일 보관|로컬 캐시가 없어져도 원본 복원 가능. 최초 전체 원본 다운로드는 시간이 걸림|
-|RDS + pgvector|씬·센서 메타데이터, 이미지 벡터, 작업 상태, 라벨·수정 이력|로컬 서버 재시작과 무관하게 DB 유지. 현재 PC IP 제한과 TLS 적용, 계속 비용 발생|
-|로컬 Docker 볼륨|압축 해제본, 모델, 추론 파일·후처리 캐시|이미지마다 S3를 조회하지 않고 GPU에 가까운 디스크에서 재사용. 디스크 공간은 필요|
-
-### 전체 AWS에서 나눈 이유와 대가
-
-|구성|장점|비용·운영·통신의 대가|
-|---|---|---|
-|기존 전체 AWS|노트북과 무관한 서비스 운영, 서버·저장소를 같은 리전에 배치 가능|GPU·컨테이너·클러스터 실행 비용과 운영 필요. L4로 옮기는 것만으로 모델 내부 중복 계산은 해결되지 않음|
-|현재 Vercel + 로컬 연산 + S3/RDS|보유 eGPU 활용, 공개 UI와 원격 원본·DB 유지, 서버 재시작 뒤 결과 조회 가능|노트북 가동 필요. 터널·인증·캐시 관리가 추가되고 S3 전송 및 RDS 왕복 존재. RDS·저장소 비용도 남음|
-|전체 로컬|로컬 네트워크·디스크에서 처리하고 원격 DB 왕복을 줄일 수 있음|제한된 로컬 저장공간에 원본·DB·백업이 집중. 외부 공유·백업·항상 켜 두는 운영을 직접 구성해야 함|
-
-선택 이유는 **보유 GPU와 작은 MVP 예산을 사용하면서 팀 공유와 원격 데이터 보관을 유지하는 것**입니다. 현재 구성이 구조적으로 더 단순하거나 항상 더 빠르다는 뜻은 아닙니다. RDS는 연산 서버를 대신하지 않으며 Spring이 DB 조회·저장, FastAPI/VESPA가 모델 연산을 담당합니다.
-
-### 업로드·검색·라벨 데이터 흐름
-
-`압축 파일 4MB 분할 전송 → 서버 압축 검증·해제 → S3 원본 보관 → RDS 씬 등록 → 씬 탐색 가능`
-
-씬 등록 뒤 CLIP 이미지 임베딩을 백그라운드로 생성해 RDS에 저장합니다. **임베딩을 모두 만들기 전에도 씬 목록과 카메라는 열 수 있습니다.** 자연어 검색은 준비된 이미지 벡터를 사용합니다. **3D 라벨 생성은 사용자가 씬에서 별도로 요청**하며, VESPA 결과는 GT와 분리해 저장합니다. 후처리는 원본 작업을 보존하고 기준 객체·프레임별 새 결과를 만듭니다.
-
-네트워크가 주로 쓰이는 구간은 사용자 원본 전송, S3 보관/캐시 복원, RDS 조회·저장입니다. CLIP/VESPA의 이미지 연산은 로컬 GPU와 로컬 캐시 사이에서 수행합니다. [전체 로컬과 혼합 구성 비교 및 병목](docs/hybrid-deployment-plan-2026-11-11.md)에 측정 범위와 선택 이유를 정리했습니다.
-
-**백엔드를 실행하는 이 PC의 대용량 파일은 [로컬 업로드 화면](http://127.0.0.1:8080/uploads)을 사용합니다.** 같은 Spring이 제공하는 화면이라 파일 전송이 `브라우저 → 로컬 Spring`으로 끝나며 Vercel·Cloudflare 왕복을 생략합니다. 등록한 데이터는 같은 S3/RDS를 사용하므로 Vercel에서도 조회됩니다. 팀원은 기존 Vercel 주소를 사용합니다. 이 로컬 주소는 `127.0.0.1`에만 열려 있으며 다른 PC에서 접속할 수 없습니다.
-
-로컬 접속도 이후 압축 해제·S3 원본 업로드·RDS 등록 시간은 필요합니다. 실제 전송 속도는 디스크와 요청별 DB 왕복 등의 영향을 받으며 로컬 4GB 전송 시간은 아직 측정하지 않았습니다. 업로드 도중 공개 주소에서 로컬 주소로 바꾸면 브라우저 저장소가 달라 기존 전송이 자동으로 이어지지 않으므로, 진행 중인 업로드는 원래 탭에서 완료합니다.
-
-|항목|현재 확인 상태|
+|구성|역할과 운영 조건|
 |---|---|
-|Vercel|리뉴얼 배포 READY. 공개 `/uploads`, `/scenes`, 씬 작업대에서 실제 데이터·3D·작업 기록 확인|
-|RDS|`ds2l-hybrid-database`, 로컬 Spring TLS 인증서·호스트 검증 연결. 기존 V7 라벨 문서 migration을 보존하고 리뉴얼 편집 migration은 V12로 적용|
-|접속 제한|현재 PC 공인 IPv4 `/32`의 TCP 5432만 허용. 집 IP 변경 시 해당 규칙 갱신 필요|
-|S3|기존 private 버킷과 원본 보존. 4.34GB mini 원본 복원·카메라 6장 확인. `uploads/*` 전용 1시간 임시 세션 사용|
-|데이터|기존 시험 데이터 초기화 후 사용자가 정상 TGZ를 직접 업로드. 새 데이터셋 #5의 10개 씬 등록·카메라·GT 조회 확인. 이전 S3 원본·DB 백업·계정 보존|
-|GPU|RTX 5060 Ti 16GB에서 작업 #3 scene-0061(39프레임·985박스·26분 14초), #5 scene-0103(40프레임·1,247박스·약 28분 16초) 완료. 공개 작업대 결과 확인. TDR 원인과 반복 실행 안정성은 별도 검증 필요|
-|로그인|비로그인 API 401 차단, 기존 팀 로그인으로 공개 업로드·씬 목록·실제 결과 확인. 이번 UI 검증에서 비밀번호 변경은 재실행하지 않음|
-|테스트|리뉴얼 통합: 프론트 89개, 브라우저 관련 29개, Spring 관련 28개, AI recording/capability 23개 통과. 프론트 typecheck/build 통과. 상세 범위는 트러블슈팅 문서 참조|
-|분할 업로드|격리 환경에서 ZIP 28조각 등록·재다운로드 해시 일치. 실제 공개 Vercel 경로에서 정상 TGZ 4,168,148,189바이트 전송·S3 보관·DB 등록 완료|
-|TGZ|공식 `v1.0-mini.tgz`의 gzip 무결성과 TAR 31,253개 항목 확인. 2026-11-11 20:37 KST 데이터셋 #5, 10개 씬 등록 성공. ZIP·TGZ·TAR.GZ 지원|
-|검색|데이터셋 #5의 카메라 2,424장 인덱싱 완료. 실제 `construction zone with trucks` 질의에서 씬 3개 반환, 첫 결과 scene-0061 확인. 검색 정확도 전체 평가와는 구분|
-|3D|업로드 데이터셋 지원. 작업 #3과 #5의 v3 recording READY, 공개 Viewer에서 실제 점군·GT·예측 확인. 3D 생성은 기존 라벨을 사용하며 VESPA를 다시 실행하지 않음|
-|결과 보존|씬별 서버 작업 목록과 최신 완료 결과 자동 복원. 더 최신인 실패 작업 #4가 있어도 완료 작업 #3을 다시 표시. JSON 문서 목록과 자동 라벨 작업은 별개|
-|편집|객체 탭의 클래스 변경·삭제·되돌리기 API와 이력 저장을 격리 DB/브라우저 테스트로 확인. 운영 데이터는 캡처 중 수정하지 않음. 3D recording에는 편집 override가 아직 반영되지 않음|
+|Vercel|React 정적 화면과 `/api`, `/oauth2` 전달. GPU 연산은 실행하지 않음|
+|Microsoft 비공개 터널|Vercel에서 로컬 4180 로그인 게이트웨이로 연결. connect 토큰은 서버 환경변수에만 저장|
+|Cognito + oauth2-proxy|기존 `team` 그룹 로그인과 브라우저 세션 쿠키 확인|
+|Spring Boot|입력 검증, 압축·원본 저장, catalog·작업 관리, 결과·편집 저장. DB 소유 서비스|
+|FastAPI + 로컬 eGPU|CLIP 검색 임베딩, VESPA 추론, 후처리, Rerun export. 브라우저에 직접 공개하지 않음|
+|S3|원본 압축 파일 보관. 캐시가 없을 때 원본 전체를 복원할 수 있음|
+|RDS + pgvector|씬·GT·이미지 벡터·작업·예측·편집 이력. PC IP /32 제한과 TLS 인증서·호스트 검증|
+|로컬 Docker 볼륨|압축 해제본·모델·중간 결과·RRD 재사용. 원격 저장소를 써도 로컬 공간은 필요|
 
-현재 PC의 비밀 설정은 OneDrive·Git 밖인 `%LOCALAPPDATA%\DriveScene2Label\hybrid`에 있습니다. 비밀번호·AWS 세션·OAuth 비밀은 README나 소스에 넣지 않습니다.
+AWS는 원본·업무 DB 외에 기존 **Cognito, IAM/STS 인증도 사용**합니다. 따라서 “AWS는 S3/RDS 외에는 전혀 사용하지 않는다”는 설명은 정확하지 않습니다. 노트북이 꺼지면 Vercel 화면 파일은 제공되어도 API·GPU 작업은 동작하지 않습니다. RRD와 후처리 파일은 아직 S3에 자동 백업하지 않습니다.
 
-재부팅 후 Docker Desktop을 켜고 저장소 루트에서 실행합니다.
+## 배포를 나눈 이유
+
+**보유 eGPU를 활용하고 팀이 접속할 주소와 원격 원본·DB를 유지하기 위한 시연용 선택**입니다. 전체 AWS보다 단순하거나 항상 빠르기 때문에 고른 구조는 아닙니다. 월 절감액과 전체 성능 우위도 아직 비교 측정하지 않았습니다.
+
+|선택|장점|단점·적합한 상황|
+|---|---|---|
+|현재 Vercel + 로컬 연산 + S3/RDS|보유 GPU 활용, 공유 HTTPS UI, PC 수명과 분리된 원본·DB|PC·집 회선·터널에 의존, RDS 왕복과 S3 전송, 여러 서비스 운영. 시연 시간에 사용하는 MVP|
+|전체 AWS|API·DB·GPU를 같은 리전에 배치, PC와 무관한 운영|GPU/API/DB·네트워크 비용과 클라우드 운영 필요. 상시 공개·동시 사용이 중요할 때 유리|
+|전체 로컬|DB 왕복이 짧고 개발 구성이 단순|디스크·백업·장애 복구·외부 공유를 직접 책임. 단독 개발·실험에 적합|
+
+**이전 AWS 구성 요소를 이번에 쓰지 않는 이유:**
+
+|이전 요소|당시 목적|현재 판단|
+|---|---|---|
+|ECS Fargate 웹/API|EC2 호스트 관리 없이 컨테이너 실행|Spring을 보유 PC에서 실행. 대신 PC 종료 시 API 중단을 감수|
+|EKS + CPU EC2|동일 이미지의 Kubernetes 배포 비교 검증|단일 GPU MVP에 두 웹/API 배포 경로를 유지할 필요가 작음. 클러스터 운영·비용 제외|
+|GPU EC2 `g6.2xlarge` / L4 24GB|원격 VESPA·CLIP 연산|보유 RTX 5060 Ti 16GB 사용. 더 빠르다고 가정하지 않으며 GPU 내부 병목은 별도 개선|
+|ECR·CloudFormation·GitHub OIDC|AWS 이미지 발행·인프라 재생성·단기 배포 권한|과거 자동화와 이력 보존. 현재 시작 명령이 AWS compute 배포를 실행하지 않음|
+|RDS·S3|영속 DB·원본 보관|유지. RDS 실행·스토리지, S3 저장·요청·전송 비용은 남음|
+
+전체 AWS로 돌아갈 때도 ECS와 EKS를 모두 쓸 필요는 없습니다. 상시 운영·동시 사용·PC 장애와 무관한 API가 필요해지면 **API/worker의 클라우드 이전부터** 다시 검토합니다. 현재 구조를 고가용성이나 마이크로서비스 확장성의 성과로 포장하지 않습니다.
+
+Redis·Kafka·SQS·Elasticsearch는 도입하지 않았습니다. 작업 상태·선점은 PostgreSQL, 벡터 검색은 pgvector가 처리합니다. 별도 큐·캐시·검색 엔진은 실제 병목과 복구 요구를 확인한 뒤 검토합니다. Nginx를 추가하는 것만으로 모델 연산이나 대용량 전송이 빨라지지는 않습니다.
+
+## 실제 병목과 개선 내용
+
+다음은 **11월 11일 실행의 관측값**입니다. 서로 다른 실행을 같은 조건의 벤치마크처럼 비교하지 않습니다.
+
+|관측 구간|측정|해석|
+|---|---:|---|
+|TGZ 압축 해제·검증|약 47.8초|브라우저 전송 이후 서버 작업|
+|S3 원본 보관|약 358.1초|해당 업로드의 긴 단계. DB/ORM만 바꾸어 해결할 문제 아님|
+|DB 메타데이터 등록|약 13.0초|importer는 이미 JDBC 500행 batch 사용|
+|scene-0103 작업 #5|40프레임·1,247박스·약 28분 16초|선택한 한 씬의 처리 시간|
+|위 작업의 이미지 검출·분할|약 21분 7초|해당 추론의 가장 긴 단계. S3/RDS 통신이 주원인이라는 근거는 없음|
+
+|문제|적용·검증한 조치|남은 일|
+|---|---|---|
+|어느 단계에서 기다리는지 불명확|HTTP request ID, 업로드·S3·DB import·CLIP·VESPA 내부·3D 단계 시간, JSONL/Markdown 보고서|새 사용자 시험에서 전체 시간과 단계별 기여도 비교|
+|반복 전송·긴 공개 경로|분할 전송·같은 파일 재선택 재개, 같은 PC의 loopback 업로드 경로|S3 직접 multipart, 조각 병렬 전송은 미구현|
+|검출·분할 비용|SAM `inference_mode` 적용, 1이미지·3박스 비교에서 동일 마스크 확인|Grounding DINO 이미지 특징 재사용·모델 상주·배치 처리 실험|
+|결과를 다시 찾기 어려움|씬별 완료 작업 조회·재열기, 결과와 편집 이력 저장|원본 파일명·업로드 날짜 중심 정렬, 편집 override의 RRD 반영|
+|재부팅 뒤 실행 준비 실패|Docker 준비 검사·쓰기 재개·GPU 실제 CUDA 확인·연결 동기화|호스트 GPU lost 원인과 반복 실행 안정성, 중단된 RUNNING 작업 자동 복구|
+|Cloudflare 터널 발급 timeout/429|Microsoft 비공개 터널로 전환, Vercel 요청 헤더·팀 로그인 검증|상시 운영용 연결·토큰 갱신 운영|
+|Docker 로그 조회 누락|최근 tail과 시간 조회 대조, 불일치 보고, 유휴 컨테이너 재생성 후 수집 확인|무손실 로그 플랫폼을 구현한 것은 아님|
+
+SAM 부분 시험의 최대 CUDA 할당량은 **8,042 → 2,796MiB**, 시간 중앙값은 **0.793 → 0.697초**였습니다. **전체 씬 속도·VRAM 개선율이 아닙니다.** 스레드를 무작정 늘리지 않았으며, BLAS/OMP 기본 1은 작은 CPU 연산의 과도한 스레드 생성을 피하려는 기존 설정입니다. [측정 조건·실행 로그·후속 개선](docs/troubleshooting-2026-11-11.md).
+
+## 백엔드 구현을 설명할 때
+
+- **JWT·세션·쿠키:** Cognito OIDC와 oauth2-proxy를 연결했습니다. JWT는 토큰 형식, 쿠키는 브라우저 전송 수단이며 대체 관계가 아닙니다. 자체 Spring JWT 인증 필터·Redis 세션을 구현한 것으로 설명하지 않습니다.
+- **JPA·JDBC:** 일반 catalog·라벨 문서는 JPA를 사용하고 대량 import는 JDBC batch를 사용합니다. 작업 선점·예측·검색·객체 편집은 명시 SQL을 사용합니다. 특정 SQL과 왕복을 측정한 뒤 병목을 판단합니다.
+- **작업·정합성:** dataset/scene 범위를 검증하고 idempotency key로 재시도 중복 생성을 막습니다. 완료 작업 조회는 새 추론을 시작하지 않습니다. 중단된 RUNNING 작업 자동 복구는 아직 검증되지 않았습니다.
+- **관측:** 공통 ID와 경계별 시간을 추가했습니다. OpenTelemetry 분산 트레이싱이나 GPU 커널 프로파일러를 도입한 상태는 아닙니다.
+
+코드 경로·인증 경계·트랜잭션·면접 답변과 학습 순서는 [상세 문서](docs/architecture-and-measurement-2026-11-12.md)에 정리했습니다.
+
+## 실행과 직접 시험
+
+이미 설정한 Windows PC에서 저장소 루트를 기준으로 실행합니다. 처음 준비하는 환경은 [혼합 배포 설정](docs/hybrid-setup.md)을 먼저 따릅니다. 비밀 설정은 Git·OneDrive 밖 `%LOCALAPPDATA%\DriveScene2Label\hybrid`에 보관합니다.
 
 ```powershell
-# GPU가 정상 표시되는지 먼저 확인
-nvidia-smi -L
-# AWS 로그인이 만료된 경우만 실행
-aws login --profile ds2l-seoul --region ap-northeast-2
-# 최초 한 번: 프로젝트 전용 Vercel CLI 설치 후 공식 브라우저 로그인
-# 설치 명령은 docs/hybrid-setup.md 참고
-python scripts/hybrid/cloud.py vercel-login
-# 기존 RDS 준비·로컬 서버·GPU·게이트웨이·터널·S3 세션·Vercel 연결
+# 기존 RDS 준비 + 로컬 서버/GPU + S3 세션 + 인증 터널 + Vercel 연결
 powershell -ExecutionPolicy Bypass -File scripts/hybrid.ps1 -Action start
-# Vercel 로그인을 나중에 하고 로컬 서비스부터 실행하려면 -SkipVercel
-# GPU 복구 전 데이터 조회용으로만 시작할 때
-# powershell -ExecutionPolicy Bypass -File scripts/hybrid.ps1 -Action start -WebOnly
-# 상태 확인 / 로컬 서비스 종료 (데이터 볼륨 보존)
+
 powershell -ExecutionPolicy Bypass -File scripts/hybrid.ps1 -Action status
+# 로컬 서비스만 정지. DB·원본·캐시 볼륨은 보존
 powershell -ExecutionPolicy Bypass -File scripts/hybrid.ps1 -Action stop
 ```
 
-**임시 터널을 다시 시작하면 주소가 바뀝니다.** 시작 스크립트는 기존 RDS가 중지돼 있으면 시작하고, 실행 중 컨테이너는 재생성하지 않습니다. 공식 Vercel CLI 로그인 후에는 새 터널을 확인해 `BACKEND_URL`을 갱신하고 기존 production 소스를 재배포합니다. 로컬 수정 소스를 자동 배포하지 않습니다. 확인된 주소·배포가 같으면 재배포를 생략합니다. 공유 주소 `https://drivescene2label.vercel.app`는 유지됩니다. 고정 도메인의 named tunnel은 후속 범위입니다.
+AWS/Vercel 로그인이 만료되면 각각 공식 CLI 로그인을 갱신합니다. `start`는 실행 중인 컨테이너를 재생성하지 않고 이미 검증된 Vercel production 소스를 재배포합니다. **작업 트리의 새 코드를 배포하는 명령은 아닙니다.** Microsoft connect 토큰은 약 24시간 유효하며 잔여 6시간 미만일 때 시작 명령이 갱신합니다. 계속 켜 놓는 것만으로 토큰이 영구 갱신되지는 않습니다.
 
-자동 시작 검증: RDS `available` 재사용과 `-SkipVercel` 실행을 실제 환경에서 확인했고 컨테이너 ID는 바뀌지 않았습니다. 운영 Python 검사 13개가 통과했습니다. 공식 CLI 로그인 후 Vercel 연결 자동 갱신→production READY→익명 API 401을 확인했고, 같은 명령의 두 번째 실행은 `already connected`로 재배포를 생략했습니다. 실제 RDS 중지→시작 시험과 VESPA 모델의 작업 간 GPU 상주는 별도 검증·개선 대상입니다.
+이 PC의 전송 경로를 줄이려면 **[로컬 업로드](http://127.0.0.1:8080/uploads)**, 공개 서비스 경로를 측정하려면 **[Vercel 업로드](https://drivescene2label.vercel.app/uploads)**를 사용합니다. 두 경로는 같은 S3/RDS를 사용합니다. 업로드 도중 주소를 바꾸면 브라우저 재개 정보가 공유되지 않으므로 원래 탭에서 마칩니다. 로컬 업로드도 압축 해제·S3 보관·RDS 등록 시간은 필요합니다.
 
-노트북·Docker·터널을 끄면 화면은 열려도 API와 GPU 작업을 사용할 수 없습니다. 로컬 종료·재부팅은 AWS RDS를 정지하지 않으므로 RDS 비용은 계속 발생합니다. 모델·압축 해제·후처리 캐시는 로컬 디스크 공간이 필요합니다. 최초 씬 접근은 S3 원본 전체 복원 때문에 느릴 수 있습니다. 정상 TGZ 약 4.17GB의 공개 HTTPS 전송부터 등록까지는 2026-11-11 확인했습니다.
+S3에는 시작할 인스턴스가 없습니다. 로컬 `stop`은 RDS를 중지하지 않으며 비용도 남습니다. RDS의 일시 중지는 최대 7일 후 자동 해제되고 저장공간 등의 비용은 계속됩니다. [AWS RDS 중지 설명](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_StopInstance.html).
 
-### 성능 진단과 개선 우선순위
+### 로그와 결과 보관
 
-하이브리드 전환은 보유 eGPU를 사용하면서 공개 화면과 원격 데이터 보관을 유지하기 위한 MVP 선택입니다. 전체 AWS보다 항상 빠르다는 의미는 아니며, 노트북 가동·외부 네트워크 왕복·로컬 캐시 관리가 추가됩니다.
+```powershell
+# 수집기가 이미 실행 중이면 중복 실행하지 않습니다.
+python scripts/hybrid/measurement.py begin
+python scripts/hybrid/measurement.py watch
 
-2026-11-11 실제 TGZ 등록의 서버 단계 로그에서는 **압축 해제·검증 약 47.8초, S3 원본 보관 약 358.1초, DB 메타데이터 등록 약 13.0초**가 관찰됐습니다. 한 번의 실행 결과이며 브라우저 전송 시간은 별도입니다. importer는 이미 JDBC 500건 배치를 사용합니다. 이 대기는 ORM 교체보다 동기 S3 보관 순서와 전송 경로를 먼저 개선할 근거입니다.
-
-VESPA는 CPU 지면 제거 후 GPU 이미지 검출·분할 등을 수행합니다. GPU 그래프 하나로 모델 미적재를 판단하지 않으며 실행 로그·VRAM·단계 시간을 함께 확인합니다. 현재 모델은 작업마다 새 subprocess에서 로드되고, 한 작업 안에서만 재사용됩니다. Grounding DINO의 클래스별 이미지 특징 중복 계산, 작업 간 모델 상주, CLIP 실제 배치 처리, 결과 DB 배치 저장이 개선 후보입니다. 스레드 일괄 증가나 정확도 저하를 동반하는 입력 축소를 검증 없이 적용하지 않습니다.
-
-이번 로컬 작업 #3은 **총 26분 14초**, 로그상 지면 제거 약 **2분 18초**, 이미지 검출·분할 약 **19분 56초**, DINOv2 특징 추출 약 **1분 56초**였습니다. 나머지에는 다른 후처리·준비·저장이 포함됩니다. 382개 LiDAR 프레임 루프 중 이미지 추론은 39개 키프레임만 처리합니다. 기존 AWS 실행과 모델·캐시·후처리 조건을 통제한 성능 비교는 아닙니다.
-
-속도 개선은 같은 씬·설정의 시간과 출력 일치 여부로 검증하고, 팀의 객체 기준 후처리는 GT 대비 위치·크기·방향·프레임 간 일관성으로 따로 평가합니다. **업로드 전용 화면과 날짜가 있는 씬별 작업 기록·완료 결과 복원은 적용했습니다.** 세부 단계별 진행률, 원본 파일명·업로드 날짜 중심의 데이터셋 정렬, 모델 연산 최적화는 남아 있습니다. 아직 적용하지 않은 변경을 성능 향상 실적으로 기록하지 않습니다.
-
-S3에는 시작할 인스턴스가 없지만 현재 RDS에는 실행·중지 상태가 있습니다. RDS 중지는 최대 7일 후 자동으로 해제되며 저장공간 등 비용은 남습니다. [AWS 공식 설명](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_StopInstance.html). 현재 요청 전달은 Vercel·Cloudflare·oauth2-proxy가 담당하므로 Nginx 추가만으로 추론이나 원본 전송 속도가 개선되지는 않습니다.
-
-### 업로드부터 검색·라벨·후처리까지
-
-1. `/uploads`에서 유효한 **nuScenes ZIP·TGZ·TAR.GZ**를 업로드합니다. 공식 `v1.0-mini.tgz`는 재압축 없이 사용합니다. 4MB보다 큰 파일은 4,000,000바이트 단위로 전송하고, 서버 검증·S3 저장·등록은 별도 작업으로 진행합니다. 전송이 끊기면 같은 파일을 다시 선택해 이어서 전송할 수 있습니다. 원본 최대 5GB, 압축 해제 최대 8GiB입니다.
-2. 씬 목록을 열면 **검색 준비**에서 카메라 키프레임의 인덱싱 건수와 재시도를 확인할 수 있습니다. 업로드 데이터도 자동 인덱싱하며 성공한 임베딩은 재사용합니다. 인덱싱과 VESPA는 같은 로컬 작업 순서에서 실행됩니다.
-3. **선택한 씬의 모든 키프레임**을 라벨링합니다. 요청의 datasetId·sceneToken을 DB에서 확인하고 runner에 씬 이름 하나만 전달합니다. 전체 데이터셋 실행과 단일 이미지 실행이 아닙니다. 예측 박스에는 작업 내부 객체 번호 `T0`, `T1` 등이 붙습니다. 작업·씬이 달라지면 같은 번호가 같은 객체를 뜻하지 않습니다.
-4. **객체 기준 후처리**에서 현재 프레임의 박스를 선택하고 기준으로 추가합니다. 여러 객체의 서로 다른 기준 프레임을 선택할 수 있습니다. 새 작업으로 결과를 저장하며 기존 결과는 보존합니다.
-5. 후처리는 저장한 pre-filter 상태에서 팀의 `rigid_tracklet.propagate`를 실행합니다. 이미지 검출·분할을 반복하지 않습니다. 기준 크기와 이동 방향 기반 yaw 보정을 적용하고 각 프레임의 바닥 중심 위치를 유지합니다. 캐시가 없는 옛 결과는 새 기본 라벨 생성이 필요합니다.
-
-T1/0프레임·T3/18프레임은 팀이 공유한 `scene-0061` 예시의 기준이며 모든 씬에 고정 적용하지 않습니다. **현재 작업 #3에 그 두 기준을 지정한 후처리를 실행한 것은 아닙니다.** 팀 코드 통합과 해당 예시의 재현·정량 품질 평가는 구분합니다. 상세 계약과 검증 범위는 [MVP 기능 보완 기록](docs/hybrid-mvp-update-2026-11-11.md)에 있습니다.
-
-완료 결과는 씬을 다시 열면 복원됩니다. **객체** 탭에서 클래스 변경·삭제·되돌리기, **기록** 탭에서 편집 이력, **자동 라벨링** 탭에서 날짜별 실행 이력을 확인합니다. 별도 JSON 파일 편집기는 `/label-files`에 남겨 두었으며, 기존 `/labels?id=…`·`/labels?job=…` 링크도 유지합니다. query 없는 `/labels`는 업로드 화면으로 이동합니다.
-
-### 업로드 오류 확인
-
-- `Environment is stopping…`: DB에 남은 종료 준비 모드가 저장을 차단한 상태입니다. 단순 GET healthcheck가 성공해도 업로드가 가능하다는 뜻은 아닙니다. `scripts/hybrid.ps1 -Action start`는 로컬 운영 토큰을 준비하고 인증된 `/internal/operations/resume` 호출 후, 데이터를 만들지 않는 잘못된 업로드 요청이 정상 검증 단계(400)에 도달하는지 확인합니다. 운영 토큰은 보호된 로컬 환경 파일에만 저장합니다.
-- `압축 파일이 손상되었거나 끝까지 저장되지 않았습니다`: ZIP 마지막 디렉터리 또는 gzip footer가 없거나 손상된 경우입니다. 압축/다운로드 작업을 완료한 원본을 선택합니다. 확장자 변경만으로 복구되지 않습니다.
-- 메타데이터/센서 오류: 최상위의 `v1.0-mini` 또는 `v1.0-trainval`, `samples`, `sweeps`, `maps`와 JSON이 참조하는 파일을 확인합니다. 일반 사진·영상 파일만으로는 등록할 수 없습니다.
-
-서버 로그는 업로드 UUID와 `EXTRACTING → STORING_ORIGINAL → IMPORTING_METADATA → COMPLETED` 단계, 파일 크기·감지 형식, 실패한 원래 예외를 기록합니다. `docker logs --since 10m drivescene-hybrid-backend-1`로 확인합니다. 2026-11-11 사용자 ZIP 601,354,240바이트는 로컬 원본과 수신본 모두 ZIP 최종 디렉터리가 없어 열리지 않았습니다. 이 문제와 DB의 종료 준비 플래그를 별도로 진단·처리했습니다.
-
-이 사례에서는 보관 중인 공식 `v1.0-mini.tgz`의 무결성 확인 후 실제 공개 업로드·등록까지 성공했습니다. 화면에 여전히 ZIP만 지원한다고 나오면 새로고침해 `ZIP · TGZ · TAR.GZ` 안내가 보이는지 확인합니다. 손상된 ZIP은 확장자만 바꿔 재사용할 수 없습니다.
-
-`release-version` push는 CI 검사만 실행합니다. 기존 ECS/EKS 이미지 배포 workflow는 수동 실행으로 변경했습니다. Vercel은 이번에 검증한 로컬 소스로 배포했으며 Git push 자동 배포 연결은 아직 설정하지 않았습니다. 자세한 설정·제한은 [혼합 배포 기록](docs/hybrid-setup.md), [전체 로컬과 비교·통신 병목](docs/hybrid-deployment-plan-2026-11-11.md)을 참고하세요.
-
-- [프론트엔드 REST API 명세](README_API.md)
-- [Vercel + 로컬 GPU/백엔드 + S3/RDS 실행 준비](docs/hybrid-setup.md)
-- [혼합 구성과 전체 로컬 비교·통신 병목 계획](docs/hybrid-deployment-plan-2026-11-11.md)
-- [파일 업로드·라벨 수정본 저장·다운로드](docs/label-editing.md)
-- [서울 AWS ECS·EKS·GPU 켜기/끄기와 release-version 배포](docs/aws-ecs-cicd.md)
-- [DB / VESPA 결과 스키마](docs/auto-label-result-schema.md)
-- [통합 검증 및 테스트 범위](docs/integration-verification.md)
-- [Docker 검증 결과와 배포 제약](docs/docker-integration.md)
-- [프론트엔드 개발 기획서](docs/frontend-product-plan.md)
-- [프론트 구현 체크리스트](docs/frontend-implementation-checklist.md)
-- [Claude Code 구현 시작 프롬프트](docs/claude-code-frontend-prompt.md)
-- [Rerun recording 계약](docs/rerun-recording.md)
-- [프론트 실행·구조](frontend/README.md)
-- [실제 데이터·프론트 연동 개선 기획서](docs/frontend-integration-plan.md) / [개선 체크리스트](docs/frontend-integration-checklist.md)
-- [작업·recording 운영 복구 절차](docs/operations-recovery.md)
-- [실제 데이터·프론트 연동 개선 기획서](docs/frontend-integration-plan.md)
-- [개선 구현·실제 성공 검증 체크리스트](docs/frontend-integration-checklist.md)
-- [Claude Code 연동 업데이트 프롬프트](docs/claude-code-integration-prompt.md)
-- [I1/I2 구현 검토 (2026-10-06)](docs/frontend-integration-audit-2026-10-06.md)
-- [Claude Code I1/I2 보완·후속 검증 프롬프트](docs/claude-code-integration-followup-prompt.md)
-
-React 프론트는 [`frontend/`](frontend/README.md)에 있습니다(씬 탐색·검색, 6카메라 작업대, 이미지 위 GT/예측 투영, VESPA 작업, 두 씬 비교, Rerun 3D). 디자인 기준은 `docs/frontend-design/`, 저장소 개발 지침은 [CLAUDE.md](CLAUDE.md), 진행·검증 상태는 [구현 체크리스트](docs/frontend-implementation-checklist.md)를 따릅니다. 실제 nuScenes mini·GPU 환경에서의 통합 확인 범위는 체크리스트의 검증 기록에 따로 적습니다.
-
-## 1. Architecture
-
-```mermaid
-flowchart TD
- F[React frontend - frontend/] --> C[Spring REST Controller]
- C --> S[Spring Service / Job Worker]
- S --> R[Repository]
- R --> DB[(PostgreSQL 16 + pgvector)]
- S --> A[FastAPI Router]
- A --> CLIP[CLIP Service]
- A --> V[VESPA subprocess wrapper]
- DATA[nuScenes read-only mount] --> CLIP
- DATA --> V
- V --> OUT[Final JSON + intermediate files /results]
- CLIP --> CACHE[Model cache /models]
- V --> CACHE
+# 수집기를 마친 뒤 보고서를 갱신
+python scripts/hybrid/measurement.py stop
+python scripts/hybrid/measurement.py collect
 ```
 
-Spring은 Controller→Service→Repository 구조로 요청 검증, 데이터 저장/검색, job 상태를 관리합니다. FastAPI Router는 Spring Controller, AI Service는 추론 업무 Service에 대응합니다. FastAPI에는 DB driver/Repository가 없습니다. JSON 응답을 받은 Spring만 DB에 저장합니다.
+`watch`는 최대 48시간 동안 30초 간격으로 수집합니다. PC 종료 후에는 다시 실행해야 합니다. `.local/hybrid/measurements/<UTC 시작 시각>/`에 다음을 보관하며 Git에 올리지 않습니다.
 
-AI 컨테이너에서 CLIP은 기본 Python, VESPA는 `/opt/vespa-env/bin/python`으로 실행합니다. 큰 PyTorch 설치는 공유하고 VESPA가 요구하는 NumPy/Transformers 등은 별도 환경으로 분리합니다. VESPA source는 Docker build 때 고정 commit을 checkout한 뒤 `ai-server/vespa-patches/apply.sh`로 프로젝트 patch(barrier/traffic_cone 클래스, 가려진 점 제거)를 적용합니다. Colab 노트북도 같은 스크립트를 씁니다. patch 밖에서 upstream 파일을 고치지 않습니다([VESPA.md](ai-server/VESPA.md#drivescene2label-patch)). OpenPCDet 모델 학습은 이 이미지의 대상이 아닙니다. 원본의 `np.bool` 사용은 subprocess에서만 호환 alias로 처리합니다. Python3.12 빌드 호환성을 위해 nuScenes devkit은 upstream Dockerfile의1.1.11 대신1.2.0을 사용합니다.
-
-## 2. Tech Stack
-
-|구분|구성|
+|파일|내용|
 |---|---|
-|Backend|Java21, Spring Boot4.1.1, Spring Data JPA, JdbcClient, Flyway|
-|AI|Python3.12, FastAPI, PyTorch, OpenCLIP, VESPA-Direct|
-|DB|PostgreSQL16, pgvector vector(768)|
-|Infrastructure|Docker/Compose, CloudFormation, ECS Fargate, EKS, GPU EC2, ECR, S3, RDS, Secrets Manager, GitHub Actions OIDC|
-|Dataset|nuScenes mini 또는 trainval|
+|`manifest.json`|시작 시각·Git revision·작업 트리 변경 여부. 시험 경로와 cold/warm 조건은 별도 기록|
+|`events.jsonl`|허용한 request/upload/dataset/job/run ID와 단계·소요 시간|
+|`report.json`, `report.md`|작업·단계별 횟수, p50/p95/최대, 실패·누락·수집 오류|
 
-정확한 Python 버전 pin은 [CLIP requirements](ai-server/requirements.txt), [VESPA requirements](ai-server/requirements-vespa.txt)를 참조합니다.
+중첩된 시간을 합산하지 않습니다. 브라우저 측정은 프록시·재시도·polling을 포함한 자기 보고이며 순수 네트워크 시간이 아닙니다. CPU 시간도 CUDA 커널 시간이 아닙니다. 비밀번호·쿠키·검색 문장·센서 본문은 이 수집기에 저장하지 않습니다. 실제 라벨은 RDS, RRD·중간 산출물은 로컬 결과 볼륨에 별도로 저장합니다.
 
-## 3. Prerequisites
+## 검증 범위와 배포
 
-- Linux 또는 Docker Desktop의 WSL2 integration 환경, Docker Compose v2.
-- nuScenes 데이터의 로컬 압축 해제본. [공식 다운로드](https://www.nuscenes.org/nuscenes).
-- 최초 Docker build 및 모델 다운로드에 인터넷 연결과 충분한 디스크 공간이 필요합니다. PyTorch CUDA 패키지와 Open3D가 커서 image build에 시간이 걸립니다.
-- CLIP은 CUDA가 없으면 CPU로 서버 기동/추론할 수 있습니다. CPU에서는 느리고 timeout 조정이 필요할 수 있습니다.
-- VESPA의 코드에도 CPU fallback이 있지만 전체 scene 처리 성능은 보장하지 않습니다. 실제 auto-label은 NVIDIA GPU 사용을 권장합니다.
-- GPU 사용 시 호스트 NVIDIA 드라이버 및 Docker GPU 지원이 필요합니다. macOS 컨테이너에서는 MPS를 사용할 수 없습니다.
-
-## 4. Dataset Setup
-
-아래 전체 root를 마운트합니다. `v1.0-mini` metadata 디렉터리 자체를 root로 지정하지 않습니다.
-
-```text
-/path/to/nuscenes/
-├── samples/             # keyframe JPG / pointcloud
-├── sweeps/              # intermediate sensors
-├── maps/
-└── v1.0-mini/
-    ├── scene.json
-    ├── sample.json
-    ├── sample_data.json
-    ├── sample_annotation.json
-    └── ...              # official complete metadata JSON set
-```
-
-Spring metadata importer는 원본 관계/경로를 검증합니다. 같은 입력의 반복 import는 건너뛰고, 변경된 metadata를 같은 dataset에 혼합하지 않습니다. 첫 실행에는 `.env`의 `NUSCENES_IMPORT_ENABLED=true`를 사용합니다. 이후 false로 바꿔도 저장된 catalog는 유지됩니다. trainval은 version 및 데이터 모두 함께 바꿔야 합니다.
-
-## 5. 모델 / 다운로드 / Git 제외 정책
-
-모델 가중치, 데이터셋, DB 파일, 결과 JSON/NPZ, 로그, Python venv, `.env`는 Git에 올리지 않습니다. `.gitignore`와 Docker build allowlist를 적용합니다. 기존 `embedding/fixtures/*.npz`는 작은 테스트 기준 벡터만 예외입니다.
-
-|역할|모델/소스|다운로드 및 저장|
-|---|---|---|
-|CLIP|[OpenCLIP](https://github.com/mlfoundations/open_clip), ViT-L-14-quickgelu / openai|서버 시작 시 open_clip이 다운로드, `/models/huggingface`|
-|VESPA source|[TUMFTM/VESPA](https://github.com/TUMFTM/VESPA), commit `acb2b6e8683363795528f049fe0444ef9f3efdb9` + `ai-server/vespa-patches`|Docker build에서 `/opt/vespa`에 clone 후 patch 적용|
-|Grounding DINO|[IDEA-Research/grounding-dino-base](https://huggingface.co/IDEA-Research/grounding-dino-base)|첫 VESPA 사용 시 Hugging Face cache|
-|SAM ViT-base|[facebook/sam-vit-base](https://huggingface.co/facebook/sam-vit-base)|첫 VESPA 사용 시 Hugging Face cache|
-|DINOv2|[facebookresearch/dinov2](https://github.com/facebookresearch/dinov2), `dinov2_vitb14_reg`|torch.hub 다운로드, `/models/torch`|
-
-각 모델/데이터의 라이선스와 사용 조건은 원본 링크를 따릅니다. VESPA 설정은 `/opt/vespa/configs/vlm/p_final.yaml`이며 실제 설정은 DINOv2 **register variant**입니다. 로컬 Compose의 모델 캐시는 컨테이너 재생성 시 유지됩니다. AWS의 `gpu-stop`/`stop`은 GPU 호스트와 캐시 디스크를 제거하므로 다시 켤 때 모델을 다운로드합니다. 가중치를 이미지 layer에 굽지 않습니다. 첫 VESPA 요청에는 다운로드 시간이 포함될 수 있으므로 운영 전 사전 준비/연결 확인이 필요합니다.
-
-## 6. Environment Variables
-
-```bash
-cp .env.example .env
-# 편집기로 .env의 password와 실제 dataset 절대 경로를 설정
-```
-
-|변수|기본/의미|
+|검증|11월 12일 결과|
 |---|---|
-|POSTGRES_DB / POSTGRES_USER|drivescene|
-|POSTGRES_PASSWORD|반드시 개인 값으로 변경. 실제 .env는 Git 제외|
-|NUSCENES_HOST_PATH|필수, 호스트의 dataset root 절대 경로|
-|NUSCENES_VERSION|v1.0-mini; Spring과 VESPA에 동일 적용|
-|NUSCENES_IMPORT_ENABLED|example=true, compose 기본false|
-|NUSCENES_DATA_ORIGIN|UNKNOWN. import checksum과 함께 기록할 출처: 공식 원본이면 `NUSCENES`, 테스트 fixture면 `SYNTHETIC`. 이름·버전으로 추정하지 않으며 SYNTHETIC이면 VESPA 실행을 막는다|
-|APP_PORT / AI_PORT|8080 / 8000, host loopback에만 공개|
-|VESPA_NUM_THREADS|1, VESPA subprocess의 BLAS/OMP 스레드 수. CLIP 설정과 독립|
-|VESPA_TIMEOUT_SECONDS|7200초 subprocess 상한|
-|VESPA_EXECUTOR|local. `ssh`면 원격 Slurm 클러스터에서 실행 (`compose.seraph.yml`, [VESPA_Seraph.md](ai-server/VESPA_Seraph.md))|
-|AI_SERVER_READ_TIMEOUT|30s, CPU CLIP 처리에 더 필요한 경우 조정|
-|AUTO_LABEL_READ_TIMEOUT|7300s, VESPA timeout보다 길게|
-|AUTO_LABEL_WORKER_ENABLED|true, Spring DB polling worker|
-|RECORDING_TIMEOUT_SECONDS|600초, Rerun exporter subprocess 상한(ai-server)|
-|RECORDING_READ_TIMEOUT|660s, Spring의 `POST /recordings` 대기. exporter 상한 이상으로|
-|RECORDING_WORKER_ENABLED|true, Spring recording worker|
+|백엔드 핵심 통합 / HTTP 필터|45개 / 1개 통과|
+|프론트 단위 / fixture 브라우저 흐름|100개 / 4개 통과|
+|AI 계약·패치·계측|33개 통과, 고정 checkout에 패치 적용 포함|
+|시작·터널·로그 수집|26개 통과|
+|제품 빌드|프론트·Spring 이미지·GPU 이미지 성공. PyArrow 중복 pin 수정|
+|실제 환경|재부팅 후 CUDA 연산, Vercel 팀 로그인·씬 조회·초기화 후 빈 화면, 쓰기 재개 확인|
+|백업·초기화|별도 DB 복원·33테이블 행 수 일치, S3 10객체 보존|
+|새 대용량 업로드·전체 씬 추론|사용자가 직접 실행할 시험. 기존 성공 기록과 혼동하지 않음|
 
-컨테이너 내부 고정 경로/주소: Spring DB_URL=`jdbc:postgresql://db:5432/<db>`, AI_SERVER_BASE_URL=`http://ai-server:8000`, NUSCENES_ROOT=`/data/nuscenes`, VESPA_ROOT=`/opt/vespa`, VESPA_OUTPUT_ROOT=`/results`, RECORDING_OUTPUT_ROOT(ai-server)/RECORDING_ROOT(backend)=`/recordings`, HF_HOME=`/models/huggingface`, TORCH_HOME=`/models/torch`. 호스트 localhost를 컨테이너 간 주소로 사용하지 않습니다.
+`release-version` push는 GitHub CI 검사만 실행합니다. 기존 ECS/EKS 배포 workflow는 수동이며 **push가 AWS compute를 켜지 않습니다.** Vercel은 검증한 소스 파일을 배포했고 Git 자동 배포 연결은 아직 설정하지 않았습니다. [실행 증거·재개 기록](docs/work-checkpoint-2026-11-12.md), [CI](https://github.com/DriveScene2Label-Team/DriveScene2Label/actions/workflows/ci.yml).
 
-## 7. Quick Start
+## 문서 안내
 
-```bash
-git clone https://github.com/DriveScene2Label-Team/DriveScene2Label.git
-cd DriveScene2Label
-cp .env.example .env
-# 실제 비밀번호와 NUSCENES_HOST_PATH를 .env에 입력하고 dataset 준비
-docker compose up --build -d
-docker compose ps
-docker compose logs -f ai-server backend
-```
-
-기본 명령은 GPU 할당 없이 CPU로 동작합니다. NVIDIA GPU 사용:
-
-```bash
-docker compose -f compose.yml -f compose.gpu.yml up --build -d
-```
-
-DB healthy 후 backend가 기동합니다(2026-10-05부터 AI는 시작만 기다리고 health를 기다리지 않음). CLIP 다운로드·로딩 중에도 씬 목록·카메라·GT는 쓸 수 있고, 검색/VESPA/recording 준비 여부는 `GET /api/system/status`로 확인합니다. CLIP 로딩이 실패해도 AI 서버는 recording/VESPA를 계속 제공하며 `/health`는 503입니다(이전 fail-fast는 `AI_REQUIRE_CLIP=true`). AI health start period는15분입니다. 모델/네트워크가 준비되지 않으면 이 명령이 모든 기능의 readiness를 보장하지 않습니다. 준비 완료 후에는 컨테이너 재시작으로 모델을 매번 다운로드하지 않습니다.
-
-기존 compose의 서비스명 `app`은 `backend`로 바뀌었습니다. 이전 app 컨테이너가 떠 있다면 현재 포트를 비운 뒤 실행하세요. 기존 `postgres_data` volume 이름은 유지하며 자동 삭제하지 않습니다.
-
-## 8. Services / Volumes / Health
-
-|서비스|호스트|내부|health|
-|---|---|---|---|
-|backend|127.0.0.1:8080|backend:8080|GET /api/datasets (DB 조회 포함)|
-|ai-server|127.0.0.1:8000|ai-server:8000|GET /health|
-|db|127.0.0.1:55433 (`DB_PORT`)|db:5432|pg_isready|
-
-backend·ai-server·db 호스트 포트는 각각 `APP_PORT`·`AI_PORT`·`DB_PORT`(기본 8080·8000·55433)입니다. 같은 PC에서 두 번째 Compose project(`-p` 또는 `COMPOSE_PROJECT_NAME`)를 띄울 때는 세 값을 모두 바꿔야 합니다. project 이름만 바꾸면 volume은 분리되지만 포트는 충돌합니다. `docker compose up -d db backend`는 `depends_on` 때문에 제품 ai-server도 build·시작합니다. AI 없이(또는 recording 전용 하네스로) 띄우려면 `--no-deps`와 override 파일을 함께 사용합니다. 예와 검증 기록은 [Docker 통합](docs/docker-integration.md#별도-compose-project-포트-분리-2026-10-06)에 있습니다. `scripts/embed.sh`도 같은 우선순위(실행 시 `DB_PORT` → `ENV_FILE`의 값 → 55433)를 따르므로, 별도 project에서는 Compose와 같은 env 파일을 `ENV_FILE=<파일>`로 지정합니다.
-
-|volume/mount|사용 서비스|내용|
-|---|---|---|
-|postgres_data|db|PostgreSQL persistent data|
-|model_cache → /models|ai-server|CLIP/Hugging Face/torch hub caches|
-|vespa_results → /results|ai-server|run별 최종 JSON, 로그, intermediate NPZ|
-|rerun_recordings → /recordings|ai-server(rw), backend(ro)|recording별 `.rrd`, 요청 JSON, exporter 로그|
-|uploaded_datasets → /uploads|backend, ai-server|업로드 ZIP과 추출 데이터. AWS에서는 S3 원본으로 각 서버의 캐시를 복원|
-|dataset bind → /data/nuscenes:ro|backend, ai-server|동일 원본 센서/metadata 파일|
-
-Spring은 최종 결과를 HTTP JSON으로 받으므로 `/results`를 공유하지 않습니다. DB에는 artifact storageKey/relativePath만 저장합니다. artifact download API는 아직 없습니다.
-
-```bash
-curl http://localhost:8080/api/datasets
-curl http://localhost:8000/health
-docker compose exec ai-server python -c 'import torch; print(torch.cuda.is_available()); print(torch.__version__)'
-docker compose exec ai-server /opt/vespa-env/bin/python -c 'import sys; sys.path.insert(0,"/opt/vespa"); import main_pseudo_vlm; print("VESPA imports OK")'
-```
-
-AI health의 `vespa=configured`는 파일 경로 점검이며 모델 다운로드 완료/전체 추론 성공 의미가 아닙니다. GPU compose 파일을 사용하지 않으면 호스트에 GPU가 있어도 CUDA가 보이지 않습니다.
-
-## 9. Main Flow
-
-자연어 검색: camera image → Spring → FastAPI CLIP image → 768-d L2 vector → image_embedding. text → Spring → CLIP text → pgvector cosine distance `<=>` → scene별 TOP_K_AVERAGE → Scene 목록.
-
-Auto-label: scene 선택 → Spring job PENDING → worker RUNNING → FastAPI subprocess → VESPA final JSON → Spring 검증 → predicted_annotation + artifact + job COMPLETED atomic commit. 저장 오류는 rollback 후 FAILED. 프론트엔드는 job REST polling을 사용합니다.
-
-Rerun recording: Spring이 keyframe sample·LIDAR_TOP pose/calibration·GT·(선택) 완료 job 예측을 FastAPI `POST /recordings`로 보냄 → exporter subprocess(rerun-sdk 0.38.1)가 `/recordings/<id>-<token>/<scene>.rrd` 생성 → Spring 검증 후 READY, 브라우저는 Spring content API로 받아 Web Viewer 0.38.1에 연다. recording 실패는 VESPA job을 다시 실행하지 않는다. 계약은 [Rerun recording](docs/rerun-recording.md), exporter는 [RECORDING.md](ai-server/RECORDING.md).
-
-## 10. API
-
-전체 request/response/enum/error/호출 순서는 [README_API.md](README_API.md). 프론트엔드는 Spring만 호출하고 FastAPI는 내부 AI 서비스입니다.
-
-```bash
-curl -X POST http://localhost:8080/api/sensor-files/42/embedding
-curl --get http://localhost:8080/api/search/scenes --data-urlencode 'q=rainy night road' --data 'k=10'
-curl -X POST http://localhost:8080/api/auto-label/jobs -H 'Content-Type: application/json' -H 'Idempotency-Key: scene-run-1' -d '{"sceneToken":"REPLACE_WITH_TOKEN","datasetId":1,"classMode":8}'
-curl http://localhost:8080/api/auto-label/jobs/12
-curl http://localhost:8080/api/auto-label/jobs/12/results
-```
-
-ID/token은 실제 목록에서 얻은 값으로 교체합니다. 이미지가 DB에 있어도 embedding은 자동 생성되지 않으므로 검색 전에 저장 API를 호출해야 합니다. CPU inference가30초를 넘으면 `.env`의 AI_SERVER_READ_TIMEOUT을합니다.
-
-## 11. Database
-
-```text
-dataset → scene → sample → sample_data → image_embedding
-                    └── gt_annotation (GT only)
-auto_label_job → auto_label_job_sample → predicted_annotation
-              └── auto_label_artifact
-```
-
-토큰 FK는 dataset_id와 묶어 데이터셋 간 충돌을 방지합니다. `image_embedding` unique는 dataset/sample_data/model/preprocess, 예측 unique는 job/sample/box_index입니다. 원본 이미지는 파일에 유지하고 vector/metadata/box만 DB 저장합니다.
-Flyway가 V1 catalog, V2 pgvector, V3 scene flags, V4 auto-label, V5 recording, V6 DB 식별·데이터 출처, V7 라벨 문서·수정 이력, V8 배포 maintenance gate를 startup 시 적용합니다. 이미 배포된 migration을 수정하지 말고 새 migration을 추가하세요. GT와 pseudo-label 모두 world 좌표, sizeWLH, quaternionWXYZ. VESPA score1.0은 고정값입니다.
-
-## 12. Development / Tests
-
-프론트 (Node 20.19+ / npm, 상세는 [frontend/README.md](frontend/README.md)):
-
-```bash
-cd frontend && npm ci
-API_PROXY_TARGET=http://127.0.0.1:8080 npm run dev   # /api 를 Spring으로 proxy
-npm run typecheck && npm test && npm run build
-npm run test:e2e                                       # route fixture 기반 UI 흐름 (실제 서버 연동 아님)
-DS2L_API=http://127.0.0.1:8080 npx playwright test -c playwright.live.config.ts   # 실행 중인 Spring 대상
-```
-
-Spring 단독 (JDK21):
-
-```bash
-export DB_URL=jdbc:postgresql://localhost:55433/drivescene
-export DB_USERNAME=drivescene
-export DB_PASSWORD='your-local-password'
-export NUSCENES_ROOT=/absolute/path/to/nuscenes
-export AI_SERVER_BASE_URL=http://localhost:8000
-export VESPA_DATASET_VERSION=v1.0-mini
-sh gradlew bootRun
-```
-
-FastAPI 단독:
-
-```bash
-cd ai-server
-python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt
-export CLIP_IMAGE_ROOT=/absolute/path/to/nuscenes
-.venv/bin/python -m uvicorn main:app --host 127.0.0.1 --port 8000
-```
-
-로컬 VESPA 환경은 [VESPA.md](ai-server/VESPA.md), 기존 batch CLI는 [offline embedding 가이드](docs/legacy-catalog-and-embedding.md)를 참조합니다. Docker에서는 Python 환경이 자동 준비됩니다.
-
-```bash
-# 실제 별도 PostgreSQL을 띄우고 제거하는 Spring 테스트
-bash scripts/docker-test.sh
-# AI 테스트 (fake models/subprocess; 실제 weights 불필요)
-ai-server/.venv/bin/pip install pytest httpx
-(cd ai-server && .venv/bin/python -m pytest -q tests)
-# 실제 실행 중인 stack: CLIP 이미지 저장→검색 검증 (DB 쓰기 발생)
-python3 scripts/docker-smoke.py
-# 전체 scene VESPA 실행 포함; 새 job 생성, 장시간 소요
-python3 scripts/docker-smoke.py --auto-label
-```
-
-## 13. Troubleshooting
-
-- **DB 연결 실패**: docker compose ps/logs db. 컨테이너는 db:5432, 호스트는 `DB_PORT`(기본 55433). 기존 volume의 DB password는 .env 변경만으로 바뀌지 않습니다.
-- **nuScenes path 오류**: host root 존재 여부, samples/sweeps/maps/version 디렉터리 확인. bind는 없는 폴더를 자동 생성하지 않습니다.
-- **CLIP 다운로드 실패**: logs ai-server에서 외부 네트워크/Hugging Face 연결 확인. model_cache를 무작정 삭제하지 마세요.
-- **CUDA unavailable**: GPU overlay를 사용했는지, Docker NVIDIA 지원과 드라이버 확인. CPU fallback은 정상이나 느립니다.
-- **AI health 실패**: 최초 모델 로딩을 기다리고 로그 확인. startup 모델 실패 시 서버는 준비된 것처럼 응답하지 않습니다.
-- **VESPA weight/path 오류**: /opt/vespa config, /models 접근, /data/nuscenes version 및 run의 execution.log 확인. 한 번에 한 worker 사용.
-- **pgvector extension 실패**: 일반 postgres 대신 compose의 pgvector 이미지를 사용하고 Flyway 로그 확인.
-- **job RUNNING에 머무름**: 현재 프로세스 crash 자동 복구/lease는 없습니다. 로그와 실제 실행을 확인하고 운영자 복구가 필요합니다.
-- **API 결과 없음**: 먼저 이미지 embedding 저장, model/preprocess 일치 확인. 한국어 CLIP 검색 품질은 별도 평가가 필요합니다.
-
-## 14. Shutdown
-
-```bash
-docker compose down
-```
-
-컨테이너/network만 제거하며 DB/model cache/results/recordings는 유지됩니다. GPU 실행 시 동일한 `-f compose.yml -f compose.gpu.yml` 조합을 사용합니다.
-
-**아래 명령은 DB 데이터·모델 캐시·VESPA 결과·Rerun recording 볼륨까지 삭제합니다. 백업 없이 실행하지 마세요.** dataset bind의 원본 파일은 삭제하지 않습니다.
-
-```bash
-docker compose down -v
-```
-
-### 기존 로컬 통합 검증
-
-nuScenes mini scene-0061의 실제 VESPA 8class 결과 39 sample/985 boxes를 Spring으로 반환하고 PostgreSQL에 저장하여 COMPLETED 상태와 GT 분리를 확인했다. CPU/GPU CLIP 저장·Scene 검색도 확인했다. 설치 호환 수정과 캐시 재사용을 포함한 검증 방법·범위는 [Docker 검증 기록](docs/docker-integration.md)을 참고한다.
-
-## 15. release-version 변경사항
-
-자동 라벨을 만든 뒤 사람이 잘못된 클래스·위치·크기를 고치고 결과를 전달할 수 있도록, **업로드 → UI 편집 → 수정본 저장 → 재조회 → 다운로드** 흐름을 추가했습니다.
-
-|추가·수정|동작과 이유|
+|문서|내용|
 |---|---|
-|`/labels` 편집 화면|라벨 JSON 업로드, 객체 선택, 클래스·XYZ 위치·크기·quaternion 회전 편집, 이동/회전 버튼, 객체 추가·삭제|
-|원본과 수정본 분리|업로드 원문과 GT/예측 원본을 유지하고, 저장할 때마다 새 revision 추가. 잘못 수정해도 이전 버전을 다시 열 수 있음|
-|서버 저장 + 다운로드|수정 메모·버전 이력 조회, 원본 JSON·지정 버전 JSON 다운로드. 새로고침 후에도 서버의 저장본을 다시 읽음|
-|동시 저장 충돌|문서 `@Version`과 `expectedVersion` 검사. 다른 창의 저장을 덮어쓰지 않고 HTTP 409로 충돌 전달|
-|자동 라벨 결과 편집|완료된 job의 결과를 편집 문서로 복사. 원래 job 결과와 GT는 유지|
-|nuScenes ZIP 업로드|파일 경로·압축 해제 크기·필수 metadata·참조 센서 파일을 검증한 뒤 별도 dataset 등록. 원본 ZIP 다운로드 지원|
-|S3 저장과 캐시 복원|원본 ZIP을 비공개 S3에 저장. ECS/EKS/AI 서버가 교체돼도 필요한 원본을 다시 받아 사용|
-|안전한 환경 종료|신규 쓰기와 작업 선점을 막고 진행 중 작업을 기다린 뒤 DB 스냅샷 생성. 복구 기록 확인 전에는 DB 삭제 금지|
+|[구조 선택·인증·DB·병목 분석](docs/architecture-and-measurement-2026-11-12.md)|장단점, 코드 근거, 측정 해석, 면접·학습|
+|[현재 실행 설정](docs/hybrid-setup.md)|보호된 설정·GPU·로그인·터널·재부팅|
+|[트러블슈팅](docs/troubleshooting-2026-11-11.md)|업로드 오류, 저장·3D·모델·실측 사례|
+|[API 명세](README_API.md) / [작업 API](docs/auto-label-jobs-api.md)|프론트·백엔드 계약|
+|[라벨 편집](docs/label-editing.md) / [Rerun](docs/rerun-recording.md)|결과·수정 이력·3D 계약과 한계|
+|[전체 로컬 개발](docs/local-development.md) / [VESPA](ai-server/VESPA.md)|모델 pin·환경변수·Docker·개발 테스트|
+|[과거 전체 AWS 검증](docs/aws-deployment-history-2026-11-09.md)|종료한 ECS/EKS/GPU 환경과 당시 CI/CD 기록|
+|[구현 체크리스트](docs/frontend-implementation-checklist.md)|구현 완료와 미검증 범위|
 
-라벨 JSON은 최대 **20 MiB**, ZIP은 **5 GB (5,000,000,000바이트)**, ZIP 압축 해제 총량은 **8 GiB**입니다. 전체 nuScenes mini를 업로드할 수 있도록 브라우저·Spring·S3 복원·GPU 캐시의 한도를 함께 맞췄습니다. 원본 ZIP 업로드에는 별도 라벨 JSON이 필요하지 않으며, 업로드한 씬에서 자동 라벨링을 실행하면 생성됩니다. 현재 원본 업로드는 nuScenes 형식 ZIP을 지원합니다. 일반 JPG/MP4를 nuScenes로 변환하는 기능, 업로드 데이터의 CLIP 인덱스 자동 생성, 업로드 데이터 Rerun 생성은 후속 범위입니다. 편집 화면은 WORLD XY 평면이며 카메라 위 드래그 편집은 포함하지 않습니다. [파일 형식과 API 예제](docs/label-editing.md).
-
-### JPA와 JDBC를 나눈 이유
-
-라벨 문서와 수정 이력을 entity로 관리하고 CRUD·트랜잭션·버전 충돌 처리를 일관되게 구현하기 위해 **Spring Data JPA**를 선택했습니다. 일반 catalog repository 5개와 라벨 문서 저장에 적용했습니다. `open-in-view=false`, `ddl-auto=validate`로 설정하고 스키마 변경은 Flyway가 담당합니다. 목록은 큰 라벨 payload를 읽지 않는 DTO projection을 사용합니다.
-
-|업무|선택|이유|
-|---|---|---|
-|catalog 조회·라벨 문서·수정 이력|JPA|entity 매핑과 repository를 통한 CRUD, 수정 이력 추가와 문서 version 갱신을 한 트랜잭션으로 처리|
-|pgvector 유사도 검색|JdbcClient/SQL|`<=>` 연산자와 검색 집계 쿼리를 명시적으로 제어|
-|metadata 대량 import|JdbcClient/SQL|기존 batch insert와 검증 흐름 유지|
-|작업 선점|JdbcClient/SQL|`FOR UPDATE SKIP LOCKED`로 중복 claim을 방지하는 기존 동작 유지|
-
-JPA가 JDBC보다 항상 빠르다는 판단은 아닙니다. Spring Data JDBC도 트랜잭션과 `@Version`을 지원하며 단순 aggregate 모델에서는 더 간단할 수 있습니다. 이번 선택은 기존 catalog와 편집 이력의 유지보수 편의를 기준으로 했습니다. [JPA 선택 근거와 참고 자료](docs/label-editing.md#jpa-선택-근거).
-
-## 16. AWS 배포와 구성 이유
-
-프로젝트 계정 `189750306426`의 **서울 `ap-northeast-2`**를 사용합니다. ECS와 EKS에 같은 웹/API 이미지를 배포하고 데이터와 GPU는 공유합니다. 두 배포 경로를 함께 검증하기 위한 구성이며, ECS와 EKS 모두 실행 중에는 각각 실행 비용이 발생합니다.
-
-```mermaid
-flowchart LR
- TEAM[팀원] -->|HTTPS| WEB[로그인 프록시 / Cognito]
- WEB --> ECS[ECS Fargate 웹/API]
- PC[관리자 PC] -->|SSM 진단 터널| ECS
- PC -->|kubectl port-forward| EKS[EKS 웹/API]
- ECS --> RDS[(RDS PostgreSQL + pgvector)]
- EKS --> RDS
- ECS --> S3[(S3 원본 ZIP)]
- EKS --> S3
- ECS --> GPU[ECS EC2 GPU 1대 - VESPA + CLIP]
- EKS --> GPU
- GPU --> S3
- GH[GitHub Actions - release-version] --> ECR[ECR 이미지 digest]
- ECR --> ECS
- ECR --> EKS
- ECR --> GPU
-```
-
-|구성|사용 목적·선택 이유|전체 stop 이후|
-|---|---|---|
-|ECS Fargate|웹/API 실행. EC2 호스트를 직접 관리하지 않고 Docker 이미지로 배포. 자동 라벨 worker의 단일 실행 위치|태스크·서비스 제거|
-|EKS + CPU EC2 1대|동일 이미지의 Kubernetes 배포 검증, ClusterIP 서비스, Pod Identity. CPU 노드는 SSM 접속 경유지로도 사용|노드와 클러스터 제거|
-|ECS EC2 `g6.2xlarge` 1대|VESPA와 CLIP이 NVIDIA GPU를 공유해 GPU 중복 할당 방지. 초기 크기는 L4 24 GiB / 8 vCPU이며 성능은 실측 필요|인스턴스와 캐시 디스크 제거|
-|RDS PostgreSQL 16 + pgvector|catalog·작업·원본 라벨·수정 이력·벡터를 같은 DB에서 관리. `db.t4g.small`, 사설·암호화·TLS 인증서 검증|검증된 수동 스냅샷과 복구 정보 보존 후 인스턴스 제거|
-|S3|원본 ZIP을 서버 수명과 분리하고 서버별 캐시를 복원. 버전 관리·외부 공개 차단·HTTPS 강제|파일과 이전 버전 유지|
-|ECR|검증된 앱/AI Docker 이미지를 immutable tag와 digest로 관리. ECS/EKS가 동일 버전을 참조|이미지 유지|
-|Secrets Manager|DB 자격 증명과 내부 운영 토큰 관리. 저장소·workflow 변수에 실제 비밀번호를 넣지 않음|유지|
-|GitHub OIDC|장기 AWS access key 없이 이 저장소의 production environment에서 단기 인증|IAM/OIDC 설정 유지|
-|CloudFormation|영구 리소스와 실행 리소스를 분리하고 같은 설정으로 재생성|foundation 스택 유지|
-
-**Redis·Kafka·SQS·Elasticsearch는 추가하지 않았습니다.** 현재 작업 상태·선점은 PostgreSQL이 처리하고 벡터 검색은 pgvector가 처리합니다. 작은 단일 GPU worker 구성에서 같은 역할의 운영 서비스를 추가하지 않기 위한 선택입니다. EKS에서는 자동 라벨 worker를 끄고, GPU를 끄면 ECS worker도 비활성화해 대기 작업을 DB에 남깁니다.
-
-앱·DB·GPU의 직접 접속 포트는 인터넷에 공개하지 않습니다. 팀 접속을 위한 `web-start`는 AWS HTTPS 주소와 ALB, Cognito 로그인 프록시를 추가합니다. 관리자가 생성한 `team` 그룹 계정만 이용할 수 있습니다. 실제 주소는 환경 `status`의 `recovery.public_url`에서 확인합니다. SSM 터널 또는 Kubernetes port-forward는 관리자 진단에 사용합니다. NAT Gateway는 생성하지 않습니다. AWS의 recording worker는 공유 `.rrd` 저장 구성이 없으므로 비활성화했습니다. [팀 계정 생성과 외부 접속](docs/aws-ecs-cicd.md#팀-로그인과-외부-https-주소).
-
-### CI/CD 실행
-
-1. 프로젝트 계정의 서울 CloudShell에서 [bootstrap 절차](docs/aws-ecs-cicd.md#최초-준비)로 foundation을 준비합니다.
-2. GitHub `production` environment의 배포 허용 브랜치를 `release-version`으로 설정합니다. Repository Variable `AWS_ROLE_ARN`에 bootstrap의 GitHub 역할 ARN, `AWS_DEPLOY_ENABLED=true`를 지정합니다. 단기 인증은 OIDC를 사용합니다.
-3. PR 검사는 `release-version` 대상이며, 해당 브랜치 push는 백엔드·프런트엔드·브라우저 흐름·인프라 안전장치 테스트 및 Docker 빌드를 실행합니다.
-4. 통과한 이미지를 ECR에 발행합니다. 실행 중인 환경은 쓰기와 작업을 잠시 멈추고 같은 digest를 ECS/EKS에 배포한 뒤 확인합니다. **환경이 꺼져 있으면 이미지만 준비하며 push가 서버를 켜지 않습니다.**
-5. GPU 모델 이미지는 `Release images and deploy ECS + EKS` → Run workflow → `component=ai`로 수동 빌드합니다. 이미지 빌드와 실행 환경 변경을 별도 job으로 나눠 긴 모델 빌드가 환경 stop을 막지 않게 했습니다.
-
-수동 운영은 GitHub Actions → **AWS environment** → Run workflow → `release-version`에서 실행합니다.
-
-|action|동작|
-|---|---|
-|status|실행 리소스·스택·복구 스냅샷·GPU 한도 확인|
-|start|DB 생성/복원 → EKS·GPU·ECS 구성 → 앱 준비 확인. GPU 승인 전에는 `gpu=false`로 CPU 환경만 검증|
-|stop|쓰기 차단 → 작업 종료 대기 → 스냅샷·S3 복구 기록 검증 → 실행 리소스 제거|
-|gpu-start / gpu-stop|공유 GPU와 ECS worker만 켜거나 끄기|
-|verify|두 환경에서 브라우저 라벨 업로드·버튼 편집·저장·다운로드와 ZIP 업로드/API 다운로드 검사. stop/start 후 `restore_check=true`로 이전 문서·이력·ZIP SHA-256 일치 확인|
-
-원본 파일·수정 라벨·스냅샷·이미지를 **최소 한 달 보관하고, 한 달 이후에도 자동 삭제하지 않습니다.** 서버를 꺼도 S3·ECR·스냅샷·Secrets Manager·DNS 등의 보관 비용은 남습니다. CloudWatch 진단 로그만 30일 보관합니다. RDS는 단순 정지 시 7일 후 자동 시작되므로 장기 미사용에는 스냅샷 보존 후 인스턴스를 제거합니다. EKS도 제어 영역 요금을 줄이기 위해 클러스터 자체를 제거합니다. 다시 켜려면 재생성·복원·모델 로딩 시간이 필요합니다. [운영 명령·접속 방법·장애 복구](docs/aws-ecs-cicd.md).
-
-### 검증 상태 (2026-11-09)
-
-이번 계정에서는 서울 리전이 계정 수준에서 이미 활성화돼 있었지만 콘솔의 표시 리전에서 숨겨져 있었습니다. 콘솔 표시와 기본 리전을 서울로 맞췄고, 사용자가 조직 정책의 서울 허용을 반영한 뒤 프로젝트 계정 CloudShell/API 접근을 확인했습니다. 조직의 보안 정책을 전체 해제하지 않았습니다.
-
-GitHub 기본 브랜치와 `production` 배포 허용 브랜치를 `release-version`으로 설정하고 OIDC 인증을 실제 실행에서 확인했습니다. 첫 EKS 노드 생성에서 필요한 프로젝트 역할·AWS 서비스 연결 역할 조회 권한을 보완했습니다. AI 이미지는 VESPA의 NumPy 1 환경에 맞는 PyArrow를 별도로 고정해 빌드 import 검사와 ECR 발행을 통과했습니다. GPU 한도 상향은 별도 AWS 승인 절차이므로 이미지 준비 완료와 GPU 실행 완료를 구분합니다.
-
-|검사|결과|
-|---|---|
-|실제 PostgreSQL 백엔드 테스트|45개 통과|
-|프런트엔드 단위 테스트·프로덕션 빌드|61개 및 빌드 통과|
-|UI fixture / 실제 Spring 라벨 저장·다운로드|2개 / 1개 통과|
-|AI 업로드 계약 / 배포 안전장치|11개 / 15개 통과|
-|팀 로그인·GPU DNS 인프라 조건|배포 안전장치 총 19개 통과. cfn-lint 및 cfn-guard의 적용 가능한 저장소·DB·계정 규칙 통과|
-|실제 nuScenes 센서 데이터|scene-0061 ZIP 업로드, dataset 3 / scene 3, 39개 프레임·6개 카메라 이미지·GT 박스 표시 확인. 기존 합성 테스트 fixture와 구분|
-|Docker 전체 빌드·CloudFormation 템플릿 검사|통과|
-|GitHub 원격 CI·OIDC·ECR 발행|[성공 실행](https://github.com/DriveScene2Label-Team/DriveScene2Label/actions/runs/42579817011)|
-|AI Docker 빌드·VESPA import·ECR 발행|[성공 실행](https://github.com/DriveScene2Label-Team/DriveScene2Label/actions/runs/42586236337)|
-|서울 S3/ECR/배포 권한·암호화 비공개 RDS|생성 확인|
-|서울 ECS/EKS 앱 배포·동일 이미지 확인|[start 성공](https://github.com/DriveScene2Label-Team/DriveScene2Label/actions/runs/42595122060)|
-|ECS/EKS 실제 UI 저장·다운로드·ZIP 교차 조회|양쪽 브라우저 검사 통과, 원본 라벨·revision·ZIP SHA-256 일치. [검증 실행](https://github.com/DriveScene2Label-Team/DriveScene2Label/actions/runs/42595393497)|
-|전체 stop/start 후 DB 스냅샷 복원·무잔여 검사|아직 실환경 검증하지 않음. 종료 안전장치 단위 테스트와 구분|
-|서울 GPU 추론·임베딩|G/VT On-Demand 한도 8 vCPU 승인 확인. GPU DNS 등록을 Cloud Map 방식으로 수정했으며 실제 추론 성공은 별도 검증 필요|
-
-이 절은 **이전 전체 AWS 배포의 실행 기록**입니다. 당시 ECS 앱·EKS 클러스터·CPU 노드·RDS·공개 로그인 게이트웨이를 사용했고, 이후 종료 과정에서 ECS/EKS/GPU 실행 자원을 제거했습니다. 현재 MVP는 문서 상단의 Vercel·로컬 연산·S3/RDS 구성을 사용합니다. 이 절의 과거 start workflow는 현재 하이브리드 재개 명령이 아닙니다.
-
-`/health` 성공은 CLIP 로딩을 의미하며 VESPA 전체 추론 성공을 대신하지 않습니다. 기존 로컬 GPU 검증과 이번 AWS 배포 검증은 구분합니다. 새로 확인되는 결과와 제한은 이 표와 [AWS 운영 문서](docs/aws-ecs-cicd.md)에 기록합니다.
+모델·nuScenes 원본·DB 덤프·추론 산출물·비밀 설정은 Git에 넣지 않습니다. 모델·데이터 라이선스는 원본 배포처를 따릅니다. VESPA upstream 변경은 고정 commit과 `ai-server/vespa-patches`로 관리합니다.

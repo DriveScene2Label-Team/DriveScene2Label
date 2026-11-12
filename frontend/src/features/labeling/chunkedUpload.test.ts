@@ -11,7 +11,8 @@ it('sends bounded chunks in order and polls registration separately', async () =
   const fetch = vi.fn()
     .mockResolvedValueOnce(new Response(JSON.stringify(session)))
     .mockResolvedValueOnce(new Response(JSON.stringify({ ...session, status: 'PROCESSING' })))
-    .mockResolvedValueOnce(new Response(JSON.stringify({ ...session, status: 'COMPLETED', datasetId: 12, sceneCount: 10 })));
+    .mockResolvedValueOnce(new Response(JSON.stringify({ ...session, status: 'COMPLETED', datasetId: 12, sceneCount: 10 })))
+    .mockResolvedValueOnce(new Response(null, { status: 204 }));
   vi.stubGlobal('fetch', fetch);
   const parts: { path: string; size: number }[] = [];
   vi.stubGlobal('XMLHttpRequest', class {
@@ -25,4 +26,9 @@ it('sends bounded chunks in order and polls registration separately', async () =
   expect(parts.map((part) => part.path.split('offset=')[1])).toEqual(['0', '4000000', '8000000']);
   expect(transferred).toHaveBeenCalledOnce();
   expect(progress).toHaveBeenLastCalledWith(expect.objectContaining({ loaded: file.size, total: file.size }));
+  const measurement = JSON.parse(storage.get('ds2l.lastUploadMeasurement')!);
+  expect(measurement).toMatchObject({ uploadId: session.id, sentBytes: file.size, resumedBytes: 0, outcome: 'completed' });
+  expect(measurement.totalMs).toBeGreaterThanOrEqual(measurement.transferMs);
+  expect(measurement.processingMs).toBeGreaterThan(0);
+  expect(fetch).toHaveBeenLastCalledWith(`/api/dataset-uploads/sessions/${session.id}/metrics`, expect.objectContaining({ method: 'POST' }));
 });

@@ -90,6 +90,8 @@ def tunnel_origin(path, timeout=60):
     while True:
         if path.exists():
             matches = re.findall(r'https://[a-z0-9]+(?:-[a-z0-9]+)*\.trycloudflare\.com\b', path.read_text(encoding='utf-8', errors='replace'))
+            # A failed provisioning request can mention the control API; it is not the public tunnel.
+            matches = [origin for origin in matches if origin != 'https://api.trycloudflare.com']
             if matches:
                 return matches[-1]
         if time.monotonic() >= deadline:
@@ -97,17 +99,19 @@ def tunnel_origin(path, timeout=60):
         time.sleep(1)
 
 
-def require_auth_gate(origin):
+def require_auth_gate(origin, headers=None):
     class NoRedirect(urllib.request.HTTPRedirectHandler):
         def redirect_request(self, req, fp, code, msg, headers, newurl):
             return None
     opener = urllib.request.build_opener(NoRedirect)
     try:
-        with opener.open(origin + '/api/datasets', timeout=20):
+        request = urllib.request.Request(origin + '/api/datasets', headers=headers or {})
+        with opener.open(request, timeout=20):
             raise RuntimeError('Public API unexpectedly allowed anonymous access.')
     except urllib.error.HTTPError as error:
+        is_gateway = error.read(1024).strip() == b'{}'
         error.close()
-        if error.code != 401:
+        if error.code != 401 or not is_gateway:
             raise RuntimeError(f'Authentication gateway is not ready: HTTP {error.code}') from None
 
 
@@ -154,8 +158,8 @@ def created_deployment_id(response):
     return deployment_id
 
 
-def sync_vercel(origin, state_path):
-    require_auth_gate(origin)
+def sync_vercel(origin, state_path, headers=None, force_sync=False):
+    require_auth_gate(origin, headers) if headers else require_auth_gate(origin)
     project = vercel('project', 'inspect', PROJECT, '--json')
     validate_project(project)
     current = vercel('inspect', SITE, '--json')
@@ -163,7 +167,7 @@ def sync_vercel(origin, state_path):
     row = backend_environment()
     revision = environment_revision(row)
     saved = json.loads(state_path.read_text(encoding='utf-8')) if state_path.exists() else {}
-    if saved == {'origin': origin, 'deploymentId': current['id'], 'envRevision': revision}:
+    if not force_sync and saved == {'origin': origin, 'deploymentId': current['id'], 'envRevision': revision}:
         require_auth_gate(SITE)
         print(f'Vercel already connected: {SITE}', flush=True)
         return

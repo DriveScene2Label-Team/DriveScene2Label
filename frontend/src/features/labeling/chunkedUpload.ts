@@ -23,6 +23,7 @@ function sendPart(id: string, offset: number, bytes: Blob, progress: (loaded: nu
 }
 
 export async function uploadChunks(file: File, progress: (value: Transfer) => void, transferred: () => void): Promise<UploadedDataset> {
+  const measuredStart = performance.now();
   // Small file fingerprint avoids resuming a different file with the same name/size.
   const fingerprint = new Uint8Array(await new Blob([file.slice(0, 65536), file.slice(-65536)]).arrayBuffer());
   const hash = [...new Uint8Array(await crypto.subtle.digest('SHA-256', fingerprint))].map((v) => v.toString(16).padStart(2, '0')).join('');
@@ -41,6 +42,11 @@ export async function uploadChunks(file: File, progress: (value: Transfer) => vo
   if (!session.workerEnabled && session.status !== 'COMPLETED') throw new Error('로컬 서버의 업로드 처리 작업자가 꺼져 있습니다. 서버 설정을 확인해 주세요.');
   const started = Date.now();
   const resumed = session.receivedBytes;
+  const uploadId = session.id;
+  let acknowledged = 0;
+  let transferredAt: number | null = null;
+  let completed = false;
+  try {
   if (session.status === 'RECEIVING') {
     for (let offset = session.receivedBytes; offset < file.size; offset += session.chunkBytes) {
       const bytes = file.slice(offset, Math.min(offset + session.chunkBytes, file.size));
@@ -55,8 +61,10 @@ export async function uploadChunks(file: File, progress: (value: Transfer) => vo
         }
       }
       progress({ loaded: offset + bytes.size, total: file.size, bytesPerSecond: (offset + bytes.size - resumed) / Math.max((Date.now() - started) / 1000, 1) });
+      acknowledged += bytes.size;
     }
   }
+  transferredAt = performance.now();
   transferred();
   if (['RECEIVING', 'FAILED'].includes(session.status)) session = (await requestJson<Session>(`/api/dataset-uploads/sessions/${session.id}/complete`, { method: 'POST' })).data;
   while (session.status === 'QUEUED' || session.status === 'PROCESSING') {
@@ -65,5 +73,17 @@ export async function uploadChunks(file: File, progress: (value: Transfer) => vo
   }
   if (session.status !== 'COMPLETED' || session.datasetId == null || session.sceneCount == null) throw new Error(session.errorMessage || '서버 등록을 마치지 못했습니다. 같은 파일을 다시 선택해서 재시도해 주세요.');
   try { localStorage.removeItem(storageKey); } catch { /* No source bytes are stored in browser storage. */ }
+  completed = true;
   return { datasetId: session.datasetId, sceneCount: session.sceneCount };
+  } finally {
+    const ended = performance.now();
+    const metrics = { transferMs: Math.round((transferredAt ?? ended) - measuredStart),
+      processingMs: Math.round(transferredAt == null ? 0 : ended - transferredAt), totalMs: Math.round(ended - measuredStart),
+      sentBytes: acknowledged, resumedBytes: resumed, outcome: completed ? 'completed' : 'failed' };
+    // One compact observation per attempt. Browser times include retries/proxy/polling; they are not wire time.
+    try { localStorage.setItem('ds2l.lastUploadMeasurement', JSON.stringify({ uploadId, ...metrics })); } catch { /* Diagnostics are optional. */ }
+    console.info('[UPLOAD_CLIENT]', { uploadId, ...metrics });
+    void requestJson(`/api/dataset-uploads/sessions/${uploadId}/metrics`, { method: 'POST', body: metrics })
+      .catch(() => console.warn('Upload timing delivery failed; the local measurement is still available.'));
+  }
 }

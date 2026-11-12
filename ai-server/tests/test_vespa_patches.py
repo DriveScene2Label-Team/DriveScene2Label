@@ -17,6 +17,17 @@ PATCH_DIR = Path(__file__).resolve().parents[1] / "vespa-patches"
 VESPA_REF = "acb2b6e8683363795528f049fe0444ef9f3efdb9"
 
 
+def test_environment_has_no_conflicting_duplicate_pins():
+    pins = {}
+    for line in (PATCH_DIR.parent / 'requirements-vespa.txt').read_text().splitlines():
+        if '==' not in line or line.lstrip().startswith('#'):
+            continue
+        name, version = line.split('==', 1)
+        normalized = name.strip().lower().replace('_', '-')
+        assert normalized not in pins, f'Duplicate dependency pin: {normalized}'
+        pins[normalized] = version.strip()
+
+
 def _new_file_from_patch(patch: Path, path: str) -> str:
     lines = patch.read_text().splitlines()
     start = lines.index(f"+++ b/{path}")

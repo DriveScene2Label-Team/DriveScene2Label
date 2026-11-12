@@ -13,6 +13,15 @@ spec.loader.exec_module(cloud)
 
 
 class CloudTests(unittest.TestCase):
+    def test_failed_tunnel_provisioning_url_is_not_an_origin(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / 'tunnel.log'
+            path.write_text('failed: Post "https://api.trycloudflare.com/tunnel": timeout')
+            with self.assertRaises(TimeoutError):
+                cloud.tunnel_origin(path, timeout=0)
+            path.write_text(path.read_text() + '\nhttps://new-active-tunnel.trycloudflare.com')
+            self.assertEqual(cloud.tunnel_origin(path, timeout=0), 'https://new-active-tunnel.trycloudflare.com')
+
     def test_redeploy_accepts_single_cli_deployment_and_rejects_ambiguity(self):
         for response in ({'id': 'dpl_new'}, {'deploymentId': 'dpl_new'}, {'deployment': {'id': 'dpl_new'}}, {'deployments': [{'id': 'dpl_new'}]}):
             self.assertEqual(cloud.created_deployment_id(response), 'dpl_new')
@@ -44,13 +53,19 @@ class CloudTests(unittest.TestCase):
 
     def test_public_gate_must_deny_anonymous_requests(self):
         for code in (401, 302, 502):
-            error = HTTPError('https://test.invalid/api/datasets', code, 'fixture', {}, io.BytesIO())
+            error = HTTPError('https://test.invalid/api/datasets', code, 'fixture', {}, io.BytesIO(b'{}'))
             with patch.object(cloud.urllib.request.OpenerDirector, 'open', side_effect=error):
                 if code == 401:
                     cloud.require_auth_gate('https://test.invalid')
                 else:
                     with self.assertRaises(RuntimeError):
                         cloud.require_auth_gate('https://test.invalid')
+
+    def test_tunnel_401_is_not_mistaken_for_the_app_login_gateway(self):
+        error = HTTPError('https://test.invalid/api/datasets', 401, 'fixture', {}, io.BytesIO())
+        with patch.object(cloud.urllib.request.OpenerDirector, 'open', side_effect=error):
+            with self.assertRaises(RuntimeError):
+                cloud.require_auth_gate('https://test.invalid')
 
     def test_unchanged_connection_does_not_redeploy(self):
         origin = 'https://fixture-tunnel.trycloudflare.com'

@@ -44,7 +44,9 @@ public class NuscenesImporter {
  private ImportResult importFrom(DatasetFiles files,String version,String name,String storage,String root,String dataOrigin) throws IOException {
   if (!version.matches("v[0-9]+\\.[0-9]+-[a-zA-Z0-9_-]+")) throw new IllegalArgumentException("Invalid nuScenes version");
   // Keep concurrent imports from interleaving. This lock is released with the transaction.
+  long lockStarted=System.nanoTime();
   jdbc.getJdbcTemplate().execute("SELECT pg_advisory_xact_lock(731240921)");
+  log.info("[DB_IMPORT] upload={} stage=advisory_lock wall_ms={}",root,(System.nanoTime()-lockStarted)/1_000_000);
   Map<String, JsonNode> sources = new LinkedHashMap<>();
   Map<String, Integer> counts = new LinkedHashMap<>();
   MessageDigest digest;
@@ -72,6 +74,7 @@ public class NuscenesImporter {
   if (!checksum.equals(dataset.get("source_checksum"))) throw new IllegalStateException("This dataset version already has different metadata; import under a separate dataset version instead.");
   long datasetId = ((Number) dataset.get("id")).longValue();
   for (var table : ImportSchema.TABLES) {
+   long tableStarted=System.nanoTime(),batchNanos=0;int batches=0;
    String columns = "dataset_id, token, raw_payload";
    String values = ":dataset_id, :token, CAST(:raw_payload AS jsonb)";
    for (var field : table.fields()) { columns += ", " + field.column(); values += ", :" + field.column(); }
@@ -84,9 +87,10 @@ public class NuscenesImporter {
     var params = new MapSqlParameterSource("dataset_id", datasetId).addValue("token", token).addValue("raw_payload", row.toString());
     for (var field : table.fields()) params.addValue(field.column(), value(row.at(field.pointer()), field.kind()));
     batch.add(params);
-    if (batch.size() == 500) { jdbc.batchUpdate(sql, batch.toArray(MapSqlParameterSource[]::new)); batch.clear(); }
+    if (batch.size() == 500) { long before=System.nanoTime();jdbc.batchUpdate(sql, batch.toArray(MapSqlParameterSource[]::new));batchNanos+=System.nanoTime()-before;batches++;batch.clear(); }
    }
-   if (!batch.isEmpty()) jdbc.batchUpdate(sql, batch.toArray(MapSqlParameterSource[]::new));
+   if (!batch.isEmpty()) { long before=System.nanoTime();jdbc.batchUpdate(sql, batch.toArray(MapSqlParameterSource[]::new));batchNanos+=System.nanoTime()-before;batches++; }
+   log.info("[DB_IMPORT] dataset={} table={} rows={} batches={} jdbc_ms={} wall_ms={}",datasetId,table.table(),counts.get(table.table()),batches,batchNanos/1_000_000,(System.nanoTime()-tableStarted)/1_000_000);
    log.info("Imported {}: {} records", table.table(), counts.get(table.table()));
   }
   Set<String> logTokens = new HashSet<>();

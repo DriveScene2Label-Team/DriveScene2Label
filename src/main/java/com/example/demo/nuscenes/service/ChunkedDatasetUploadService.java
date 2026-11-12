@@ -49,11 +49,15 @@ public class ChunkedDatasetUploadService {
   byte[] bytes=input.readNBytes(CHUNK_BYTES+1);
   long receivedAt=System.nanoTime();
   if(bytes.length>CHUNK_BYTES) throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE,"전송 조각이 너무 큽니다.");
+  long[] parts=new long[3];
   tx.executeWithoutResult(transaction->{
+   long lockStarted=System.nanoTime();
    var r=row(id,true);
+   parts[0]=System.nanoTime()-lockStarted;
    if(!"RECEIVING".equals(r.status())) throw conflict("이미 파일 검증이 시작되었습니다.");
    if(offset<0 || offset%CHUNK_BYTES!=0 || offset>=r.sizeBytes() || bytes.length!=Math.min(CHUNK_BYTES,r.sizeBytes()-offset)) throw bad("전송 위치 또는 조각 크기가 올바르지 않습니다.");
    if(offset>r.receivedBytes()) throw conflict("앞선 파일 조각부터 전송해 주세요.");
+   long fileStarted=System.nanoTime();
    try(FileChannel channel=FileChannel.open(file(id),StandardOpenOption.CREATE,StandardOpenOption.READ,StandardOpenOption.WRITE)) {
     channel.position(offset);
     if(offset<r.receivedBytes()) {
@@ -64,10 +68,14 @@ public class ChunkedDatasetUploadService {
     }
     ByteBuffer data=ByteBuffer.wrap(bytes);while(data.hasRemaining()) channel.write(data);channel.force(true);
    } catch(IOException error) { throw new UncheckedIOException(error); }
+   finally { parts[1]=System.nanoTime()-fileStarted; }
+   long updateStarted=System.nanoTime();
    jdbc.sql("UPDATE dataset_upload_session SET received_bytes=:n,updated_at=now() WHERE id=:id").param("n",offset+bytes.length).param("id",id).update();
+   parts[2]=System.nanoTime()-updateStarted;
   });
+  long transactionEnded=System.nanoTime();
   var result=status(id);
-  org.slf4j.LoggerFactory.getLogger(getClass()).info("[UPLOAD_TRANSFER] upload={} event=part offset={} bytes={} received={} receive_ms={} persist_status_ms={} total_ms={}",id,offset,bytes.length,result.receivedBytes(),(receivedAt-started)/1_000_000,(System.nanoTime()-receivedAt)/1_000_000,(System.nanoTime()-started)/1_000_000);
+  org.slf4j.LoggerFactory.getLogger(getClass()).info("[UPLOAD_TRANSFER] request={} upload={} event=part offset={} bytes={} received={} receive_ms={} db_lock_ms={} file_ms={} db_update_ms={} transaction_ms={} status_ms={} total_ms={}",org.slf4j.MDC.get("requestId"),id,offset,bytes.length,result.receivedBytes(),(receivedAt-started)/1_000_000,parts[0]/1_000_000,parts[1]/1_000_000,parts[2]/1_000_000,(transactionEnded-receivedAt)/1_000_000,(System.nanoTime()-transactionEnded)/1_000_000,(System.nanoTime()-started)/1_000_000);
   return result;
  }
  public Status complete(UUID id) {
@@ -90,6 +98,7 @@ public class ChunkedDatasetUploadService {
   });
  }
  public void process(Row work) {
+  org.slf4j.LoggerFactory.getLogger(getClass()).info("[UPLOAD_TRANSFER] upload={} event=processing",work.id());
   try {
    var result=uploads.upload(new ArchiveFile(file(work.id()),work.filename()),work.id().toString());
    jdbc.sql("UPDATE dataset_upload_session SET status='COMPLETED',dataset_id=:d,updated_at=now() WHERE id=:id AND execution_token=:t AND status='PROCESSING'").param("d",result.datasetId()).param("id",work.id()).param("t",work.executionToken()).update();

@@ -30,12 +30,14 @@ public class SceneSearchService {
   String mode=aggregation==null ? "TOP_K_AVERAGE" : aggregation.toUpperCase(Locale.ROOT);
   if(!Set.of("MAX","AVERAGE","TOP_K_AVERAGE").contains(mode)) throw badRequest("aggregation must be MAX, AVERAGE or TOP_K_AVERAGE");
   String text=query.strip();
+  long started=System.nanoTime();
   var encoded=ai.embed(text);
+  long encodedAt=System.nanoTime();
   String vector=EmbeddingValidator.vector(encoded,model,"clip-text-tokenizer");
   // HTTP inference occurs before the repository's read-only DB transaction.
   var results=repository.search(vector,model,preprocess,datasetId,k,mode,imageTopK,keyframesOnly).stream()
    .map(r->r.withMatchScore(calibration.matchScore(model,preprocess,mode,r.score()))).toList();
-  org.slf4j.LoggerFactory.getLogger(getClass()).info("[SEARCH] topK={} scenes={} aggregation={}",k,results.size(),mode);
+  org.slf4j.LoggerFactory.getLogger(getClass()).info("[SEARCH] request={} dataset={} topK={} scenes={} aggregation={} ai_ms={} db_mapping_ms={} total_ms={}",org.slf4j.MDC.get("requestId"),datasetId,k,results.size(),mode,(encodedAt-started)/1_000_000,(System.nanoTime()-encodedAt)/1_000_000,(System.nanoTime()-started)/1_000_000);
   return new SceneSearchResponse(text,model,preprocess,mode,imageTopK,keyframesOnly,results);
  }
  private static ResponseStatusException badRequest(String message) { return new ResponseStatusException(HttpStatus.BAD_REQUEST,message); }

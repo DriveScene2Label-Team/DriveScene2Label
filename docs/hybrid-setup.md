@@ -1,5 +1,25 @@
 # 혼합 배포 실행 준비
 
+## 2026-11-12 Microsoft 비공개 터널
+
+현재 운영 경로는 `Vercel → Microsoft Dev Tunnel → 127.0.0.1:4180 oauth2-proxy → Spring`이다. Cloudflare 발급 timeout/429가 반복되어 연결 방식을 변경했다. 기존 Cognito 팀 로그인은 유지하고 터널에는 익명 접근 권한을 주지 않는다.
+
+- 공식 [Dev Tunnels CLI](https://learn.microsoft.com/en-us/azure/developer/dev-tunnels/get-started?tabs=windows) 1.0.2115를 `.local/tools/devtunnel.exe`에 설치하고 Microsoft Authenticode 서명을 확인했다. GitHub 로그인은 사용자가 직접 Authorize했다.
+- 이미 만든 `ds2l-mvp.jpe1`과 HTTP 포트 4180을 재사용한다. `host-header`·`origin-header`는 unchanged, request timeout은 600초다. 터널 리소스의 만료 설정은 30일이며 없어진 터널을 스크립트가 자동 생성하지 않는다.
+- `%LOCALAPPDATA%/DriveScene2Label/hybrid/tunnel.json`에는 provider·tunnelId·관찰한 origin만 둔다. 실제 값은 아래 형식이며 이 설정이 있는 PC에서 `scripts/hybrid.ps1`은 Microsoft 경로를 선택한다.
+
+```json
+{"provider":"microsoft","tunnelId":"<existing-id.region>","origin":"https://<assigned-host>-4180.<region>.devtunnels.ms"}
+```
+
+`scripts/hybrid/dev_tunnel.py`는 **connect 범위만** 가진 토큰을 발급한다. 보호된 `tunnel-token.json`과 Vercel production의 `BACKEND_TUNNEL_TOKEN` secret에 저장하고, CLI stdin으로 전달해 명령줄·로그에 값을 넣지 않는다. `frontend/vercel.json`의 **request.headers transform**이 업스트림 요청에만 `X-Tunnel-Authorization`을 설정한다. 응답 헤더·VITE 변수·정적 JS에 넣지 않는다. `env`는 transform에도 지정해야 한다.
+
+토큰은 약 24시간 유효하다. 시작 시 잔여 6시간 미만이면 갱신하고 기존 production 소스를 재배포한다. 하루 이상 연속 실행할 때 자동으로 영구 갱신되는 구성은 아니다. 장시간 시험 전 `start`를 재실행한다. 터널·Vercel·AWS 공식 로그인 자체가 만료되면 해당 CLI 로그인을 갱신해야 한다. [Microsoft 토큰·보안 설명](https://learn.microsoft.com/en-us/azure/developer/dev-tunnels/security).
+
+실제 검증: 터널 직접 익명 요청은 Microsoft 인증으로 이동, connect 토큰을 보낸 API는 기존 게이트웨이 JSON 401, Vercel API도 같은 JSON 401, `/oauth2/start`는 Cognito 302, 사용자 로그인 후 기존 10개 씬 표시 확인. 빈 401만으로 앱 로그인까지 도달했다고 판단하지 않는다. 초기화 뒤 공개 빈 씬 목록도 확인했다.
+
+한 번의 `start`로 RDS available·Docker/GPU·S3 세션·쓰기 재개·Vercel READY까지 확인했다. 두 번째 연결 검사는 `already connected`로 재배포를 생략했다. EC2/ECS/EKS는 시작하지 않았다. 아래 11월 11일 Cloudflare·설치 준비 설명은 과거 단계의 기록이다.
+
 기준: `release-version`, 2026-11-11. 구성은 **Vercel 프론트 + 로컬 Spring/FastAPI/GPU + S3 원본 + RDS DB**다. 최신 기능·검증 범위는 [11월 11일 MVP 갱신 기록](hybrid-mvp-update-2026-11-11.md)과 저장소 README를 기준으로 한다. 아래 초기 준비와 과거 연결 기록은 당시 상태를 보존한 것이다.
 
 ## 명령 하나로 기존 환경 시작
