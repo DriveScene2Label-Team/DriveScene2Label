@@ -1,5 +1,7 @@
 # 실행·검증 기록 — 2026-11-12
 
+**최신 상태: 20:39 KST 사용자 요청으로 운영 중지 완료.** 로컬 서버·터널 종료, RDS stopped 및 암호화 종료 스냅샷 available, Vercel pause 및 Git 자동 배포 비활성화. 데이터 보존·자동 재시작 예정·재개 명령은 [중지 기록](shutdown-2026-11-12.md)을 따른다. 아래는 중지 전 실행 이력이다.
+
 ## 공개 연결 복구와 사용자 작업 완료 (18시 이후)
 
 - `5198bed` push가 GitHub 연결로 Vercel production `dpl_E22ggJ3u55TxyjaVnT6CyuiumzGy` READY를 만들었다. [해당 GitHub CI도 성공](https://github.com/DriveScene2Label-Team/DriveScene2Label/actions/runs/43185460893). Git 연결은 `release-version` / root `frontend`이며 CI와 Vercel은 독립 실행한다.

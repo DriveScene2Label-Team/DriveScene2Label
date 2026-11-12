@@ -4,7 +4,7 @@ nuScenes 원본을 올리고, 주행 씬을 찾아 **선택한 씬의 3D 라벨�
 
 **[서비스 열기](https://drivescene2label.vercel.app) · [API 명세](README_API.md) · [구조·병목 분석·면접 학습 문서](docs/architecture-and-measurement-2026-11-12.md)**
 
-> **운영 일시중지 · 2026-11-12 저녁 사용자 요청.** 로컬 서버·GPU·터널을 종료하고 Vercel을 pause했습니다. RDS도 종료용 스냅샷과 함께 정지 절차를 진행했습니다. 원본·라벨·백업은 유지합니다. Git 자동 배포도 `git.deploymentEnabled=false`로 중지했으며, 아래 화면과 배포 성공 기록은 중지 전 검증 이력입니다. [최종 중지 상태·다시 켜는 순서](docs/shutdown-2026-11-12.md).
+> **운영 일시중지 · 2026-11-12 20:39 KST 확인.** 로컬 서버·GPU·터널을 종료하고 Vercel을 pause했습니다. RDS는 `stopped`, 종료용 암호화 스냅샷은 `available`입니다. 원본·라벨·백업은 유지합니다. Git 자동 배포도 `git.deploymentEnabled=false`로 중지했으며, 아래 화면과 배포 성공 기록은 중지 전 검증 이력입니다. RDS 자동 재시작 예정은 **11월 19일 20:39 KST**입니다. [최종 중지 상태·다시 켜는 순서](docs/shutdown-2026-11-12.md).
 
 기준: **2026-11-12 · `release-version`**. 현재 프론트는 Vercel, 백엔드와 GPU는 로컬 PC, 원본은 AWS S3, 메타데이터·라벨은 RDS에 둡니다. **EC2·ECS·EKS는 이번 MVP에 사용하지 않습니다.** 과거 전체 AWS 운영 명령과 검증 기록은 [별도 이력 문서](docs/aws-deployment-history-2026-11-09.md)로 옮겼습니다.
 
