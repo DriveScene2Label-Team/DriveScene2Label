@@ -32,4 +32,7 @@
 ## 검증
 
 - Mac: `ai-server/tests/test_vespa_patches.py`(patch 안 새 파일을 그대로 실행해 단위 검사 + `VESPA_SRC` 지정 시 깨끗한 checkout 적용), 합성 장면에서 patched `reproject_lidar_to_segmentation` 실행(upstream 박스 20 m → P2 2.4 m 트럭 면만), Spring 테스트(barrier/cone 저장), 프론트 단위 테스트.
-- 미실행: Colab GPU 재실행과 웹 화면 비교. 노트북은 `feature/vespa-p1-p2`를 clone하므로 브랜치 push 후 실행 가능. 결과는 `vespa-labels-ds2l-p1-p2`(Drive)로 분리되고, 이전 결과는 `.local/colab/results-baseline-upstream`에 보존.
+- 실행(2026-11-05, Colab GPU): v1.0-mini 10개 씬 전체를 패치 적용 상태로 실행. 결과는 `vespa-labels-ds2l-p1-p2`(Drive)로 분리, 이전 결과는 `.local/colab/results-baseline-upstream`에 보존.
+  - 8class box 수(10개 씬): 원본 7,740 → 패치 9,128. barrier 1,147, traffic_cone 445 추가. 기존 클래스는 소폭 감소(car 3,136→3,056, pedestrian 2,854→2,827, truck 714→664), 0002 필터 영향으로 추정.
+  - 웹 화면: scene-0061 결과(1,306 box)를 Colab shim으로 받아 작업대에서 표시 확인.
+- 미실행: GT 대비 정확도 비교(클래스별 검출 품질, 0002 필터 효과)와 ver2 rigid 후처리를 함께 적용한 실행.

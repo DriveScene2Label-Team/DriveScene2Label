@@ -157,7 +157,7 @@
 | 2026-10-04 | calibration 캐시 | query key를 sensor file id 대신 `datasetId + calibratedSensorToken`으로 두어 카메라당 1회 조회. pose는 파일별 | api/queries.ts |
 | 2026-10-04 | 버튼 대비 | 주요 파랑 `#216FE5`(4.70:1), hover `#1D64D6`(5.46:1) | styles/index.css |
 | 2026-10-04 | recording timeout | Spring 읽기 timeout 660s > exporter 600s (동시 만료 방지) | application.properties, compose.yml |
-| 2026-11-04 | VESPA patch | 고정 commit + `ai-server/vespa-patches`(0001 barrier/traffic_cone, 0002 가려진·너무 깊은 점 제거). Docker·Colab 같은 apply.sh. V13 migration, Spring/AI/프론트 8class 목록 확장. 실제 Colab 재실행·화면 비교는 미실행 | ai-server/VESPA.md, docs/superpowers/specs/2026-11-04-vespa-p1-p2-design.md |
+| 2026-11-04 | VESPA patch | 고정 commit + `ai-server/vespa-patches`(0001 barrier/traffic_cone, 0002 가려진·너무 깊은 점 제거). Docker·Colab 같은 apply.sh. V13 migration, Spring/AI/프론트 8class 목록 확장. 2026-11-05 Colab GPU로 mini 10개 씬 실행(8class box 7,740→9,128, barrier 1,147·traffic_cone 445), scene-0061 작업대 표시 확인. GT 대비 정확도 비교는 미실행 | ai-server/VESPA.md, docs/superpowers/specs/2026-11-04-vespa-p1-p2-design.md |
 | 2026-11-05 | 일치도 재보정·단계 | 100점 기준을 긴 설명 문장(0.259)에서 짧은 검색어 정답 중앙값(0.232)으로 변경. 맞는 짧은 검색어 중앙값 69→100점, 오답 중앙값 37→54점(구분력 AUC 0.81은 그대로). 카드에 단계(80+ 잘 맞음/50+ 관련 있음/약함) 추가. 검색어 template 방식은 점수만 부풀려 제외 | docs/search-match-score.md, scripts/match_score_queries.mini.json |
 | 2026-11-04 | 검색 일치도 | 응답에 `matchScore`(0..100) 추가, 기존 score 유지. 기준점은 scene 설명으로 보정해 application.properties에 둠. 카드 "일치도 N점", 툴팁 원래 코사인+확률 아님, % 없음. 신뢰도/변별도 필드는 만들지 않음 | docs/search-match-score.md, MatchScoreCalibration |
 | 2026-10-04 | job 실행 제한 | 선택한 job이 PENDING/RUNNING이면 같은 패널의 새 실행 버튼 비활성(Idempotency-Key와 별개 정책) | JobPanel.tsx |
