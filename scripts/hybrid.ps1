@@ -12,7 +12,8 @@ $composeArgs = @('compose', '--env-file', $runtimeEnv, '-f', 'compose.hybrid.yml
 $tunnelConfig = $null
 if (Test-Path -LiteralPath (Join-Path $runtimeRoot 'tunnel.json')) {
     $tunnelConfig = Get-Content -LiteralPath (Join-Path $runtimeRoot 'tunnel.json') -Raw | ConvertFrom-Json
-    if ($tunnelConfig.provider -ne 'microsoft' -or $tunnelConfig.tunnelId -notmatch '^[a-zA-Z0-9-]+\.[a-z0-9]+$') {
+    if ($tunnelConfig.provider -eq 'cloudflare') { $tunnelConfig = $null }
+    elseif ($tunnelConfig.provider -ne 'microsoft' -or $tunnelConfig.tunnelId -notmatch '^[a-zA-Z0-9-]+\.[a-z0-9]+$') {
         throw 'Invalid protected tunnel.json. See docs/hybrid-setup.md.'
     }
 }

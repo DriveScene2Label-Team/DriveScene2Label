@@ -28,7 +28,8 @@ export function SearchIndexStatus({ datasetId }: { datasetId: number }) {
   return <div className="search-note" role="status">
     <b>{value.status === 'COMPLETED' ? '검색 준비 완료' : value.status === 'FAILED' ? '검색 준비 실패' : '이미지 검색 준비'}</b>
     <span>{value.indexedImages.toLocaleString('ko-KR')} / {value.totalImages.toLocaleString('ko-KR')}장 · 카메라 키프레임</span>
-    {active && <><progress aria-label="검색 인덱스 진행률" value={value.indexedImages} max={value.totalImages} /><span>GPU 작업 순서에 따라 처리해요. 페이지를 닫아도 서버에서 계속 진행돼요.</span></>}
+    {active && <><progress aria-label="검색 인덱스 진행률" value={value.indexedImages} max={value.totalImages} /><span>이미지 검색 준비를 먼저 완료해요. 완료 후 씬에서 라벨 생성 버튼을 직접 눌러 주세요.</span><span>페이지를 닫아도 검색 준비는 계속돼요. 라벨링은 자동으로 시작하지 않아요.</span></>}
+    {value.status === 'COMPLETED' && <span>씬을 선택하고 라벨 생성 버튼을 누르면 해당 씬만 처리해요.</span>}
     {value.errorMessage && <span>{value.errorMessage}</span>}
     {!value.workerEnabled && value.status !== 'COMPLETED' && <span>검색 준비 작업자가 꺼져 있어요. 로컬 서버 설정을 확인해 주세요.</span>}
     {['NOT_STARTED', 'FAILED'].includes(value.status) && <button className="btn btn--sm btn--weak" disabled={start.isPending || !value.workerEnabled} onClick={() => start.mutate()}>{start.isPending ? '요청 중…' : value.status === 'FAILED' ? '검색 준비 다시 시도' : '검색 준비 시작'}</button>}

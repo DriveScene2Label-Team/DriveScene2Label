@@ -1,5 +1,11 @@
 # DriveScene2Label Backend API Specification
 
+## 2026-11-12 수동 라벨 실행 순서
+
+업로드 데이터셋은 현재 모델·전처리에 맞는 이미지 임베딩이 모두 준비된 뒤에만 새 라벨 작업을 받는다. 미완료 상태는 `/api/system/status`의 `vespa.reasonCode=EMBEDDINGS_INCOMPLETE`, `canExecute=false`로 표시하고 새 라벨 POST는 HTTP 503으로 거절한다. 인덱스 상태 행만 COMPLETED여도 실제 저장 벡터가 부족하면 허용하지 않는다. 완료 이벤트·상태 GET·씬 조회가 라벨 작업을 자동 생성하지 않으며 사용자 클릭이 필요하다. 이미 수락된 동일 Idempotency-Key의 재조회 의미는 유지한다.
+
+운영자가 사용자 요청으로 중단한 기존 작업은 상태 enum을 바꾸지 않고 `FAILED + USER_CANCELLED`로 보존하며 UI는 **중단됨**으로 표시한다. 새 실행은 사용자의 명시적 새 요청이다. 이 변경이 브라우저용 작업 취소 API를 추가한 것은 아니다. [세부 계약](docs/auto-label-jobs-api.md).
+
 ## 2026-11-11 추가 계약
 
 기존 단일 업로드 API도 유지하며 ZIP·TGZ·TAR.GZ를 지원한다. 브라우저는 4MB 초과 파일에 아래 세션 API를 사용한다. 공개 배포의 모든 `/api`는 기존 팀 로그인 게이트웨이를 통과한다. 원본 다운로드는 실제 형식에 맞는 `.zip`/`.tar.gz` 파일명을 반환하며, 압축 원본 바이트는 변환하지 않는다.

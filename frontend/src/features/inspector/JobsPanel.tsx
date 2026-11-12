@@ -35,7 +35,7 @@ export function JobsPanel({ paneId, scene, frameCount, samples, job, paneLabel }
   const { pane, vespa, system } = job;
   const statusProblem = (vespa.reasonCode ?? '').startsWith('STATUS_') && vespa.reasonCode !== 'STATUS_API_UNSUPPORTED';
   const checking = system.isPending || vespa.reasonCode === 'STATUS_CHECKING' || system.refreshing;
-  const fixedByRefresh = !statusProblem && !['SYNTHETIC_DATASET', 'VESPA_WORKER_DISABLED', 'DATASET_MISMATCH'].includes(vespa.reasonCode ?? '');
+  const fixedByRefresh = !statusProblem && !['SYNTHETIC_DATASET', 'VESPA_WORKER_DISABLED', 'DATASET_MISMATCH', 'EMBEDDINGS_INCOMPLETE'].includes(vespa.reasonCode ?? '');
   const last = system.lastKnown('vespa');
 
   let env: React.ReactNode;
@@ -58,7 +58,7 @@ export function JobsPanel({ paneId, scene, frameCount, samples, job, paneLabel }
     );
   }
 
-  const label = job.posting ? '요청 보내는 중…' : job.busy ? '생성 중…' : paneLabel ? `씬 ${paneLabel} 라벨 생성하기` : '라벨 생성하기';
+  const label = job.posting ? '요청 보내는 중…' : job.busy ? (job.status?.status === 'PENDING' ? '대기 중…' : '생성 중…') : vespa.reasonCode === 'EMBEDDINGS_INCOMPLETE' ? '이미지 검색 준비 완료 후 실행 가능' : paneLabel ? `씬 ${paneLabel} 라벨 생성하기` : '라벨 생성하기';
   return (
     <>
       <section className="group" aria-labelledby={`job-h-${paneId}`}>
@@ -140,6 +140,7 @@ function CurrentJob({ paneId, job }: { paneId: PaneId; job: JobState }) {
   const now = useNow(active ? 1000 : null);
   if (jobId == null) return <p className="muted">아직 실행한 작업이 없어요.</p>;
   const guide = errorGuide(status?.errorCode);
+  const cancelled = status?.status === 'FAILED' && status.errorCode === 'USER_CANCELLED';
   const remote = job.vespa.executor === 'ssh';
   const elapsed = status && (status.startedAt || status.completedAt) ? formatElapsed(elapsedMs(status, now)) : status ? '시작 전' : '';
   return (
@@ -147,7 +148,7 @@ function CurrentJob({ paneId, job }: { paneId: PaneId; job: JobState }) {
       <div className="job-head">
         <b>작업 #{jobId}</b>
         {statusQ.isPending ? <span className="status st-pending"><i />확인 중</span>
-          : status ? <span className={`status ${ST_CLASS[status.status]}`} data-status={status.status}><i />{STATUS_KO[status.status]}</span>
+          : status ? <span className={`status ${cancelled ? 'st-pending' : ST_CLASS[status.status]}`} data-status={status.status}><i />{cancelled ? '중단됨' : STATUS_KO[status.status]}</span>
             : <span className="status st-warn"><i />확인할 수 없음</span>}
         {elapsed && <span className="el">{elapsed}</span>}
       </div>
@@ -174,7 +175,7 @@ function CurrentJob({ paneId, job }: { paneId: PaneId; job: JobState }) {
         <>
           <div className="progress" role="progressbar" aria-label="작업 진행 중, 진행률 정보 없음" />
           <p className="muted small">
-            {status.status === 'PENDING' ? '대기열에 있어요.' : remote ? '원격 클러스터에서 처리 중이에요.' : '씬 전체 프레임을 처리하고 있어요.'} 3초마다 상태를 확인해요. 진행률은 제공되지 않아 단계나 퍼센트는 표시하지 않아요.
+            {status.status === 'PENDING' ? '요청한 작업이 대기열에 있어요. 앞선 라벨 작업이 끝나면 시작해요.' : remote ? '원격 클러스터에서 처리 중이에요.' : '선택한 씬의 전체 프레임을 처리하고 있어요.'} 3초마다 상태를 확인해요. 진행률은 제공되지 않아 단계나 퍼센트는 표시하지 않아요.
           </p>
         </>
       )}
@@ -217,12 +218,13 @@ function JobRow({ jobId, classMode, createdAt, shown, onPick }: { jobId: number;
   // Cached status only; history rows do not poll.
   const q = useQuery({ ...jobStatusQuery(jobId), staleTime: 60_000 });
   const st = q.data?.status;
+  const cancelled = st === 'FAILED' && q.data?.errorCode === 'USER_CANCELLED';
   return (
     <li>
       <button type="button" className="job-row" aria-pressed={shown} onClick={onPick}
         title={st === 'COMPLETED' ? '이 작업을 진행 상태에 연결하고 결과를 화면에 표시' : '이 작업을 진행 상태에 연결'}>
         <span>#{jobId}</span>
-        <span className={`status ${st ? ST_CLASS[st] : 'st-pending'}`}><i />{st ? STATUS_KO[st] : q.isError ? '확인 불가' : '확인 중'}</span>
+        <span className={`status ${cancelled ? 'st-pending' : st ? ST_CLASS[st] : 'st-pending'}`}><i />{cancelled ? '중단됨' : st ? STATUS_KO[st] : q.isError ? '확인 불가' : '확인 중'}</span>
         <span className="k">{classMode ?? '?'}개</span>
         <span className="t">{createdAt ? new Date(createdAt).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}</span>
         <Icon name="check" className="chk-ic" />

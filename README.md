@@ -9,12 +9,16 @@ nuScenes 원본을 올리고, 주행 씬을 찾아 **선택한 씬의 3D 라벨�
 ## 사용 흐름
 
 1. **원본 업로드:** `/uploads`에서 nuScenes ZIP·TGZ·TAR.GZ를 선택합니다. 공식 `v1.0-mini.tgz`는 재압축 없이 사용하며 라벨 JSON은 필요하지 않습니다. 최대 5GB, 압축 해제 후 8GiB입니다. 일반 JPG·MP4만으로는 3D 라벨링할 수 없습니다.
-2. **씬 등록·검색 준비:** 파일은 4,000,000바이트 조각으로 전송하고 서버가 압축 검증 → S3 원본 보관 → RDS 등록을 처리합니다. 등록 후 CLIP 이미지 임베딩을 자동 생성합니다. **임베딩 완료 전에도 등록된 씬은 열 수 있습니다.** 자연어 검색 준비와 자동 라벨 생성은 별도 작업입니다.
-3. **씬 선택·라벨 생성:** `scene-0103`을 선택하면 그 씬의 **40개 키프레임**을 대상으로 실행합니다. `scene-0061`은 39개입니다. 10개 씬을 한꺼번에 실행하지 않으며 현재 프레임 한 장만 처리하는 것도 아닙니다.
+2. **씬 등록·검색 준비:** 파일은 4,000,000바이트 조각으로 전송하고 서버가 압축 검증 → S3 원본 보관 → RDS 등록을 처리합니다. 등록 후 CLIP 이미지 임베딩을 자동 생성합니다. **임베딩 완료 전에도 등록된 씬은 열 수 있으며, 새 라벨 생성은 완료 후 가능합니다.** 공유 GPU에서 검색 준비가 먼저 끝나도록 UI와 API 모두에서 검사합니다.
+3. **씬 선택·수동 라벨 생성:** 임베딩이 끝난 뒤 사용자가 **라벨 생성하기**를 눌러야 작업을 만듭니다. 업로드·씬 열기·상태 조회·임베딩 완료만으로 추론을 시작하지 않습니다. `scene-0103`을 선택하면 그 씬의 **40개 키프레임**을 대상으로 실행합니다. `scene-0061`은 39개입니다. 10개 씬을 한꺼번에 실행하지 않으며 현재 프레임 한 장만 처리하는 것도 아닙니다.
 4. **결과 확인·편집:** 같은 작업대에서 GT·예측, 카메라·LiDAR, 작업 기록을 확인합니다. 완료 결과를 서버에서 다시 조회하므로 새로고침 때문에 재추론할 필요가 없습니다. 객체의 클래스 변경·삭제·되돌리기와 편집 이력을 지원합니다.
 5. **객체 기준 후처리:** 객체와 기준 프레임을 지정해 저장된 중간 상태에서 새 결과를 만듭니다. 기존 작업을 보존하고 이미지 검출·분할은 반복하지 않습니다. 캐시가 없는 과거 작업은 새 기본 결과가 필요합니다.
 
 팀에서 공유한 **T1/0프레임, T3/18프레임**은 특정 작업의 예시입니다. 모든 씬에 고정 적용하지 않으며, 해당 예시를 동일하게 재현한 성능·품질 시험은 아직 하지 않았습니다. 객체 번호는 작업 내부에서만 유효합니다.
+
+**팀원은 Windows·macOS·Linux의 브라우저로 같은 서비스 주소와 팀 계정을 사용합니다.** 팀원 PC에 Docker·AWS CLI·Vercel CLI·GPU 설치가 필요하지 않습니다. PowerShell 시작 명령은 현재 서버 역할을 맡은 Windows PC의 운영용입니다. Mac 자체에서 VESPA/CUDA 추론을 실행하는 지원과는 다르며, 실제 Safari/Mac 화면 검증은 아직 하지 않았습니다.
+
+서비스의 Cognito 로그인은 데이터·GPU 실행 권한을 보호합니다. Vercel 로그인은 배포 관리 권한입니다. GitHub 자동 배포가 연결되면 허용된 브랜치에 push해 프론트를 배포하며, 팀원이 매번 Vercel CLI로 로그인할 필요는 없습니다. 로컬 백엔드·GPU 이미지는 Git push만으로 갱신되지 않습니다.
 
 ## 현재 화면과 확인 상태
 
@@ -38,7 +42,7 @@ nuScenes 원본을 올리고, 주행 씬을 찾아 **선택한 씬의 3D 라벨�
 ```mermaid
 flowchart TB
   U[사용자 브라우저] -->|화면·동일 출처 API| V[Vercel · React]
-  V -->|서버 전용 connect 토큰| T[Microsoft 비공개 Dev Tunnel]
+  V -->|HTTPS| T[Cloudflare 터널]
   subgraph PC[로컬 PC · Docker / WSL2]
     A[oauth2-proxy · 팀 로그인] --> B[Spring · 업로드·작업·DB 저장]
     B -->|작업 요청| G[FastAPI · CLIP / VESPA · RTX 5060 Ti 16GB]
@@ -60,7 +64,7 @@ flowchart TB
 |구성|역할과 운영 조건|
 |---|---|
 |Vercel|React 정적 화면과 `/api`, `/oauth2` 전달. GPU 연산은 실행하지 않음|
-|Microsoft 비공개 터널|Vercel에서 로컬 4180 로그인 게이트웨이로 연결. connect 토큰은 서버 환경변수에만 저장|
+|Cloudflare Quick Tunnel|Vercel에서 로컬 4180 Cognito 로그인 게이트웨이로 연결. 임시 주소이며 재시작 때 Vercel 연결 갱신 필요|
 |Cognito + oauth2-proxy|기존 `team` 그룹 로그인과 브라우저 세션 쿠키 확인|
 |Spring Boot|입력 검증, 압축·원본 저장, catalog·작업 관리, 결과·편집 저장. DB 소유 서비스|
 |FastAPI + 로컬 eGPU|CLIP 검색 임베딩, VESPA 추론, 후처리, Rerun export. 브라우저에 직접 공개하지 않음|
@@ -96,6 +100,10 @@ Redis·Kafka·SQS·Elasticsearch는 도입하지 않았습니다. 작업 상태�
 
 ## 실제 병목과 개선 내용
 
+**11월 12일 사용자 직접 업로드 실측:** 4.168GB TGZ의 공개 경로 전송 **11분 54초**, 서버 처리 관찰 대기 **3분 35초**, 합계 **15분 29초**였다. 서버 내부 S3 보관은 **141.5초**, RDS 등록은 **9.9초**였다. 이번 업로드의 우선 분석 대상은 전송 경로와 조각 사이 대기다. [측정 조건·조각별 시간·임베딩 완료 기록](docs/upload-measurement-2026-11-12.md).
+
+CLIP은 CUDA로 2,424장 저장을 완료했다. 중간 라벨 작업 때문에 2,208장에서 대기하는 실행 순서 문제가 드러났다. 사용자 흐름은 **임베딩 완료 → 사용자 버튼 클릭 → 선택한 씬 라벨링**으로 명확히 하며, 이 순서 검사의 변경·배포 상태는 별도 기록한다. 임베딩 완료가 라벨링 자동 실행을 뜻하지 않는다.
+
 다음은 **11월 11일 실행의 관측값**입니다. 서로 다른 실행을 같은 조건의 벤치마크처럼 비교하지 않습니다.
 
 |관측 구간|측정|해석|
@@ -113,7 +121,7 @@ Redis·Kafka·SQS·Elasticsearch는 도입하지 않았습니다. 작업 상태�
 |검출·분할 비용|SAM `inference_mode` 적용, 1이미지·3박스 비교에서 동일 마스크 확인|Grounding DINO 이미지 특징 재사용·모델 상주·배치 처리 실험|
 |결과를 다시 찾기 어려움|씬별 완료 작업 조회·재열기, 결과와 편집 이력 저장|원본 파일명·업로드 날짜 중심 정렬, 편집 override의 RRD 반영|
 |재부팅 뒤 실행 준비 실패|Docker 준비 검사·쓰기 재개·GPU 실제 CUDA 확인·연결 동기화|호스트 GPU lost 원인과 반복 실행 안정성, 중단된 RUNNING 작업 자동 복구|
-|Cloudflare 터널 발급 timeout/429|Microsoft 비공개 터널로 전환, Vercel 요청 헤더·팀 로그인 검증|상시 운영용 연결·토큰 갱신 운영|
+|Cloudflare 터널 발급 timeout/429|Microsoft 비공개 터널로 임시 복구 후 11월 12일 재발급 성공. Cloudflare 복귀 시 Microsoft 토큰 전달 제거|고정 도메인·named tunnel은 미구성. 제공자 교체가 GPU 추론을 빠르게 한다는 근거는 없음|
 |Docker 로그 조회 누락|최근 tail과 시간 조회 대조, 불일치 보고, 유휴 컨테이너 재생성 후 수집 확인|무손실 로그 플랫폼을 구현한 것은 아님|
 
 SAM 부분 시험의 최대 CUDA 할당량은 **8,042 → 2,796MiB**, 시간 중앙값은 **0.793 → 0.697초**였습니다. **전체 씬 속도·VRAM 개선율이 아닙니다.** 스레드를 무작정 늘리지 않았으며, BLAS/OMP 기본 1은 작은 CPU 연산의 과도한 스레드 생성을 피하려는 기존 설정입니다. [측정 조건·실행 로그·후속 개선](docs/troubleshooting-2026-11-11.md).
@@ -140,9 +148,9 @@ powershell -ExecutionPolicy Bypass -File scripts/hybrid.ps1 -Action status
 powershell -ExecutionPolicy Bypass -File scripts/hybrid.ps1 -Action stop
 ```
 
-AWS/Vercel 로그인이 만료되면 각각 공식 CLI 로그인을 갱신합니다. `start`는 실행 중인 컨테이너를 재생성하지 않고 이미 검증된 Vercel production 소스를 재배포합니다. **작업 트리의 새 코드를 배포하는 명령은 아닙니다.** Microsoft connect 토큰은 약 24시간 유효하며 잔여 6시간 미만일 때 시작 명령이 갱신합니다. 계속 켜 놓는 것만으로 토큰이 영구 갱신되지는 않습니다.
+AWS/Vercel 로그인이 만료되면 각각 공식 CLI 로그인을 갱신합니다. `start`는 실행 중인 컨테이너를 재생성하지 않고 이미 검증된 Vercel production 소스로 터널 주소를 갱신합니다. **작업 트리의 새 코드를 배포하는 명령은 아닙니다.** 현재 보호된 `tunnel.json`의 provider는 `cloudflare`입니다. Quick Tunnel은 주소·가용성이 고정되지 않으며, 발급 실패 시 기존 공개 연결을 성공으로 표시하지 않습니다. Microsoft fallback은 별도의 요청 헤더 설정 복원과 검증 후 사용할 수 있습니다.
 
-이 PC의 전송 경로를 줄이려면 **[로컬 업로드](http://127.0.0.1:8080/uploads)**, 공개 서비스 경로를 측정하려면 **[Vercel 업로드](https://drivescene2label.vercel.app/uploads)**를 사용합니다. 두 경로는 같은 S3/RDS를 사용합니다. 업로드 도중 주소를 바꾸면 브라우저 재개 정보가 공유되지 않으므로 원래 탭에서 마칩니다. 로컬 업로드도 압축 해제·S3 보관·RDS 등록 시간은 필요합니다.
+이 PC의 전송 경로를 줄이려면 [로컬 업로드](http://127.0.0.1:8080/uploads), 공개 서비스 경로를 측정하려면 [Vercel 업로드](https://drivescene2label.vercel.app/uploads)를 사용합니다. 두 경로는 같은 S3/RDS를 사용합니다. 업로드 도중 주소를 바꾸면 브라우저 재개 정보가 공유되지 않으므로 원래 탭에서 마칩니다. 로컬 업로드도 압축 해제·S3 보관·RDS 등록 시간은 필요합니다.
 
 S3에는 시작할 인스턴스가 없습니다. 로컬 `stop`은 RDS를 중지하지 않으며 비용도 남습니다. RDS의 일시 중지는 최대 7일 후 자동 해제되고 저장공간 등의 비용은 계속됩니다. [AWS RDS 중지 설명](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_StopInstance.html).
 
@@ -173,21 +181,24 @@ python scripts/hybrid/measurement.py collect
 |검증|11월 12일 결과|
 |---|---|
 |백엔드 핵심 통합 / HTTP 필터|45개 / 1개 통과|
-|프론트 단위 / fixture 브라우저 흐름|100개 / 4개 통과|
+|프론트 단위 / fixture 브라우저 흐름|최신 비교 화면 병합 후 108개, 기존 4개 + 수동 실행·중단 표시 2개 통과|
 |AI 계약·패치·계측|33개 통과, 고정 checkout에 패치 적용 포함|
-|시작·터널·로그 수집|26개 통과|
+|시작·터널·로그 수집|28개 통과|
 |제품 빌드|프론트·Spring 이미지·GPU 이미지 성공. PyArrow 중복 pin 수정|
 |실제 환경|재부팅 후 CUDA 연산, Vercel 팀 로그인·씬 조회·초기화 후 빈 화면, 쓰기 재개 확인|
 |백업·초기화|별도 DB 복원·33테이블 행 수 일치, S3 10객체 보존|
-|새 대용량 업로드·전체 씬 추론|사용자가 직접 실행할 시험. 기존 성공 기록과 혼동하지 않음|
+|새 대용량 업로드·검색 준비|사용자 TGZ 업로드 dataset 6·10씬, CLIP 2,424장 완료. 새 씬 추론은 별도 진행 중|
 
-`release-version` push는 GitHub CI 검사만 실행합니다. 기존 ECS/EKS 배포 workflow는 수동이며 **push가 AWS compute를 켜지 않습니다.** Vercel은 검증한 소스 파일을 배포했고 Git 자동 배포 연결은 아직 설정하지 않았습니다. [실행 증거·재개 기록](docs/work-checkpoint-2026-11-12.md), [CI](https://github.com/DriveScene2Label-Team/DriveScene2Label/actions/workflows/ci.yml).
+GitHub 저장소를 기존 Vercel 프로젝트에 연결하고 **Production Branch를 `release-version`, Root Directory를 `frontend`**로 설정했습니다. 해당 브랜치 push는 GitHub CI와 Vercel 프론트 빌드를 시작합니다. 두 시스템은 별도로 실행되므로 CI 성공이 Vercel 승격을 자동으로 차단하는 구성은 아닙니다. Preview 브랜치는 운영 주소를 바꾸지 않습니다. 기존 ECS/EKS 배포 workflow는 수동이며 **push가 AWS compute를 켜지 않습니다.** [실행 증거·재개 기록](docs/work-checkpoint-2026-11-12.md), [CI](https://github.com/DriveScene2Label-Team/DriveScene2Label/actions/workflows/ci.yml).
 
 ## 문서 안내
 
 |문서|내용|
 |---|---|
 |[구조 선택·인증·DB·병목 분석](docs/architecture-and-measurement-2026-11-12.md)|장단점, 코드 근거, 측정 해석, 면접·학습|
+|[Claude 전달 프롬프트](docs/claude-hybrid-architecture-prompt.md)|현재 인프라 구조도·시퀀스·설계 이유·실측 분석을 요청할 본문|
+|[교수님 발표 10장 프롬프트](docs/presentation-prompt-2026-11-12.md)|이전 L4/AWS 구성, 현재 배포, 비용 판단, 통신·백엔드·실측 병목|
+|[11월 12일 직접 업로드 실측](docs/upload-measurement-2026-11-12.md)|공개 전송·S3·RDS·CLIP 시간과 실행 순서 문제|
 |[현재 실행 설정](docs/hybrid-setup.md)|보호된 설정·GPU·로그인·터널·재부팅|
 |[트러블슈팅](docs/troubleshooting-2026-11-11.md)|업로드 오류, 저장·3D·모델·실측 사례|
 |[API 명세](README_API.md) / [작업 API](docs/auto-label-jobs-api.md)|프론트·백엔드 계약|

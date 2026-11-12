@@ -17,7 +17,12 @@ import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import com.example.demo.nuscenes.client.AiCapabilitiesClient;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.ArgumentMatchers.*;
 
 /** GET /api/system/status: provenance, instance id, per-feature readiness, older AI adapter, read-only refresh (IT-02/03/04). */
 @SpringBootTest(properties={"auto-label.worker.enabled=false","recording.worker.enabled=false","system-status.check-workers=false",
@@ -62,6 +67,7 @@ class SystemStatusTests {
   try(var paths=Files.walk(ROOT)) { for(var p:paths.sorted(Comparator.reverseOrder()).toList()) Files.deleteIfExists(p); }
  }
  @Autowired MockMvc mvc; @Autowired JdbcClient jdbc; @Autowired NuscenesImporter importer; @Autowired SystemStatusService status;
+ @MockitoSpyBean AiCapabilitiesClient capabilities;
  @BeforeEach void reset() { FakeAi.CAPS.set("ready"); status.clearCache(); UNEXPECTED.set(0); }
 
  @Test void withoutDatasetAndStableInstanceId() throws Exception {
@@ -128,5 +134,48 @@ class SystemStatusTests {
   assertThat(UNEXPECTED.get()).isZero();
   assertThat(jdbc.sql("SELECT count(*) FROM auto_label_job WHERE dataset_id=:d").param("d",d).query(Long.class).single()).isZero();
   assertThat(jdbc.sql("SELECT count(*) FROM scene_recording WHERE dataset_id=:d").param("d",d).query(Long.class).single()).isZero();
+ }
+
+ @Test void uploadedIndexMustFinishBeforeAnExplicitLabelRequest() throws Exception {
+  long d=importer.importDataset("v1.0-mini").datasetId();
+  String key=UUID.randomUUID().toString();
+  jdbc.sql("UPDATE dataset SET storage_key='uploads',root_relative_path=:k WHERE id=:d").param("k",key).param("d",d).update();
+  jdbc.sql("UPDATE dataset_provenance SET origin='UNKNOWN' WHERE dataset_id=:d").param("d",d).update();
+  String checksum=jdbc.sql("SELECT source_checksum FROM dataset WHERE id=:d").param("d",d).query(String.class).single();
+  var snapshot=capabilities.fetch(false);
+  var body=snapshot.body().deepCopy();
+  ((tools.jackson.databind.node.ObjectNode)body.path("vespa")).put("datasetKey",key).put("metadataChecksum",checksum);
+  doReturn(new AiCapabilitiesClient.Snapshot(body,false,null,snapshot.fetchedAt(),false))
+   .when(capabilities).fetch(anyBoolean(),eq(key),eq("v1.0-mini"));
+  String scene=jdbc.sql("SELECT token FROM scene WHERE dataset_id=:d ORDER BY id LIMIT 1").param("d",d).query(String.class).single();
+  String request=JSON.writeValueAsString(Map.of("datasetId",d,"sceneToken",scene,"classMode",8));
+  String url="/api/system/status?datasetId="+d;
+  // Neither a stale index-row COMPLETED nor a partially populated vector table may unlock labeling.
+  jdbc.sql("INSERT INTO dataset_search_index(dataset_id,status) VALUES(:d,'COMPLETED')").param("d",d).update();
+  for(int count:List.of(0,1)) {
+   if(count==1) jdbc.sql("INSERT INTO image_embedding(dataset_id,sample_data_token,model_name,preprocess,embedding) VALUES(:d,'file-0','ViT-L-14-quickgelu/openai','lr-square-crop-mean',CAST(:v AS vector))")
+    .param("d",d).param("v","[1"+",0".repeat(767)+"]").update();
+   mvc.perform(get(url)).andExpect(jsonPath("$.capabilities.vespa.canExecute").value(false))
+    .andExpect(jsonPath("$.capabilities.vespa.reasonCode").value("EMBEDDINGS_INCOMPLETE"));
+   mvc.perform(post("/api/auto-label/jobs").header("Idempotency-Key","manual-only").contentType("application/json").content(request))
+    .andExpect(status().isServiceUnavailable()).andExpect(jsonPath("$.code").value("EMBEDDINGS_INCOMPLETE"));
+  }
+  jdbc.sql("""
+   INSERT INTO image_embedding(dataset_id,sample_data_token,model_name,preprocess,embedding)
+   SELECT sd.dataset_id,sd.token,'ViT-L-14-quickgelu/openai','lr-square-crop-mean',CAST(:v AS vector)
+   FROM sample_data sd JOIN calibrated_sensor cs ON cs.dataset_id=sd.dataset_id AND cs.token=sd.calibrated_sensor_token
+   JOIN sensor s ON s.dataset_id=cs.dataset_id AND s.token=cs.sensor_token
+   WHERE sd.dataset_id=:d AND sd.is_key_frame AND s.modality='camera' ON CONFLICT DO NOTHING
+   """).param("d",d).param("v","[1"+",0".repeat(767)+"]").update();
+  mvc.perform(get(url)).andExpect(jsonPath("$.capabilities.vespa.canExecute").value(true));
+  assertThat(jdbc.sql("SELECT count(*) FROM auto_label_job WHERE dataset_id=:d").param("d",d).query(Long.class).single()).isZero();
+  var response=mvc.perform(post("/api/auto-label/jobs").header("Idempotency-Key","manual-only").contentType("application/json").content(request))
+   .andExpect(status().isAccepted()).andReturn().getResponse().getContentAsString();
+  long job=JSON.readTree(response).path("jobId").asLong();
+  jdbc.sql("DELETE FROM image_embedding WHERE dataset_id=:d").param("d",d).update();
+  // Replaying an accepted request still returns its original job even if readiness later changes.
+  mvc.perform(post("/api/auto-label/jobs").header("Idempotency-Key","manual-only").contentType("application/json").content(request))
+   .andExpect(status().isAccepted()).andExpect(jsonPath("$.jobId").value(job));
+  assertThat(UNEXPECTED.get()).isZero();
  }
 }

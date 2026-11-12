@@ -1,5 +1,21 @@
 # 실행·검증 기록 — 2026-11-12
 
+## 후속 실행 상태 (17:35 KST)
+
+17:44 추가 확인: 원격의 `ea2360e`, `0014c41` 라벨 비교 변경을 보존해 rebase했다. 합쳐진 코드로 PostgreSQL 관련 23개, frontend 108개, 수동 실행/중단 fixture 2개, frontend·backend 이미지 빌드가 통과했다. 사용자가 17:30 직접 시작한 **#12 scene-0061은 유지 요청**을 받았다. 따라서 실행 중인 backend/AI 컨테이너를 재생성하지 않는다. 수동 실행 gate는 이미 운영 중이며 최신 비교용 `modelVersion` 응답 추가는 새 backend 이미지에 준비되어 있다. 이 추가 필드가 현재 실행 서버에 적용됐다고 쓰지 않는다.
+
+- 사용자 실제 TGZ 업로드가 dataset 6, 10씬/404키프레임으로 등록됐다. 브라우저 전체 929.142초, 전송 714.380초, 서버 관찰 대기 214.762초. 압축 51.848초·S3 141.499초·DB 등록 9.921초. [상세 실측](upload-measurement-2026-11-12.md).
+- 이미지 인덱스 2,208/2,424에서 라벨 #7이 공유 worker를 점유해 대기했다. 순서 요청에 따라 #7을 중단하고 2,424장 저장 완료를 확인했다. 이후 임베딩 완료 전 새 라벨 POST를 거절하고 완료 후 사용자 클릭으로만 시작하도록 UI/API를 검증·배포했다.
+- 관련 backend PostgreSQL 23개, frontend 단위 100개, 브라우저 fixture 2개, frontend/backend 빌드 통과. 17:15 프론트 배포 `dpl_2dhRLL2a16eaSnJmCXUfNDfqhMCN` READY. 운영 #11을 사용자가 직접 요청해 202 응답과 scene-0103 DINO/SAM 실행을 확인했다. 자동 라벨 작업은 에이전트가 만들지 않았다.
+- 사용자 중단 요청으로 #8·#9·#10, 이후 #11도 중단했다. #11 종료 17:25:13 KST, `FAILED + USER_CANCELLED` 보존. 중단 후 maintenance=false, running/pending=0, GPU 사용률 0% 표본, 검색 READY와 VESPA canExecute=true 확인. 이 상태는 전체 VESPA 모델 GPU 상주를 뜻하지 않는다. 기존 데이터·벡터·완료 결과는 보존했다.
+- #9의 USER_CANCELLED 표시와 일시 503은 별개다. 중단 표시를 중단됨으로 보완했으며 503의 최초 원인을 단정하지 않았다. maintenance 해제·실제 신규 #11 수락·공개 게이트웨이 401을 확인했다.
+- GitHub `DriveScene2Label-Team/DriveScene2Label` 연결 및 Vercel Production Branch `release-version`, root `frontend`, Node24, 도메인 자동 할당을 확인했다. 기존 수동 파일 배포와 Git 연결을 구분한다. 이후 push의 배포 결과는 해당 commit의 Vercel/GitHub 상태에서 확인한다. CI와 Vercel 빌드는 별개이며 CI 성공 대기 게이트는 아직 없다.
+- Cloudflare 재발급 성공, HTTP/2 서울 연결과 직접 게이트웨이 JSON 401 확인. 기존 Microsoft 토큰을 전달하지 않는 프론트 경로로 변경하고 Vercel BACKEND_URL을 준비했다. 연결 완료 전에 기존 Microsoft helper를 종료하지 않는다. 현재 Quick Tunnel은 고정 주소·SLA가 없다.
+- 운영/계측 검사 28개 통과. 제공자 혼용으로 잘못된 환경변수를 발행하지 않도록 검사했다. 측정 수집기는 `.local/hybrid/measurements/20261112T071715Z/`에 계속 보관한다. 중단 작업은 전체 씬 완료 성능에 포함하지 않는다.
+- Windows는 서버 운영 스크립트의 현재 대상이다. 팀원 브라우저는 OS와 무관하게 공개 주소를 사용하며 Vercel 로그인은 배포 권한이다. Mac CUDA 추론이나 실제 Safari 화면 검증을 완료했다고 쓰지 않는다.
+
+아래 16:20 및 15:28 기록은 당시 이력이며 현재 터널·배포 방식과 구분한다.
+
 ## 재개 후 완료 상태 (16:20 KST 기준)
 
 - 재부팅 후 호스트 RTX 5060 Ti와 컨테이너 CUDA 연산(`sum=16.0`) 정상 확인. backend/ai/auth healthy, maintenance=false, runningLabels=0, runningRecordings=0을 초기화 직후 확인했다.

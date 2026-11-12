@@ -20,7 +20,7 @@
 |가용성|상시 운영에 유리하나 단일 VM만으로 HA가 되지는 않음|PC·인터넷·Docker·GPU·터널 중 하나가 멈추면 API 중단|PC가 멈추면 앱과 DB 접근 중단|
 |DB/파일 거리|같은 리전에 배치해 외부 왕복을 줄임|RDS는 인터넷 왕복, S3는 캐시 복원/원본 보관 때 전송|로컬 DB·디스크 접근|
 |비용|GPU 가동, CPU/API, DB, 스토리지, 선택한 LB/전송 비용|GPU 서버 청구는 피하지만 전기·회선·운영 시간과 RDS/S3 비용은 남음|로컬 디스크·백업·전기·장비 비용|
-|운영|클라우드 계정·권한·배포·비용·복구 관리|Vercel+Microsoft 터널+AWS+PC를 함께 관리|로컬 환경·백업·외부 접속을 직접 관리|
+|운영|클라우드 계정·권한·배포·비용·복구 관리|Vercel+Cloudflare 터널+AWS+PC를 함께 관리|로컬 환경·백업·외부 접속을 직접 관리|
 |저장 지속성|스토리지·백업 정책에 따름|S3/RDS는 PC와 분리, RRD·중간 산출물은 로컬|디스크 장애 때 백업 유무가 중요|
 |확장|API/GPU worker를 별도로 늘리기 쉬움|단일 eGPU·메모리·집 업로드 속도에 제한|보유 장비에 제한|
 
@@ -31,7 +31,7 @@ RDS는 필수 선택은 아니다. 소규모 단독 데모라면 로컬 PostgreS
 ```mermaid
 flowchart LR
   U[브라우저] --> V[Vercel 정적 React / API rewrite]
-  V -->|서버 전용 connect 토큰| T[Microsoft 비공개 Dev Tunnel]
+  V -->|HTTPS| T[Cloudflare Quick Tunnel]
   T --> A[로컬 oauth2-proxy]
   A -. OIDC 로그인 .-> C[Cognito]
   A --> B[로컬 Spring]
@@ -158,7 +158,7 @@ S3는 비공개·최소 권한·TLS·저장 암호화를 유지하고, RDS는 �
 |프론트 단위|100개 통과|계측 포함 기존 컴포넌트/계약|
 |브라우저 흐름|4개 통과|fixture API 기반 업로드·편집·다운로드·모듈 복구; 공개 로그인 E2E와 다름|
 |AI 계약·패치·계측|33개 통과|새 GPU 이미지에서 고정 checkout 패치 적용까지 검사|
-|운영/수집 스크립트|26개 통과|환경 동기화·계측 집계·오류/중복·터널 인증·로그 조회 누락 검증|
+|운영/수집 스크립트|28개 통과|환경 동기화·계측 집계·오류/중복·터널 인증·로그 조회 누락·제공자 혼용 방지 검증|
 |빌드|프론트·백엔드·GPU 이미지 성공|PyArrow 중복 pin 제거 후 실제 이미지 빌드|
 |CUDA 부분 확인|5060 Ti, NumPy 1.26.4, PyArrow 23.0.1, CUDA tensor 합 16.0|재부팅 후 GPU 접근 복구 확인. 전체 VESPA 씬 재추론과는 구분|
 
@@ -166,7 +166,7 @@ S3는 비공개·최소 권한·TLS·저장 암호화를 유지하고, RDS는 �
 
 재기동 후 DB에 작업 #6(scene-0553)이 RUNNING으로 남아 있지만 AI 컨테이너에는 uvicorn만 있고 실행 subprocess는 없었다. 자동 재시작/복구를 검증했다고 주장하지 않는다. 이 상태도 초기화 전 백업에 보존했다. 공개 로그인·씬 조회 확인 후 쓰기를 중지하고 worker를 정지했다. 18,818,252바이트 DB 덤프를 별도 DB에 복원해 33개 테이블 행 수 일치를 확인한 뒤 앱 테이블을 비웠다. S3 10개 객체의 key·size·ETag가 전후 동일하고 계정·코드·캐시 볼륨도 보존했다.
 
-Cloudflare 발급은 재부팅 후에도 HTTP 429로 실패했다. Microsoft 비공개 Dev Tunnel로 연결을 변경하고, Vercel에서만 서버 전용 connect 토큰을 요청 헤더에 넣는다. 이 토큰은 사용자 로그인과 별개이며 브라우저에 배포하지 않는다. 팀 사용자는 기존 Cognito 로그인을 통과해야 한다. 터널 앞단의 빈 HTTP 401을 앱의 JSON 401로 오인하지 않도록 검증을 강화했다. [Microsoft 보안 모델](https://learn.microsoft.com/en-us/azure/developer/dev-tunnels/security), [Vercel 요청 헤더 설정](https://vercel.com/docs/project-configuration/vercel-ts).
+Cloudflare 발급이 HTTP 429로 실패해 Microsoft 비공개 Dev Tunnel로 임시 복구했다. 당시 서버 전용 connect 토큰과 사용자 로그인은 별개였으며, 터널 앞단의 빈 HTTP 401을 앱의 JSON 401로 오인하지 않도록 검증했다. 17시 이후 Cloudflare 재발급·서울 연결·로그인 게이트웨이 401을 확인해 복귀를 준비했고, Microsoft 토큰 요청 헤더를 제거했다. 두 제공자의 설정을 혼용하면 빌드/동기화를 중단한다. 실제 업로드 시간은 전환 전 Microsoft 경로의 관측이다. [Microsoft 보안 모델](https://learn.microsoft.com/en-us/azure/developer/dev-tunnels/security), [Vercel 요청 헤더 설정](https://vercel.com/docs/project-configuration/vercel-ts).
 
 실제 로그 수집 시험에서 Docker 재시작 후 `logs --since`가 최근 이벤트를 빠뜨리고 작은 `--tail`은 반환하는 현상을 발견했다. 새 컨테이너로 재생성하고 양쪽 조회를 대조한다. 불일치 시 `LogCursorMismatch`를 보고서에 남겨 부분 수집을 성공으로 오인하지 않는다. 50행 tail은 누락 검출 보조이며 완전한 로그 복구 방식이 아니다.
 

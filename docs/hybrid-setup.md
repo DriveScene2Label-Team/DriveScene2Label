@@ -1,8 +1,20 @@
 # 혼합 배포 실행 준비
 
+## 2026-11-12 17시 이후: Cloudflare 복귀·Git 자동 배포
+
+현재 경로는 `Vercel → Cloudflare Quick Tunnel → 127.0.0.1:4180 oauth2-proxy → Spring`이다. Cloudflare 재발급과 서울 HTTP/2 연결, 익명 API의 게이트웨이 JSON 401을 확인했다. 기존 Cognito 팀 로그인을 유지한다. Microsoft 전용 연결 토큰은 이 경로에 보내지 않도록 `frontend/vercel.json`에서 헤더 삽입을 제거했다.
+
+- 보호된 `%LOCALAPPDATA%/DriveScene2Label/hybrid/tunnel.json`에 `{"provider":"cloudflare"}`를 지정하면 기존 `scripts/hybrid.ps1 -Action start`가 Cloudflare를 선택한다. 설정이 없어도 기본은 Cloudflare다. `tunnel.stderr.log`에서 실제 발급 주소를 읽고 로그인 게이트웨이를 검증한 뒤 Vercel 연결을 갱신한다.
+- Quick Tunnel은 임시 주소이고 가용성을 보장하지 않는다. 재시작·발급 실패를 고려해야 하며 고정 도메인/named tunnel은 별도 준비가 필요하다. 전환이 GPU 계산 속도를 높이는 것은 아니다. 아래 Microsoft fallback 기록의 설정을 그대로 혼용하지 않는다. Microsoft 복귀에는 해당 요청 헤더 구성 복원·프론트 배포·인증 검증이 필요하며 현재 빌드/동기화는 잘못된 조합을 거절한다.
+- 기존 `drivescene2label` 프로젝트에 GitHub `DriveScene2Label-Team/DriveScene2Label`을 연결했다. 운영 브랜치 `release-version`, root `frontend`, Node24, 기존 build/install 명령을 사용한다. Git push는 프론트 자동 배포와 GitHub CI를 각각 시작하며 로컬 backend/AI 이미지는 별도 배포 대상이다. EC2/ECS/EKS는 켜지지 않는다.
+- 팀원은 Mac/Windows/Linux 브라우저에서 공개 주소와 Cognito 계정을 사용한다. 서버 운영용 PowerShell·CUDA 설정은 팀원 PC의 접속 조건이 아니다. Vercel 로그인은 배포 관리 권한이다. Hobby의 저장소·커밋 작성자 제한은 [공식 협업 안내](https://vercel.com/docs/deployments/troubleshoot-project-collaboration)를 따르며 모든 사람의 push가 무조건 배포된다고 보장하지 않는다.
+- GPU worker는 수동 요청 대기 상태로 유지한다. 검색 인덱스 완료 후 사용자가 선택한 씬에서 라벨 생성 버튼을 눌러야 새 추론을 시작한다.
+
+아래 Microsoft 경로는 당일 timeout/429 대응 이력이다.
+
 ## 2026-11-12 Microsoft 비공개 터널
 
-현재 운영 경로는 `Vercel → Microsoft Dev Tunnel → 127.0.0.1:4180 oauth2-proxy → Spring`이다. Cloudflare 발급 timeout/429가 반복되어 연결 방식을 변경했다. 기존 Cognito 팀 로그인은 유지하고 터널에는 익명 접근 권한을 주지 않는다.
+당시 운영 경로는 `Vercel → Microsoft Dev Tunnel → 127.0.0.1:4180 oauth2-proxy → Spring`이었다. Cloudflare 발급 timeout/429가 반복되어 연결 방식을 변경했다. 기존 Cognito 팀 로그인은 유지하고 터널에는 익명 접근 권한을 주지 않았다.
 
 - 공식 [Dev Tunnels CLI](https://learn.microsoft.com/en-us/azure/developer/dev-tunnels/get-started?tabs=windows) 1.0.2115를 `.local/tools/devtunnel.exe`에 설치하고 Microsoft Authenticode 서명을 확인했다. GitHub 로그인은 사용자가 직접 Authorize했다.
 - 이미 만든 `ds2l-mvp.jpe1`과 HTTP 포트 4180을 재사용한다. `host-header`·`origin-header`는 unchanged, request timeout은 600초다. 터널 리소스의 만료 설정은 30일이며 없어진 터널을 스크립트가 자동 생성하지 않는다.

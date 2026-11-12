@@ -20,6 +20,10 @@ curl http://localhost:8080/api/auto-label/jobs/12
 
 같은 dataset에서 동일 Idempotency-Key와 동일 scene/classMode는 기존 job을 반환합니다. 이미 진행됐으면 기존 상태를 반환합니다. 동일 키를 다른 scene/classMode에 사용하면 409입니다. 헤더 생략 시 새 UUID 요청 키를 발급하므로 재전송도 새 작업이 됩니다. FAILED 작업을 실제 재계산하려면 새 키로 요청합니다. 현재 API는 retry_of_job_id 연결을 제공하지 않습니다.
 
+2026-11-12 실행 순서 보완: 업로드 데이터셋은 현재 모델·전처리 기준 모든 카메라 키프레임의 임베딩이 완료된 뒤에만 새 라벨 요청을 받습니다. 미완료이면 `503 EMBEDDINGS_INCOMPLETE`이며 작업 행을 만들지 않습니다. 완료 상태 조회도 작업을 만들지 않으며 이후 사용자 클릭이 필요합니다. 이미 접수한 Idempotency-Key 재조회는 준비 상태와 무관하게 기존 작업을 반환합니다. 이는 GPU 작업 순서를 위한 제품 정책이며 VESPA 알고리즘이 CLIP 검색 벡터를 요구한다는 뜻은 아닙니다.
+
+운영자가 사용자의 요청으로 중단한 작업은 현재 상태 enum에 취소가 없어 `FAILED` + `USER_CANCELLED`로 보존하고 UI에는 ‘중단됨’으로 표시합니다. 일반 사용자를 위한 취소 API는 아직 없습니다. 자동 재실행하지 않습니다.
+
 GET 응답: jobId, datasetId, status, errorMessage, createdAt, startedAt, completedAt. 없는 scene/job=404, ambiguous token/키 충돌=409, 잘못된 입력/설정 dataset version 불일치=400.
 
 ## 저장 transaction

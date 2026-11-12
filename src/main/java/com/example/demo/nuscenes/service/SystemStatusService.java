@@ -32,17 +32,18 @@ public class SystemStatusService {
  private final AiCapabilitiesClient ai;
  private final DatasetStorage media;
  private final RecordingFiles recordingFiles;
+ private final DatasetSearchIndexService searchIndexes;
  private final String modelName,preprocess,vespaVersion,recordingSdk;
  private final boolean jobWorker,recordingWorker;
  private final Duration aiTtl;
  private final ReentrantLock aiLock=new ReentrantLock();
  private volatile Snapshot cached;
- public SystemStatusService(JdbcClient jdbc,AiCapabilitiesClient ai,DatasetStorage media,RecordingFiles recordingFiles,
+ public SystemStatusService(JdbcClient jdbc,AiCapabilitiesClient ai,DatasetStorage media,RecordingFiles recordingFiles,DatasetSearchIndexService searchIndexes,
    @Value("${embedding.model-name}") String modelName,@Value("${embedding.preprocess}") String preprocess,
    @Value("${auto-label.dataset-version:v1.0-trainval}") String vespaVersion,@Value("${recording.sdk-version:0.38.1}") String recordingSdk,
    @Value("${auto-label.worker.enabled:true}") boolean jobWorker,@Value("${recording.worker.enabled:true}") boolean recordingWorker,
    @Value("${system-status.ai-cache:15s}") Duration aiTtl,@Value("${system-status.check-workers:true}") boolean checkWorkers) {
-  this.jdbc=jdbc;this.ai=ai;this.media=media;this.recordingFiles=recordingFiles;this.modelName=modelName;this.preprocess=preprocess;
+  this.jdbc=jdbc;this.ai=ai;this.media=media;this.recordingFiles=recordingFiles;this.searchIndexes=searchIndexes;this.modelName=modelName;this.preprocess=preprocess;
   this.vespaVersion=vespaVersion;this.recordingSdk=recordingSdk;this.jobWorker=jobWorker||!checkWorkers;this.recordingWorker=recordingWorker||!checkWorkers;this.aiTtl=aiTtl;
  }
 
@@ -144,6 +145,13 @@ public class SystemStatusService {
  private Capability vespa(DatasetRow ds,Snapshot snap,OffsetDateTime now) {
   if(!jobWorker) return cap("UNAVAILABLE",false,"VESPA_WORKER_DISABLED",now,LOCAL_TTL);
   if(ds!=null && "SYNTHETIC".equals(ds.origin())) return cap("UNAVAILABLE",false,"SYNTHETIC_DATASET",now,LOCAL_TTL);
+  // Product order: finish an uploaded dataset's index, then accept an explicit label request.
+  // This is a scheduling policy, not a model dependency. Reading readiness never enqueues a job.
+  if(ds!=null && "uploads".equals(ds.storageKey())) {
+   var index=searchIndexes.status(ds.id());
+   if(!"COMPLETED".equals(index.status())) return new Capability("UNAVAILABLE",false,"EMBEDDINGS_INCOMPLETE",
+    "이미지 검색 준비 "+index.indexedImages()+" / "+index.totalImages()+"장. 완료 후 라벨 생성 버튼을 직접 눌러 주세요. 자동으로 실행하지 않아요.",now,now.plusSeconds(3),null);
+  }
   if(ds!=null && !"uploads".equals(ds.storageKey()) && !vespaVersion.equals(ds.version())) return cap("UNAVAILABLE",false,"DATASET_MISMATCH",now,LOCAL_TTL);
   var unreach=unreachable(snap,now); if(unreach!=null) return unreach;
   if(snap.legacy()) {

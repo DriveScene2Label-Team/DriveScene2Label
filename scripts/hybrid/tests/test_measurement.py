@@ -12,6 +12,23 @@ spec.loader.exec_module(measurement)
 
 
 class MeasurementTests(unittest.TestCase):
+    def test_runner_file_and_container_event_are_counted_once(self):
+        run_id = '0d04cd72-b00e-4d14-af2f-41aa702a2836'
+        event = {'at': '2026-11-12T01:00:00Z', 'run_id': run_id, 'stage': 'model', 'event': 'completed', 'call': 1, 'wall_seconds': 2}
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder)
+            measurement.save(path / 'manifest.json', {'started_at': '2026-11-12T00:00:00+00:00'})
+            def fake_command(args):
+                if 'exec' in args:
+                    return json.dumps(event)
+                if args[-1] == measurement.CONTAINERS['ai']:
+                    return '2026-11-12T01:00:00Z DS2L_STAGE ' + json.dumps(event)
+                return ''
+            with patch.object(measurement, 'command', side_effect=fake_command):
+                report = measurement.collect(path)
+            self.assertEqual(report['events'], 1)
+            self.assertEqual(report['timings'][0]['sum_ms'], 2000)
+
     def test_docker_cursor_gap_is_reported_and_cursor_not_advanced(self):
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder)

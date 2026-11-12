@@ -18,6 +18,7 @@ const G: Record<string, ErrorGuide> = {
   VESPA_DATA_NOT_READY: { title: 'AI 서버의 데이터셋 메타데이터를 읽지 못했어요', action: '데이터셋 경로와 버전을 확인하세요.', environment: true },
   VESPA_LAUNCH_FAILED: { title: 'VESPA 실행을 시작하지 못했어요', action: '실행 환경(원격 포함)을 확인하세요.', environment: true },
   VESPA_REMOTE_UNREACHABLE: { title: '원격 클러스터와 연결이 끊겼어요', action: '원격 작업이 남아 있을 수 있어요. 클러스터 상태를 확인한 뒤 결정하세요.', environment: true },
+  USER_CANCELLED: { title: '사용자 요청으로 중단했어요', action: '자동으로 다시 실행하지 않아요. 필요할 때 직접 새 작업을 시작하세요.', environment: false },
   VESPA_BUSY: { title: 'AI 서버가 다른 VESPA 작업을 실행 중이었어요', action: '진행 중인 작업이 끝난 뒤 다시 실행하세요.', environment: false },
   VESPA_EXECUTION_FAILED: { title: 'VESPA 실행이 실패했어요', action: 'AI 서버 실행 로그를 확인하세요.', environment: false },
   VESPA_INVALID_RESULT: { title: 'VESPA 결과가 없거나 형식이 올바르지 않아요', action: '실행 로그와 결과 파일을 확인하세요.', environment: false },

@@ -13,6 +13,15 @@ const ws = (sceneId: number, extra = '') => `/scenes/${sceneId}?dataset=${DATASE
 test.beforeEach(async ({ page }) => { await preferJobsTab(page); });
 
 test.describe('VESPA 작업', () => {
+  test('사용자 중단을 모델 실패와 구분하고 자동 재실행하지 않는다', async ({ page }) => {
+    const log = await installMockApi(page, { jobSequence: ['FAILED'], failedErrorCode: 'USER_CANCELLED' });
+    await page.goto(ws(21, '&job=41'));
+    const card = page.getByTestId('job-card-single');
+    await expect(card.getByText('중단됨', { exact: true })).toBeVisible();
+    await expect(card.getByText('사용자 요청으로 중단했어요')).toBeVisible();
+    expect(log.jobPosts).toHaveLength(0);
+  });
+
   test('응답 유실 후 같은 Idempotency-Key로 재시도해 같은 job을 받고, 완료 결과를 이미지에 그린다 (QA-06)', async ({ page }) => {
     const log = await installMockApi(page, { postAborts: 1, jobSequence: ['PENDING', 'RUNNING', 'COMPLETED'] });
     await page.goto(ws(21, '&view=six'));

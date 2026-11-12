@@ -39,6 +39,9 @@ def valid_token(cached, tunnel_id):
 
 def prepare():
     settings = config()
+    routes = json.loads((cloud.REPO / 'frontend/vercel.json').read_text(encoding='utf-8'))['routes']
+    if not all(any(t.get('args') == 'tunnel $BACKEND_TUNNEL_TOKEN' for t in route.get('transforms', [])) for route in routes[:2]):
+        raise RuntimeError('Current frontend routing uses Cloudflare. Restore the reviewed Microsoft header configuration and deploy it before switching providers.')
     project = cloud.vercel('project', 'inspect', cloud.PROJECT, '--json')
     cloud.validate_project(project)
     cached = json.loads(CACHE.read_text(encoding='utf-8')) if CACHE.exists() else {}

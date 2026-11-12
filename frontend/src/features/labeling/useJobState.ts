@@ -81,6 +81,7 @@ export function useJobState(paneId: PaneId, scene: Scene, samples: SampleRef[]) 
   const currentScope = () => useServer.getState().scope;
 
   const startNewRun = () => {
+    if (!vespa.canExecute || posting || (active && ownership?.kind !== 'mismatch')) return;
     if (failedPost) dismissJobSubmission(failedPost.snapshot.idempotencyKey);
     const snapshot = newJobSnapshot({
       instanceId: scope, datasetId: scene.datasetId, datasetChecksum: system.status?.dataset?.metadataChecksum ?? null,

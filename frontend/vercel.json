@@ -9,14 +9,12 @@
       "src": "/oauth2(/.*)?$",
       "dest": "${BACKEND_URL}/oauth2$1",
       "env": ["BACKEND_URL"],
-      "transforms": [{ "type": "request.headers", "op": "set", "target": { "key": "X-Tunnel-Authorization" }, "args": "tunnel $BACKEND_TUNNEL_TOKEN", "env": ["BACKEND_TUNNEL_TOKEN"] }],
       "headers": { "Cache-Control": "private, no-store" }
     },
     {
       "src": "/api(/.*)?$",
       "dest": "${BACKEND_URL}/api$1",
       "env": ["BACKEND_URL"],
-      "transforms": [{ "type": "request.headers", "op": "set", "target": { "key": "X-Tunnel-Authorization" }, "args": "tunnel $BACKEND_TUNNEL_TOKEN", "env": ["BACKEND_TUNNEL_TOKEN"] }],
       "respectOriginCacheControl": false,
       "headers": {
         "Cache-Control": "private, no-store",

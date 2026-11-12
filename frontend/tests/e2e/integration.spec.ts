@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { DATASET, installMockApi, preferJobsTab } from './fixtures/mockApi';
+import { DATASET, installMockApi, preferJobsTab, type MockOptions } from './fixtures/mockApi';
 
 /** Integration-plan scenarios on route fixtures (UI behaviour only; not real-data or real-AI verification). */
 const ws = (sceneId: number, extra = '') => `/scenes/${sceneId}?dataset=${DATASET.id}${extra}`;
@@ -7,6 +7,23 @@ const ws = (sceneId: number, extra = '') => `/scenes/${sceneId}?dataset=${DATASE
 test.beforeEach(async ({ page }) => { await preferJobsTab(page); });
 
 test.describe('IT-02/03/04 준비 상태·출처', () => {
+  test('임베딩 완료는 버튼만 활성화하고 사용자 클릭 전에는 라벨 작업을 만들지 않는다', async ({ page }) => {
+    const options: MockOptions = { status: { vespa: 'UNAVAILABLE', vespaReason: 'EMBEDDINGS_INCOMPLETE' } };
+    const log = await installMockApi(page, options);
+    await page.goto(ws(21));
+    const run = page.getByTestId('run-job-single');
+    await expect(run).toBeDisabled();
+    await expect(run).toHaveText('이미지 검색 준비 완료 후 실행 가능');
+    expect(log.jobPosts).toHaveLength(0);
+    options.status!.vespa = 'READY';
+    await page.reload();
+    await expect(run).toBeEnabled();
+    expect(log.jobPosts).toHaveLength(0);
+    await run.click();
+    await expect.poll(() => log.jobPosts.length).toBe(1);
+    expect(log.jobPosts[0]!.body).toMatchObject({ datasetId: DATASET.id, sceneToken: 'scene-tok-61' });
+  });
+
   test('VESPA 설정만 확인된 상태는 실행을 막고, 환경 확인(읽기 전용) 후에만 실행할 수 있다', async ({ page }) => {
     const log = await installMockApi(page, { status: { vespa: 'configured-then-ready' } });
     await page.goto(ws(21));

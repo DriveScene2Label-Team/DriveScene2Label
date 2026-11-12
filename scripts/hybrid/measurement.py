@@ -172,6 +172,8 @@ def collect(path):
             output = command(['docker', 'exec', CONTAINERS['ai'], 'cat', f'/results/{run_id}/stage-events.jsonl'])
             for line in output.splitlines():
                 row = parse_line('DS2L_STAGE ' + line)
+                if row:
+                    row['service'] = 'ai'
                 if row and event_key(row) not in seen:
                     seen.add(event_key(row)); new.append(row); rows.append(row)
         except (RuntimeError, subprocess.TimeoutExpired, OSError) as error:
