@@ -1,5 +1,7 @@
 # 혼합 배포 실행 준비
 
+**2026-11-12 저녁에는 사용자 요청으로 운영을 일시중지했다.** Vercel pause와 Git 자동 배포 비활성화 상태이므로 이전 `start`만으로 웹 공개가 모두 복구되지는 않는다. [종료 기록·재개 순서](shutdown-2026-11-12.md)를 먼저 따른다. 아래 내용은 중지 전 정상 운영 설정이다.
+
 ## 2026-11-12 17시 이후: Cloudflare 복귀·Git 자동 배포
 
 현재 경로는 `Vercel → Cloudflare Quick Tunnel → 127.0.0.1:4180 oauth2-proxy → 내부 Nginx → Spring`이다. Cloudflare 재발급과 서울 HTTP/2 연결, 익명 API의 게이트웨이 JSON 401, 로그인 후 씬·작업·3D 조회를 확인했다. 기존 Cognito 팀 로그인을 유지한다. Microsoft 전용 연결 토큰은 이 경로에 보내지 않도록 `frontend/vercel.json`에서 헤더 삽입을 제거했다.

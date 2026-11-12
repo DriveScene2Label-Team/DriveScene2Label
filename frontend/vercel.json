@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "git": { "deploymentEnabled": false },
   "framework": "vite",
   "installCommand": "npm ci",
   "buildCommand": "node scripts/check-vercel-env.mjs && npm run build",
