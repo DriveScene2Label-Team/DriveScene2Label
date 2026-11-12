@@ -24,7 +24,7 @@ DriveScene2Label 프로젝트의 **현재 인프라를 설명하는 구조도와
 ## 현재 운영 사실
 
 1. 프론트는 Vercel React/Vite. 브라우저는 같은 Vercel 출처의 `/api/*`, `/oauth2/*`를 호출해.
-2. Vercel이 **Cloudflare Quick Tunnel**을 통해 로컬 `127.0.0.1:4180` oauth2-proxy에 연결해. 기존 Cognito `team` 그룹 로그인을 검사한 뒤 Spring에 전달해. 이전 Microsoft 연결 토큰은 Cloudflare로 전달하지 않아. 11월 12일 업로드 계측은 전환 전 Microsoft 경로이므로 Cloudflare 성능 수치로 사용하지 마.
+2. Vercel이 **Cloudflare Quick Tunnel**을 통해 로컬 `127.0.0.1:4180` oauth2-proxy에 연결해. Cognito `team` 그룹 로그인 확인 → 내부 Nginx의 불필요한 세션 헤더 제거 → Spring 순서야. 로그인 후 Tomcat 헤더 크기 초과로 난 HTTP 400을 이렇게 복구했어. 이전 Microsoft 연결 토큰은 Cloudflare로 전달하지 않아. 11월 12일 업로드 계측은 전환 전 Microsoft 경로이므로 Cloudflare 성능 수치로 사용하지 마.
 3. Spring과 FastAPI는 로컬 PC의 Docker/WSL2에서 실행해. GPU는 보유 RTX 5060 Ti 16GB eGPU야. FastAPI를 외부에 직접 공개하지 않고 DB 조회·저장 책임은 Spring에 있어.
 4. AWS 서울 S3는 원본 ZIP/TGZ, RDS PostgreSQL/pgvector는 메타데이터·GT·검색 벡터·작업·예측·편집 이력을 보관해. 기존 Cognito와 IAM/STS도 쓰므로 AWS를 문자 그대로 두 서비스만 쓴다고 적지 마.
 5. 해제 데이터·모델·후처리 캐시·RRD는 로컬 Docker 볼륨이야. 모든 결과가 S3에 백업되는 것은 아니고 DB 백업만으로 로컬 파일까지 복구되지는 않아.

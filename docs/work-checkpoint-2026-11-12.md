@@ -1,5 +1,15 @@
 # 실행·검증 기록 — 2026-11-12
 
+## 공개 연결 복구와 사용자 작업 완료 (18시 이후)
+
+- `5198bed` push가 GitHub 연결로 Vercel production `dpl_E22ggJ3u55TxyjaVnT6CyuiumzGy` READY를 만들었다. [해당 GitHub CI도 성공](https://github.com/DriveScene2Label-Team/DriveScene2Label/actions/runs/43185460893). Git 연결은 `release-version` / root `frontend`이며 CI와 Vercel은 독립 실행한다.
+- 로그인 후 HTTP 400을 로컬 API·익명 인증·로그인 브라우저·Tomcat 로그로 좁혀 `Request header is too large`를 확인했다. 인증 뒤 내부 Nginx가 불필요한 세션 헤더를 제거하도록 적용했다. 공개 익명 401 유지, 로그인한 Chrome에서 씬 10개·임베딩 2,424장·6카메라·3D·작업 조회 복구. [상세](http-400-header-troubleshooting-2026-11-12.md).
+- backend ID `485adbf5e5fa`, AI ID `07571f3820df`와 시작 시각을 유지했다. auth-upstream을 추가하고 auth-gateway만 재생성했으며 사용자 작업 #12를 중단·재실행하지 않았다.
+- 보호된 `tunnel.json`의 provider를 Cloudflare로 저장하고 Vercel 연결 기록을 갱신했다. 기존 Microsoft helper PID 31928 및 추가 시험용 Cloudflare PID 35212는 종료했다. 운영 Cloudflare PID 37420을 유지한다. 이 PID는 재부팅 후 재사용할 식별자가 아니다.
+- `RUN_GATEWAY_INTEGRATION=1` 운영 검사 **30개 통과**. 12KB 합성 Cookie 제거, 4.5MB 본문 SHA-256/멱등 키 보존, 206 Range 전달을 운영 DB·GPU와 분리한 Docker 환경에서 검사했다. GitHub CI에도 포함했다.
+- #12(scene-0061)는 18:00 완료 상태로 저장됐다. 결과 API에서 39개 sample token·1,308개 박스를 다시 조회했고 공개 Chrome에서 생성 완료·GT+예측 recording 표시를 확인했다. DB/UI 시각 약 30분 9초와 worker AI+저장 합 약 30분 20초는 다른 경계다. 이미지 검출·분할 1,524.246초가 실행기의 84.3%. [측정과 PostgreSQL now() 의미](upload-measurement-2026-11-12.md#완료된-단일-씬-작업-12).
+- 새 자동 라벨 요청은 만들지 않았다. 측정 수집기는 계속 보관하며 완료 관측 시 capture_errors=0. Mac/Safari 실기기 확인과 검출 정확도 정량 평가는 미실시다. 최신 비교용 backend `modelVersion` 추가 이미지는 이 연결 복구에서 교체하지 않았다.
+
 ## 후속 실행 상태 (17:35 KST)
 
 17:44 추가 확인: 원격의 `ea2360e`, `0014c41` 라벨 비교 변경을 보존해 rebase했다. 합쳐진 코드로 PostgreSQL 관련 23개, frontend 108개, 수동 실행/중단 fixture 2개, frontend·backend 이미지 빌드가 통과했다. 사용자가 17:30 직접 시작한 **#12 scene-0061은 유지 요청**을 받았다. 따라서 실행 중인 backend/AI 컨테이너를 재생성하지 않는다. 수동 실행 gate는 이미 운영 중이며 최신 비교용 `modelVersion` 응답 추가는 새 backend 이미지에 준비되어 있다. 이 추가 필드가 현재 실행 서버에 적용됐다고 쓰지 않는다.

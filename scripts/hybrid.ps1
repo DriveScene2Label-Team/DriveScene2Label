@@ -81,7 +81,7 @@ try {
     & docker @composeArgs config --quiet
     if ($LASTEXITCODE -ne 0) { throw 'Compose configuration failed' }
     # Repeated start must not recreate containers or interrupt an active GPU job.
-    if ($WebOnly) { & docker @composeArgs up -d --no-build --no-recreate --no-deps --wait --wait-timeout 180 backend auth-gateway }
+    if ($WebOnly) { & docker @composeArgs up -d --no-build --no-recreate --no-deps --wait --wait-timeout 180 backend auth-upstream auth-gateway }
     else { & docker @composeArgs up -d --no-build --no-recreate --wait --wait-timeout 180 }
     if ($LASTEXITCODE -ne 0) { throw 'Local service startup failed' }
     & python scripts/hybrid/operations.py resume --env-file $runtimeEnv

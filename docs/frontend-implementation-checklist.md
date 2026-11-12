@@ -228,3 +228,12 @@ Spring 정적 리소스는 `Cache-Control: no-cache`로 재검증한다. 이미 
 - [x] 프론트 단위 108개, Spring 71개(Docker), 프론트 build 통과.
 - [ ] 3D(Rerun recording)에 비교 박스 레이어 추가: recording `compare_job_id`, exporter `world/prediction_cmp`, 블루프린트 조합 16개.
 - [ ] A/B 비교 화면 URL에 `cmpA/cmpB` 보존(현재는 패널 상태로만 유지).
+
+### 하이브리드 로그인 조회 복구 (2026-11-12)
+
+- [x] 공개 로그인 후 HTTP 400의 Tomcat 헤더 제한 원인 확인, 인증 후 내부 Nginx에서 불필요한 Cookie/Authorization 제거.
+- [x] 실행 중 backend/AI/#12 유지, 익명 API 401과 로그인 Chrome의 씬·상태·카메라·3D 조회 확인.
+- [x] Docker 격리 환경에서 대용량 헤더·업로드 무결성·Range 검증, 운영 검사 30개 통과. GitHub CI 연결.
+- [x] 사용자 실행 #12 완료 결과(39프레임·1,308박스) API 재조회 및 공개 작업대 완료·예측 recording 확인.
+- [x] README·[HTTP 400 원인/해결](http-400-header-troubleshooting-2026-11-12.md)·[단계 실측](upload-measurement-2026-11-12.md) 갱신.
+- [ ] Mac/Safari 실기기 검증. 브라우저 사용자와 CUDA 서버 운영 환경을 구분해 안내.

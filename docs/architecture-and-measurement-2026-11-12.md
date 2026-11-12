@@ -34,7 +34,8 @@ flowchart LR
   V -->|HTTPS| T[Cloudflare Quick Tunnel]
   T --> A[로컬 oauth2-proxy]
   A -. OIDC 로그인 .-> C[Cognito]
-  A --> B[로컬 Spring]
+  A --> N[내부 Nginx · 인증 후 세션 헤더 제거]
+  N --> B[로컬 Spring]
   B <-->|SQL / TLS| D[(RDS / pgvector)]
   B <-->|원본 보관·복원 / HTTPS| S[(비공개 S3)]
   B <-->|준비된 파일| F[(로컬 캐시)]
@@ -68,6 +69,8 @@ JWT는 토큰 형식, 쿠키는 브라우저의 저장/전송 수단, 세션은 
 근거: [인증 Compose](../compose.hybrid-auth.yml), [Vercel 경로](../frontend/vercel.json), [운영 설정](hybrid-setup.md). OAuth 로그인 CSRF 방어와 업무 API의 CSRF 검증을 같은 것으로 설명하지 않는다. 사용자별 데이터 소유권/RBAC, 업무 요청 CSRF/Origin 정책, 즉시 세션 폐기 요구는 현재 팀 공유 MVP와 별도의 설계·검증 범위다.
 
 면접 답변: “직접 JWT 인증을 구현한 것은 아닙니다. Cognito OIDC를 oauth2-proxy에 연결해 팀 로그인을 보호했고 브라우저 세션 쿠키를 사용했습니다. API 서버는 게이트웨이 뒤에 두었습니다. JWT와 쿠키는 대체 관계가 아니며, 자체 사용자별 권한을 구현했다는 주장과는 구분합니다.”
+
+운영 중 로그인 후 요청이 Tomcat 헤더 제한으로 400을 반환했다. 로컬 API·익명 게이트웨이·로그인된 공개 요청을 비교해 HTTP 파싱 계층으로 원인을 좁혔다. 인증 뒤 내부 Nginx에서 Spring이 사용하지 않는 세션 쿠키를 제거해 복구했다. 이 사례는 GPU·DB 병목과 별개의 통신 오류이며, [회귀 검사와 실행 중 작업 보존 근거](http-400-header-troubleshooting-2026-11-12.md)를 남겼다.
 
 ## 5. JPA·JDBC·쿼리·트랜잭션
 
@@ -158,7 +161,7 @@ S3는 비공개·최소 권한·TLS·저장 암호화를 유지하고, RDS는 �
 |프론트 단위|100개 통과|계측 포함 기존 컴포넌트/계약|
 |브라우저 흐름|4개 통과|fixture API 기반 업로드·편집·다운로드·모듈 복구; 공개 로그인 E2E와 다름|
 |AI 계약·패치·계측|33개 통과|새 GPU 이미지에서 고정 checkout 패치 적용까지 검사|
-|운영/수집 스크립트|28개 통과|환경 동기화·계측 집계·오류/중복·터널 인증·로그 조회 누락·제공자 혼용 방지 검증|
+|운영/수집/내부 프록시|30개 통과|환경 동기화·계측 집계·로그 누락·제공자 혼용 방지, 대용량 쿠키 제거·업로드 무결성·Range 보존|
 |빌드|프론트·백엔드·GPU 이미지 성공|PyArrow 중복 pin 제거 후 실제 이미지 빌드|
 |CUDA 부분 확인|5060 Ti, NumPy 1.26.4, PyArrow 23.0.1, CUDA tensor 합 16.0|재부팅 후 GPU 접근 복구 확인. 전체 VESPA 씬 재추론과는 구분|
 

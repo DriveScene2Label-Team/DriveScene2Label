@@ -2,7 +2,9 @@
 
 ## 2026-11-12 17시 이후: Cloudflare 복귀·Git 자동 배포
 
-현재 경로는 `Vercel → Cloudflare Quick Tunnel → 127.0.0.1:4180 oauth2-proxy → Spring`이다. Cloudflare 재발급과 서울 HTTP/2 연결, 익명 API의 게이트웨이 JSON 401을 확인했다. 기존 Cognito 팀 로그인을 유지한다. Microsoft 전용 연결 토큰은 이 경로에 보내지 않도록 `frontend/vercel.json`에서 헤더 삽입을 제거했다.
+현재 경로는 `Vercel → Cloudflare Quick Tunnel → 127.0.0.1:4180 oauth2-proxy → 내부 Nginx → Spring`이다. Cloudflare 재발급과 서울 HTTP/2 연결, 익명 API의 게이트웨이 JSON 401, 로그인 후 씬·작업·3D 조회를 확인했다. 기존 Cognito 팀 로그인을 유지한다. Microsoft 전용 연결 토큰은 이 경로에 보내지 않도록 `frontend/vercel.json`에서 헤더 삽입을 제거했다.
+
+로그인 후 Tomcat 헤더 제한으로 발생한 HTTP 400은 인증 뒤 불필요한 Cookie·Authorization을 제거해 해결했다. Nginx는 호스트 포트를 공개하지 않는다. [원인·적용 순서·회귀 테스트](http-400-header-troubleshooting-2026-11-12.md). 현재 PC의 provider 설정과 Vercel 연결 기록도 Cloudflare로 저장했고, 기존 Microsoft helper와 시험용 추가 터널은 종료했다. backend/AI·사용자 작업 #12는 유지했다.
 
 - 보호된 `%LOCALAPPDATA%/DriveScene2Label/hybrid/tunnel.json`에 `{"provider":"cloudflare"}`를 지정하면 기존 `scripts/hybrid.ps1 -Action start`가 Cloudflare를 선택한다. 설정이 없어도 기본은 Cloudflare다. `tunnel.stderr.log`에서 실제 발급 주소를 읽고 로그인 게이트웨이를 검증한 뒤 Vercel 연결을 갱신한다.
 - Quick Tunnel은 임시 주소이고 가용성을 보장하지 않는다. 재시작·발급 실패를 고려해야 하며 고정 도메인/named tunnel은 별도 준비가 필요하다. 전환이 GPU 계산 속도를 높이는 것은 아니다. 아래 Microsoft fallback 기록의 설정을 그대로 혼용하지 않는다. Microsoft 복귀에는 해당 요청 헤더 구성 복원·프론트 배포·인증 검증이 필요하며 현재 빌드/동기화는 잘못된 조합을 거절한다.

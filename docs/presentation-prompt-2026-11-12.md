@@ -27,11 +27,11 @@ DriveScene2Label 캡스톤 프로젝트의 **교수님 발표 자료를 한국�
 
 **4장. 현재는 화면·연산·영속 저장을 나눴다**
 큰 구조도 하나로 표현해:
-사용자 브라우저 → Vercel React → Cloudflare Quick Tunnel → 로컬 oauth2-proxy → Spring Boot → 로컬 FastAPI/CLIP/VESPA. 11월 12일 업로드 실측은 전환 전 Microsoft 터널 경로였으므로 현재 Cloudflare의 성능으로 재사용하지 마.
+사용자 브라우저 → Vercel React → Cloudflare Quick Tunnel → 로컬 oauth2-proxy → 내부 Nginx → Spring Boot → 로컬 FastAPI/CLIP/VESPA. 11월 12일 업로드 실측은 전환 전 Microsoft 터널 경로였으므로 현재 Cloudflare의 성능으로 재사용하지 마.
 - 로컬 GPU: 기존에 보유한 RTX 5060 Ti 16GB eGPU, Docker/WSL2 사용.
 - Spring ↔ AWS 서울 S3: 원본 ZIP/TGZ 보관·복원.
 - Spring ↔ AWS 서울 RDS PostgreSQL/pgvector: 씬, GT, 검색 벡터, 작업, 라벨·수정 이력.
-- 로그인은 Cognito OIDC + oauth2-proxy. 현재 터널을 Cloudflare로 그리지 않는다.
+- 로그인은 Cognito OIDC + oauth2-proxy. Nginx는 인증 뒤 불필요한 세션 헤더를 제거해 Tomcat 크기 제한에 의한 HTTP 400을 복구하는 역할이다. 현재 터널은 Cloudflare이고 Microsoft는 이전 임시 복구 이력이다.
 
 **5장. 왜 전체 AWS 대신 이 구성을 선택했는가**
 - 목표는 팀 시연용 MVP. 보유 GPU를 활용하면서 공유 웹 주소와 PC 재설치에 독립적인 원본·DB를 유지하려고 선택했다.

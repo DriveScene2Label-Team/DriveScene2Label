@@ -22,13 +22,18 @@ nuScenes 원본을 올리고, 주행 씬을 찾아 **선택한 씬의 3D 라벨�
 
 ## 현재 화면과 확인 상태
 
-아래 작업대는 11월 11일 실제 `scene-0061`의 6개 카메라·LiDAR·완료 작업 #3의 예측을 표시한 기록입니다.
+**11월 12일 17:58 KST 공개 서비스 확인:** Cognito 로그인 후 씬 10개, 검색 임베딩 **2,424/2,424장**, `scene-0061` 카메라 6개·GT·LiDAR 3D, 사용자 실행 작업 **#12의 진행 상태 조회**를 확인했습니다. 이때 #12는 실행 중이며 아래 화면은 예측 생성 완료 증거가 아닙니다. HTTP 400 조회 오류를 복구하는 동안 backend·AI 컨테이너와 작업 시작 시각을 유지했습니다.
 
-![카메라와 LiDAR 3D를 함께 보여주는 씬 작업대](docs/images/scene-workspace-2026-11-11.jpg)
+**후속 결과:** #12는 18:00 완료 상태로 저장됐고 API에서 **39프레임·1,308개 박스**를 다시 조회했습니다. UI/DB 시각 차이는 약 30분 9초이며, worker의 AI 요청+결과 저장 구간은 약 30분 20초입니다. 이미지 검출·분할이 실행기 시간의 약 **84.3%**였습니다. [계측 범위와 시간 차이 설명](docs/upload-measurement-2026-11-12.md#완료된-단일-씬-작업-12).
+
+![Cloudflare 연결 복구 후 scene-0061과 작업 12 조회](docs/images/cloudflare-recovered-2026-11-12.jpg)
 
 <details>
 <summary>업로드 화면·단일 씬 결과·초기화 후 화면</summary>
 
+11월 11일 완료 작업 #3의 예측을 표시한 이전 작업대입니다.
+
+![카메라와 LiDAR 3D를 함께 보여주는 씬 작업대](docs/images/scene-workspace-2026-11-11.jpg)
 ![원본 업로드 전용 화면](docs/images/upload-2026-11-11.jpg)
 ![scene-0103의 40프레임 라벨 생성 완료](docs/images/scene-0103-completed-2026-11-11.jpg)
 ![2026-11-12 초기화 직후 공개 씬 목록](docs/images/empty-scenes-2026-11-12.jpg)
@@ -44,7 +49,8 @@ flowchart TB
   U[사용자 브라우저] -->|화면·동일 출처 API| V[Vercel · React]
   V -->|HTTPS| T[Cloudflare 터널]
   subgraph PC[로컬 PC · Docker / WSL2]
-    A[oauth2-proxy · 팀 로그인] --> B[Spring · 업로드·작업·DB 저장]
+    A[oauth2-proxy · 팀 로그인] --> N[Nginx · 인증 후 세션 헤더 제거]
+    N --> B[Spring · 업로드·작업·DB 저장]
     B -->|작업 요청| G[FastAPI · CLIP / VESPA · RTX 5060 Ti 16GB]
     B <--> F[(원본·해제 데이터 캐시)]
     F --> G
@@ -66,6 +72,7 @@ flowchart TB
 |Vercel|React 정적 화면과 `/api`, `/oauth2` 전달. GPU 연산은 실행하지 않음|
 |Cloudflare Quick Tunnel|Vercel에서 로컬 4180 Cognito 로그인 게이트웨이로 연결. 임시 주소이며 재시작 때 Vercel 연결 갱신 필요|
 |Cognito + oauth2-proxy|기존 `team` 그룹 로그인과 브라우저 세션 쿠키 확인|
+|내부 Nginx|인증을 마친 요청에서 Spring이 사용하지 않는 Cookie·Authorization 제거. 업로드 스트리밍·Range·멱등 키 보존. 호스트 포트 공개 없음|
 |Spring Boot|입력 검증, 압축·원본 저장, catalog·작업 관리, 결과·편집 저장. DB 소유 서비스|
 |FastAPI + 로컬 eGPU|CLIP 검색 임베딩, VESPA 추론, 후처리, Rerun export. 브라우저에 직접 공개하지 않음|
 |S3|원본 압축 파일 보관. 캐시가 없을 때 원본 전체를 복원할 수 있음|
@@ -122,6 +129,7 @@ CLIP은 CUDA로 2,424장 저장을 완료했다. 중간 라벨 작업 때문에 
 |결과를 다시 찾기 어려움|씬별 완료 작업 조회·재열기, 결과와 편집 이력 저장|원본 파일명·업로드 날짜 중심 정렬, 편집 override의 RRD 반영|
 |재부팅 뒤 실행 준비 실패|Docker 준비 검사·쓰기 재개·GPU 실제 CUDA 확인·연결 동기화|호스트 GPU lost 원인과 반복 실행 안정성, 중단된 RUNNING 작업 자동 복구|
 |Cloudflare 터널 발급 timeout/429|Microsoft 비공개 터널로 임시 복구 후 11월 12일 재발급 성공. Cloudflare 복귀 시 Microsoft 토큰 전달 제거|고정 도메인·named tunnel은 미구성. 제공자 교체가 GPU 추론을 빠르게 한다는 근거는 없음|
+|로그인 후 씬·작업 조회 HTTP 400|Tomcat `Request header is too large` 확인. 인증 뒤 내부 Nginx에서 불필요한 세션 헤더 제거 후 실제 로그인 화면 조회 복구|익명 401 유지, 합성 12KB 쿠키·4.2MB 업로드·206 Range 회귀 검사. [원인과 검증](docs/http-400-header-troubleshooting-2026-11-12.md)|
 |Docker 로그 조회 누락|최근 tail과 시간 조회 대조, 불일치 보고, 유휴 컨테이너 재생성 후 수집 확인|무손실 로그 플랫폼을 구현한 것은 아님|
 
 SAM 부분 시험의 최대 CUDA 할당량은 **8,042 → 2,796MiB**, 시간 중앙값은 **0.793 → 0.697초**였습니다. **전체 씬 속도·VRAM 개선율이 아닙니다.** 스레드를 무작정 늘리지 않았으며, BLAS/OMP 기본 1은 작은 CPU 연산의 과도한 스레드 생성을 피하려는 기존 설정입니다. [측정 조건·실행 로그·후속 개선](docs/troubleshooting-2026-11-11.md).
@@ -129,6 +137,7 @@ SAM 부분 시험의 최대 CUDA 할당량은 **8,042 → 2,796MiB**, 시간 중
 ## 백엔드 구현을 설명할 때
 
 - **JWT·세션·쿠키:** Cognito OIDC와 oauth2-proxy를 연결했습니다. JWT는 토큰 형식, 쿠키는 브라우저 전송 수단이며 대체 관계가 아닙니다. 자체 Spring JWT 인증 필터·Redis 세션을 구현한 것으로 설명하지 않습니다.
+- **프록시 경계:** 로그인 쿠키는 oauth2-proxy에서 확인한 뒤 내부 Nginx가 제거합니다. Spring의 헤더 제한을 넘던 요청을 줄이는 조치이며 GPU 추론 속도 개선과는 별개입니다. Nginx 로그에는 method·path·status·요청/상위 서버 시간·request ID만 남기고 Cookie·Authorization·쿼리·본문은 기록하지 않습니다.
 - **JPA·JDBC:** 일반 catalog·라벨 문서는 JPA를 사용하고 대량 import는 JDBC batch를 사용합니다. 작업 선점·예측·검색·객체 편집은 명시 SQL을 사용합니다. 특정 SQL과 왕복을 측정한 뒤 병목을 판단합니다.
 - **작업·정합성:** dataset/scene 범위를 검증하고 idempotency key로 재시도 중복 생성을 막습니다. 완료 작업 조회는 새 추론을 시작하지 않습니다. 중단된 RUNNING 작업 자동 복구는 아직 검증되지 않았습니다.
 - **관측:** 공통 ID와 경계별 시간을 추가했습니다. OpenTelemetry 분산 트레이싱이나 GPU 커널 프로파일러를 도입한 상태는 아닙니다.
@@ -176,6 +185,8 @@ python scripts/hybrid/measurement.py collect
 
 중첩된 시간을 합산하지 않습니다. 브라우저 측정은 프록시·재시도·polling을 포함한 자기 보고이며 순수 네트워크 시간이 아닙니다. CPU 시간도 CUDA 커널 시간이 아닙니다. 비밀번호·쿠키·검색 문장·센서 본문은 이 수집기에 저장하지 않습니다. 실제 라벨은 RDS, RRD·중간 산출물은 로컬 결과 볼륨에 별도로 저장합니다.
 
+내부 Nginx의 요청 시간은 `docker logs --since 10m drivescene-hybrid-auth-upstream-1`로 별도 확인합니다. 이 로그는 현재 위 계측 수집기의 집계 대상은 아니며, Docker에서 10MB × 3개로 순환 보관합니다.
+
 ## 검증 범위와 배포
 
 |검증|11월 12일 결과|
@@ -183,11 +194,11 @@ python scripts/hybrid/measurement.py collect
 |백엔드 핵심 통합 / HTTP 필터|45개 / 1개 통과|
 |프론트 단위 / fixture 브라우저 흐름|최신 비교 화면 병합 후 108개, 기존 4개 + 수동 실행·중단 표시 2개 통과|
 |AI 계약·패치·계측|33개 통과, 고정 checkout에 패치 적용 포함|
-|시작·터널·로그 수집|28개 통과|
+|시작·터널·로그 수집·내부 프록시|30개 통과. 합성 12KB 쿠키 제거·4.5MB 업로드 무결성·Range 포함|
 |제품 빌드|프론트·Spring 이미지·GPU 이미지 성공. PyArrow 중복 pin 수정|
 |실제 환경|재부팅 후 CUDA 연산, Vercel 팀 로그인·씬 조회·초기화 후 빈 화면, 쓰기 재개 확인|
 |백업·초기화|별도 DB 복원·33테이블 행 수 일치, S3 10객체 보존|
-|새 대용량 업로드·검색 준비|사용자 TGZ 업로드 dataset 6·10씬, CLIP 2,424장 완료. 새 씬 추론은 별도 진행 중|
+|새 대용량 업로드·검색·씬 추론|사용자 TGZ 업로드 dataset 6·10씬, CLIP 2,424장 완료. 사용자 실행 #12 scene-0061 완료, 39프레임·1,308박스 API 재조회|
 
 GitHub 저장소를 기존 Vercel 프로젝트에 연결하고 **Production Branch를 `release-version`, Root Directory를 `frontend`**로 설정했습니다. 해당 브랜치 push는 GitHub CI와 Vercel 프론트 빌드를 시작합니다. 두 시스템은 별도로 실행되므로 CI 성공이 Vercel 승격을 자동으로 차단하는 구성은 아닙니다. Preview 브랜치는 운영 주소를 바꾸지 않습니다. 기존 ECS/EKS 배포 workflow는 수동이며 **push가 AWS compute를 켜지 않습니다.** [실행 증거·재개 기록](docs/work-checkpoint-2026-11-12.md), [CI](https://github.com/DriveScene2Label-Team/DriveScene2Label/actions/workflows/ci.yml).
 
@@ -201,6 +212,7 @@ GitHub 저장소를 기존 Vercel 프로젝트에 연결하고 **Production Bran
 |[11월 12일 직접 업로드 실측](docs/upload-measurement-2026-11-12.md)|공개 전송·S3·RDS·CLIP 시간과 실행 순서 문제|
 |[현재 실행 설정](docs/hybrid-setup.md)|보호된 설정·GPU·로그인·터널·재부팅|
 |[트러블슈팅](docs/troubleshooting-2026-11-11.md)|업로드 오류, 저장·3D·모델·실측 사례|
+|[로그인 후 HTTP 400](docs/http-400-header-troubleshooting-2026-11-12.md)|Tomcat 헤더 제한 진단, 인증 후 쿠키 제거, 작업 보존·회귀 검사|
 |[API 명세](README_API.md) / [작업 API](docs/auto-label-jobs-api.md)|프론트·백엔드 계약|
 |[라벨 편집](docs/label-editing.md) / [Rerun](docs/rerun-recording.md)|결과·수정 이력·3D 계약과 한계|
 |[전체 로컬 개발](docs/local-development.md) / [VESPA](ai-server/VESPA.md)|모델 pin·환경변수·Docker·개발 테스트|
