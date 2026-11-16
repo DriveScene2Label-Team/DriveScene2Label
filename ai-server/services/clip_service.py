@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+import time
 from pathlib import Path
 from threading import Lock
 
@@ -14,6 +15,8 @@ from schemas.embedding import EmbeddingResponse
 from services.gpu_health import gpu_available
 
 logger = logging.getLogger(__name__)
+# uvicorn's logger is the one that reaches `docker logs` (see main.py), which scripts/hybrid/measurement.py collects.
+stage_log = logging.getLogger("uvicorn.error")
 
 class ClipError(RuntimeError):
     def __init__(self, status_code, code, message):
@@ -84,10 +87,23 @@ class ClipService:
         except OSError as exc:
             raise ClipError(400, "IMAGE_NOT_READABLE", "Image path is not readable.") from exc
         try:
+            # Same work and the same lock scope as before (decode happened lazily inside the lock); only timed per stage.
+            # Spring's ai_ms minus handler_ms is HTTP + JSON + FastAPI overhead.
+            started = time.perf_counter()
             with Image.open(path) as image:
                 with self.lock:
-                    vector = clip_core.encode_image(self.model, self.preprocess, image, self.device, mode)
-            return self._response(vector, mode)
+                    locked = time.perf_counter()
+                    image.load()
+                    decoded = time.perf_counter()
+                    crops = clip_core.preprocess_crops(self.preprocess, image, mode)
+                    prepared = time.perf_counter()
+                    vector = clip_core.encode_crops(self.model, crops, self.device)
+                    encoded = time.perf_counter()
+            response = self._response(vector, mode)
+            ms = lambda a, b: f"{(b - a) * 1000:.1f}"
+            stage_log.info("[CLIP_STAGE] stage=image_embed lock_wait_ms=%s decode_ms=%s preprocess_ms=%s gpu_ms=%s handler_ms=%s",
+                           ms(started, locked), ms(locked, decoded), ms(decoded, prepared), ms(prepared, encoded), ms(started, time.perf_counter()))
+            return response
         except (UnidentifiedImageError, OSError, Image.DecompressionBombError) as exc:
             raise ClipError(400, "INVALID_IMAGE", "File is not a readable image.") from exc
         except ClipError:

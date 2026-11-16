@@ -66,6 +66,8 @@ class MeasurementTests(unittest.TestCase):
         self.assertEqual(row['wall_ms'], '358100')
         row = measurement.parse_line('time [CLIP] dataset=5 image=8 ai_ms=100 storage_ms=20 total_ms=120')
         self.assertEqual(row['storage_ms'], '20')
+        row = measurement.parse_line('time [CLIP_STAGE] stage=image_embed lock_wait_ms=0.1 decode_ms=9.8 preprocess_ms=4.2 gpu_ms=21.5 handler_ms=36.0')
+        self.assertEqual((row['tag'], row['stage'], row['decode_ms'], row['gpu_ms'], row['handler_ms']), ('CLIP_STAGE', 'image_embed', '9.8', '21.5', '36.0'))
         row = measurement.parse_line('time [RERUN_STAGE] recording=5 stage=ai_export wall_ms=3000')
         self.assertEqual(row['recording'], '5')
 

@@ -102,3 +102,22 @@ def test_uploaded_image_scope_and_traversal(client, monkeypatch):
 def test_device_preference(cuda,mps,expected):
     with patch.object(torch.cuda,"is_available",return_value=cuda), patch.object(torch.backends.mps,"is_available",return_value=mps):
         assert clip_core.available_devices()==expected
+
+
+def test_image_stage_timings_are_logged_without_paths(client, caplog):
+    c, _, _ = client
+    with caplog.at_level("INFO", logger="uvicorn.error"):
+        assert c.post("/embedding/image", json={"image_path": "image.jpg"}).status_code == 200
+    lines = [r.getMessage() for r in caplog.records if "[CLIP_STAGE]" in r.getMessage()]
+    assert len(lines) == 1
+    for field in ("lock_wait_ms=", "decode_ms=", "preprocess_ms=", "gpu_ms=", "handler_ms="):
+        assert field in lines[0]
+    assert "image.jpg" not in lines[0]
+
+
+def test_split_encode_matches_single_call():
+    image = Image.new("RGB", (1600, 900), (40, 80, 120))
+    preprocess = lambda crop: torch.full((3, 224, 224), float(crop.size[0]))
+    whole = clip_core.encode_image(Model(), preprocess, image, "cpu")
+    split = clip_core.encode_crops(Model(), clip_core.preprocess_crops(preprocess, image), "cpu")
+    assert torch.equal(whole, split)

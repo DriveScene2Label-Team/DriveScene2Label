@@ -236,4 +236,6 @@ Spring 정적 리소스는 `Cache-Control: no-cache`로 재검증한다. 이미 
 - [x] Docker 격리 환경에서 대용량 헤더·업로드 무결성·Range 검증, 운영 검사 30개 통과. GitHub CI 연결.
 - [x] 사용자 실행 #12 완료 결과(39프레임·1,308박스) API 재조회 및 공개 작업대 완료·예측 recording 확인.
 - [x] README·[HTTP 400 원인/해결](http-400-header-troubleshooting-2026-11-12.md)·[단계 실측](upload-measurement-2026-11-12.md) 갱신.
+- [x] 2026-11-17 검색 인덱싱 루프: 8장마다 claim 해제·1초 대기 대신 한 claim에서 64장 묶음을 끝까지 반복, 대기 중/실행 중 라벨 작업이 있을 때만 PENDING으로 양보. Docker PostgreSQL 백엔드 74개 통과(신규 묶음·양보 테스트 포함). GPU PC 실데이터 재측정은 미실행.
+- [x] 2026-11-17 CLIP 구간 계측: AI 서버 `[CLIP_STAGE]` 로그(lock 대기·디코딩·전처리·GPU·handler ms, 경로 미기록)와 수집기 허용 필드 추가, 처리 순서·lock 범위 유지. 5060 Ti PC 실측은 미실행.
 - [ ] Mac/Safari 실기기 검증. 브라우저 사용자와 CUDA 서버 운영 환경을 구분해 안내.

@@ -62,12 +62,23 @@ def load_model(device: str):
     return model, preprocess, tokenizer
 
 
-@torch.no_grad()
-def encode_image(model, preprocess, image, device, mode=LR_SQUARE_CROP_MEAN):
+def preprocess_crops(preprocess, image, mode=LR_SQUARE_CROP_MEAN) -> torch.Tensor:
+    """CPU half of encode_image: crops of one image -> stacked model input. Split out so callers can time it."""
     if mode not in PREPROCESS_MODES:
         raise ValueError("Unsupported image preprocessing")
-    crops = [preprocess(crop) for crop in image_crops(image.convert("RGB"), mode)]
-    return combine_crops(model.encode_image(torch.stack(crops).to(device)).float(), [len(crops)])[0].cpu()
+    return torch.stack([preprocess(crop) for crop in image_crops(image.convert("RGB"), mode)])
+
+
+@torch.no_grad()
+def encode_crops(model, crops: torch.Tensor, device) -> torch.Tensor:
+    """GPU half of encode_image for one image's crops. .cpu() waits for the device, so a wall timer around this
+    call covers the copy to the device, the forward pass and the copy back."""
+    return combine_crops(model.encode_image(crops.to(device)).float(), [len(crops)])[0].cpu()
+
+
+@torch.no_grad()
+def encode_image(model, preprocess, image, device, mode=LR_SQUARE_CROP_MEAN):
+    return encode_crops(model, preprocess_crops(preprocess, image, mode), device)
 
 
 @torch.no_grad()

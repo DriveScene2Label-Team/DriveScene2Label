@@ -133,6 +133,38 @@ class SceneSearchTests {
    java.nio.file.Files.deleteIfExists(file); java.nio.file.Files.deleteIfExists(file.getParent()); java.nio.file.Files.deleteIfExists(file.getParent().getParent());
   }
  }
+ @Test void searchIndexKeepsOneClaimAcrossBatchesAndYieldsToWaitingLabelJob() throws Exception {
+  int images=com.example.demo.nuscenes.service.DatasetSearchIndexService.BATCH_SIZE*2+6;
+  long d=dataset("uploaded-batches"); scene(d,"a","A",new double[images]);
+  String key=java.util.UUID.randomUUID().toString();
+  jdbc.sql("UPDATE dataset SET storage_key='uploads',root_relative_path=:k WHERE id=:d").param("k",key).param("d",d).update();
+  jdbc.sql("DELETE FROM image_embedding WHERE dataset_id=:d").param("d",d).update();
+  var root=storage.uploads().resolve("datasets").resolve(key);
+  for(int i=0;i<images;i++) {
+   var file=root.resolve("samples/a-file-"+i+".jpg");
+   java.nio.file.Files.createDirectories(file.getParent());java.nio.file.Files.writeString(file,"AI is stubbed");
+  }
+  RESPONSE.set(aiResponse().replace("clip-text-tokenizer",PREPROCESS));
+  try {
+   // A label job waiting in the queue: index one batch, then hand the shared scheduler back.
+   jdbc.sql("""
+    INSERT INTO auto_label_job(dataset_id,request_key,target_type,requested_targets,model_version,config_name,model_config,mapping_name,class_names,status)
+    VALUES(:d,'index-yield','SCENE',jsonb_build_array('a'),'v','c','{}','8class','["car"]','PENDING')""").param("d",d).update();
+   indexes.enqueue(d); indexes.process(indexes.claim().orElseThrow());
+   assertThat(indexes.status(d).status()).isEqualTo("PENDING");
+   assertThat(indexes.status(d).indexedImages()).isEqualTo(com.example.demo.nuscenes.service.DatasetSearchIndexService.BATCH_SIZE);
+   // Without a waiting label job, one claim runs every remaining batch to completion.
+   jdbc.sql("DELETE FROM auto_label_job WHERE dataset_id=:d").param("d",d).update();
+   indexes.process(indexes.claim().orElseThrow());
+   assertThat(indexes.status(d).status()).isEqualTo("COMPLETED");
+   assertThat(indexes.status(d).indexedImages()).isEqualTo(images);
+   assertThat(CALLS.get()).isEqualTo(images);
+   assertThat(indexes.claim()).isEmpty();
+  } finally {
+   for(int i=0;i<images;i++) java.nio.file.Files.deleteIfExists(root.resolve("samples/a-file-"+i+".jpg"));
+   java.nio.file.Files.deleteIfExists(root.resolve("samples")); java.nio.file.Files.deleteIfExists(root);
+  }
+ }
  @Test void unavailableAiReturnsServiceUnavailable() throws Exception {
   int unused;
   try(var socket=new java.net.ServerSocket(0)) { unused=socket.getLocalPort(); }

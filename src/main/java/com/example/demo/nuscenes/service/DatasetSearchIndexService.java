@@ -16,6 +16,8 @@ public class DatasetSearchIndexService {
  private record Row(String status,String errorMessage) {}
  private final JdbcClient jdbc; private final ImageEmbeddingService images; private final TransactionTemplate tx;
  private final String model,preprocess; private final boolean enabled;
+ /** Images per heartbeat/yield check. Not a GPU batch: images are still embedded one request at a time. */
+ public static final int BATCH_SIZE=64;
  private static final String CAMERA_FROM="""
   FROM sample_data sd JOIN calibrated_sensor cs ON cs.dataset_id=sd.dataset_id AND cs.token=sd.calibrated_sensor_token
   JOIN sensor s ON s.dataset_id=cs.dataset_id AND s.token=cs.sensor_token
@@ -63,20 +65,28 @@ public class DatasetSearchIndexService {
  }
  public void process(Work work) {
   try {
-   // Yield between small batches; VESPA and indexing share the same scheduler in this local deployment.
-   var pending=jdbc.sql("SELECT sd.id "+CAMERA_FROM+" AND e.sample_data_token IS NULL ORDER BY sd.timestamp_us,sd.id LIMIT 8")
-    .param("d",work.datasetId()).param("m",model).param("p",preprocess).query(Long.class).list();
-   for(long id:pending) {
+   // Keep one claim until the index is done instead of releasing it every batch and waiting for the next tick
+   // (2026-11-12 measurement: ~1s scheduler delay x 303 batches). VESPA and indexing share one scheduler thread,
+   // so yield only when a label job is actually waiting.
+   List<Long> previous=List.of();
+   while(true) {
+    var pending=jdbc.sql("SELECT sd.id "+CAMERA_FROM+" AND e.sample_data_token IS NULL ORDER BY sd.timestamp_us,sd.id LIMIT "+BATCH_SIZE)
+     .param("d",work.datasetId()).param("m",model).param("p",preprocess).query(Long.class).list();
+    if(pending.isEmpty()) { finish(work,"COMPLETED",null); return; }
+    // A batch that stored nothing would repeat forever; release it to the normal retry path instead.
+    if(pending.equals(previous)) { finish(work,"PENDING",null); return; }
+    // One batch takes seconds, far below the 10-minute stale-claim window.
     if(!heartbeat(work)) return;
-    images.embed(id,false);
+    for(long id:pending) images.embed(id,false);
+    if(labelJobWaiting()) { finish(work,"PENDING",null); return; }
+    previous=pending;
    }
-   var done=status(work.datasetId());
-   finish(work,done.indexedImages()==done.totalImages()?"COMPLETED":"PENDING",null);
   } catch(Exception error) {
    org.slf4j.LoggerFactory.getLogger(getClass()).error("Search indexing failed for dataset {}",work.datasetId(),error);
    finish(work,"FAILED","이미지 검색 준비에 실패했습니다. GPU·AI 서버와 원본 파일 상태를 확인한 뒤 다시 시도해 주세요.");
   }
  }
+ private boolean labelJobWaiting() { return jdbc.sql("SELECT EXISTS(SELECT 1 FROM auto_label_job WHERE status IN ('PENDING','RUNNING'))").query(Boolean.class).single(); }
  private boolean heartbeat(Work w) { return jdbc.sql("UPDATE dataset_search_index SET updated_at=now() WHERE dataset_id=:d AND execution_token=:t AND status='RUNNING'").param("d",w.datasetId()).param("t",w.executionToken()).update()==1; }
  private void finish(Work w,String state,String error) { jdbc.sql("UPDATE dataset_search_index SET status=:s,error_message=:e,updated_at=now() WHERE dataset_id=:d AND execution_token=:t AND status='RUNNING'").param("s",state).param("e",error).param("d",w.datasetId()).param("t",w.executionToken()).update(); }
 }
