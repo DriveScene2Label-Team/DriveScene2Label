@@ -1,14 +1,14 @@
 {
   "created_at": "2026-11-17T18:39:14.375350+00:00",
-  "transformation": "JSON formatting and absolute repository path replacement only; original evidence is retained locally",
+  "transformation": "JSON formatting, absolute repository path replacement and LF text line endings; original evidence is retained locally",
   "scope": "explicit selection; full vectors, original media, credentials and large raw output excluded",
   "files": [
     {
       "source": ".local/hybrid/experiments/20261117T1330Z-G1/report.md",
       "target": "G1/report.md",
       "source_sha256": "184a5c1d526dea10a572f1978626e9277f82809a9132b36044c81b5ce2677a49",
-      "export_sha256": "184a5c1d526dea10a572f1978626e9277f82809a9132b36044c81b5ce2677a49",
-      "export_bytes": 3749
+      "export_sha256": "23d62841d647bf76abce88e64e5f059d63913a78df33a620af6d1cfaba951d17",
+      "export_bytes": 3697
     },
     {
       "source": ".local/hybrid/experiments/20261117T1330Z-G1/comparison-summary.json",
@@ -56,15 +56,15 @@
       "source": ".local/hybrid/experiments/20261117T1330Z-G1/command.txt",
       "target": "G1/command.txt",
       "source_sha256": "f31530433d6f69c737ed76603dc5840dacea05a815135fb001e9d72e6da0e447",
-      "export_sha256": "f31530433d6f69c737ed76603dc5840dacea05a815135fb001e9d72e6da0e447",
-      "export_bytes": 255
+      "export_sha256": "df54f610656fdb7fd1b0eeccda323567f657c87da2da9d7071b94a094a71d7a0",
+      "export_bytes": 254
     },
     {
       "source": ".local/hybrid/experiments/20261117T140927Z-G2-scene/report.md",
       "target": "G2/report.md",
       "source_sha256": "7a1e96c62973a2a59d6403cd19dc223d15001790ad77e7091e3b7af6e02eda57",
-      "export_sha256": "7a1e96c62973a2a59d6403cd19dc223d15001790ad77e7091e3b7af6e02eda57",
-      "export_bytes": 4906
+      "export_sha256": "bbe01a395230617f02aacb962a2d9d716e48074f6d24eee90d1cbf468c90fb2b",
+      "export_bytes": 4852
     },
     {
       "source": ".local/hybrid/experiments/20261117T140927Z-G2-scene/manifest.json",
@@ -196,8 +196,8 @@
       "source": ".local/hybrid/experiments/20261117T1544Z-C1-controlled/report.md",
       "target": "C1/report.md",
       "source_sha256": "9219064b6b17124d957760fd6b3fac04979d9f72394a363a2cfc2ffa6a3366d4",
-      "export_sha256": "9219064b6b17124d957760fd6b3fac04979d9f72394a363a2cfc2ffa6a3366d4",
-      "export_bytes": 4851
+      "export_sha256": "7fd4e02f00ef885eec549e28fd4c633af292595cc57b35b99805d970401d9744",
+      "export_bytes": 4802
     },
     {
       "source": ".local/hybrid/experiments/20261117T1544Z-C1-controlled/comparison.json",
@@ -280,8 +280,8 @@
       "source": ".local/hybrid/measurements/20261117T154442Z/report.md",
       "target": "C1/20261117T154442Z/report.md",
       "source_sha256": "b0b1e6d73a99d2a2a964e662eef7244dbce28b1b1e9a8858b6696ee2823dd93e",
-      "export_sha256": "b0b1e6d73a99d2a2a964e662eef7244dbce28b1b1e9a8858b6696ee2823dd93e",
-      "export_bytes": 6200
+      "export_sha256": "0cad4cc02b5e53f8416410ec765c3319fe05d3452b0adde26fec3119aeba0451",
+      "export_bytes": 6132
     },
     {
       "source": ".local/hybrid/measurements/20261117T154442Z/report.json",
@@ -364,8 +364,8 @@
       "source": ".local/hybrid/measurements/20261117T154642Z/report.md",
       "target": "C1/20261117T154642Z/report.md",
       "source_sha256": "5a612adfb524f64acbf86d245957d4f21ce036d54916aa943526e3b2161e3008",
-      "export_sha256": "5a612adfb524f64acbf86d245957d4f21ce036d54916aa943526e3b2161e3008",
-      "export_bytes": 6195
+      "export_sha256": "0dad9f6c1021ad6fbcdac331925d6e44d59e5ca61a3ffc60e6746f8e0574d382",
+      "export_bytes": 6127
     },
     {
       "source": ".local/hybrid/measurements/20261117T154642Z/report.json",
@@ -448,8 +448,8 @@
       "source": ".local/hybrid/measurements/20261117T155651Z/report.md",
       "target": "C1/20261117T155651Z/report.md",
       "source_sha256": "a11d51fa51d53a59bb068b7beab70156e6f1e89f4a850458ea587f62ffa1b039",
-      "export_sha256": "a11d51fa51d53a59bb068b7beab70156e6f1e89f4a850458ea587f62ffa1b039",
-      "export_bytes": 6184
+      "export_sha256": "b1aad3fe5732c3bb807e5f9e804f7f397aea9e10606aa78fb32c230c75c87de1",
+      "export_bytes": 6116
     },
     {
       "source": ".local/hybrid/measurements/20261117T155651Z/report.json",
@@ -532,8 +532,8 @@
       "source": ".local/hybrid/measurements/20261117T155850Z/report.md",
       "target": "C1/20261117T155850Z/report.md",
       "source_sha256": "9c586a6eccf319e7a567b60ccc8d807188ea5b582b4201d5256edbf24b7ae8a9",
-      "export_sha256": "9c586a6eccf319e7a567b60ccc8d807188ea5b582b4201d5256edbf24b7ae8a9",
-      "export_bytes": 6185
+      "export_sha256": "09fdb9b0bb5196dabd9f7679b5b7a98d5f69240335059b6e0881573fef3f39e7",
+      "export_bytes": 6117
     },
     {
       "source": ".local/hybrid/measurements/20261117T155850Z/report.json",
@@ -616,8 +616,8 @@
       "source": ".local/hybrid/measurements/20261117T160059Z/report.md",
       "target": "C1/20261117T160059Z/report.md",
       "source_sha256": "1efdeddc751f335ce2b357ace83f26c96288a97e054989455d437939500fda1a",
-      "export_sha256": "1efdeddc751f335ce2b357ace83f26c96288a97e054989455d437939500fda1a",
-      "export_bytes": 6181
+      "export_sha256": "ce3f78e501958023efab84c2063e7538c975ae6ce1010dd37546cbeed6641901",
+      "export_bytes": 6113
     },
     {
       "source": ".local/hybrid/measurements/20261117T160059Z/report.json",
@@ -700,8 +700,8 @@
       "source": ".local/hybrid/measurements/20261117T160256Z/report.md",
       "target": "C1/20261117T160256Z/report.md",
       "source_sha256": "03ec1b650c270e7a0e7125a5afdd85cc943cd17f44dcef731dc8a5ad6258b703",
-      "export_sha256": "03ec1b650c270e7a0e7125a5afdd85cc943cd17f44dcef731dc8a5ad6258b703",
-      "export_bytes": 6185
+      "export_sha256": "58c7957f938fdbaa84e09edad7e64d0f6a891b08d6831f8d960c2c4eade714e4",
+      "export_bytes": 6117
     },
     {
       "source": ".local/hybrid/measurements/20261117T160256Z/report.json",
@@ -770,15 +770,15 @@
       "source": ".local/hybrid/measurements/20261117T160526Z/report.md",
       "target": "A1-upload/report.md",
       "source_sha256": "670f2c426a68456eb6226266d03c33f54adbde2894f26a2edb8e78ad66ebb811",
-      "export_sha256": "670f2c426a68456eb6226266d03c33f54adbde2894f26a2edb8e78ad66ebb811",
-      "export_bytes": 1687
+      "export_sha256": "333396cb84633e8c50b7efab639f7670d32fd46c95073872d780f2a3d9d43010",
+      "export_bytes": 1662
     },
     {
       "source": ".local/hybrid/measurements/20261117T160526Z/report-stage-timings.md",
       "target": "A1-upload/report-stage-timings.md",
       "source_sha256": "f810625a77279706c24bed5e21bb11361cf8026d16dd1865e07c7de92744be0d",
-      "export_sha256": "f810625a77279706c24bed5e21bb11361cf8026d16dd1865e07c7de92744be0d",
-      "export_bytes": 6299
+      "export_sha256": "8b72d79fa01a9b1f37cae458ce977852eac0ae0619f23dbb64f315bd16ef2dca",
+      "export_bytes": 6231
     },
     {
       "source": ".local/hybrid/measurements/20261117T160526Z/report.json",
@@ -847,15 +847,15 @@
       "source": ".local/hybrid/measurements/20261117T162317Z/report.md",
       "target": "S1/report.md",
       "source_sha256": "5a49c46f161a34bd1b0a6e9f5f1a458fceca72a1e0450d1519168d883caeafdd",
-      "export_sha256": "5a49c46f161a34bd1b0a6e9f5f1a458fceca72a1e0450d1519168d883caeafdd",
-      "export_bytes": 1918
+      "export_sha256": "314f81e4ddaca6ebbd872b18105e1944414f41ca208bd1c5831cf1bba282131a",
+      "export_bytes": 1898
     },
     {
       "source": ".local/hybrid/measurements/20261117T162317Z/report-stage-timings.md",
       "target": "S1/report-stage-timings.md",
       "source_sha256": "3c5d2b5335408a8c56f7b08be1f30fe413ee674af33f6b48b062fac243a38a15",
-      "export_sha256": "3c5d2b5335408a8c56f7b08be1f30fe413ee674af33f6b48b062fac243a38a15",
-      "export_bytes": 1701
+      "export_sha256": "c50a80ff2a5b56d9490fa2cdeafbccb6c52e4396009b9297509c7b17172dff2a",
+      "export_bytes": 1680
     },
     {
       "source": ".local/hybrid/measurements/20261117T162317Z/report.json",
@@ -924,15 +924,15 @@
       "source": ".local/hybrid/measurements/20261117T163238Z/report.md",
       "target": "A1-label/report.md",
       "source_sha256": "f27b38638d41f96cf2d32d182117c69f8c737d70c3e05c776a243b6bee3d206e",
-      "export_sha256": "f27b38638d41f96cf2d32d182117c69f8c737d70c3e05c776a243b6bee3d206e",
-      "export_bytes": 1777
+      "export_sha256": "d489aabdd06832ffabb8834cf4f8d968126762637a857129f74be318043547b0",
+      "export_bytes": 1761
     },
     {
       "source": ".local/hybrid/measurements/20261117T163238Z/report-stage-timings.md",
       "target": "A1-label/report-stage-timings.md",
       "source_sha256": "07926fe90317e1c5d59642016f729905578cbd9ca43b0206c97a3b4511d87ad1",
-      "export_sha256": "07926fe90317e1c5d59642016f729905578cbd9ca43b0206c97a3b4511d87ad1",
-      "export_bytes": 9450
+      "export_sha256": "de606a3a9118cb830e48bec75c6b12ca8f3f2fa541f5f5679de48e06fa95d96b",
+      "export_bytes": 9375
     },
     {
       "source": ".local/hybrid/measurements/20261117T163238Z/report.json",
@@ -1113,8 +1113,8 @@
       "source": ".local/hybrid/experiments/20261117T1727Z-T3-threads/report.md",
       "target": "T3/report.md",
       "source_sha256": "7e1be4df41d24689183f15cafad38bb135315dcfc667fe493c6633654160479c",
-      "export_sha256": "7e1be4df41d24689183f15cafad38bb135315dcfc667fe493c6633654160479c",
-      "export_bytes": 1769
+      "export_sha256": "93618efbdc5f058cc27ad9207697c4a3095e778d14159c121a8f6351743017b8",
+      "export_bytes": 1743
     },
     {
       "source": ".local/hybrid/experiments/20261117T1727Z-T3-threads/comparison.json",
@@ -1463,8 +1463,8 @@
       "source": ".local/hybrid/measurements/20261117T172817Z/report.md",
       "target": "T4/report.md",
       "source_sha256": "ceef21dcb10e476b9d26ba4dd42f53144048b4b7aa127d25150e972a9a5543dc",
-      "export_sha256": "ceef21dcb10e476b9d26ba4dd42f53144048b4b7aa127d25150e972a9a5543dc",
-      "export_bytes": 887
+      "export_sha256": "12a919fdd4bbcc37b95fdd72482cd325672116ffe2ab66de54b1fccf57a16f52",
+      "export_bytes": 873
     },
     {
       "source": ".local/hybrid/measurements/20261117T172817Z/scene-manifest.json",
@@ -1568,8 +1568,8 @@
       "source": ".local/hybrid/measurements/20261117T180150Z/report.md",
       "target": "A2-P/report.md",
       "source_sha256": "345e17ec747ead5961b103692d6d0217e1791b52fd06a90eba59bf77dbbffbf3",
-      "export_sha256": "345e17ec747ead5961b103692d6d0217e1791b52fd06a90eba59bf77dbbffbf3",
-      "export_bytes": 3104
+      "export_sha256": "356d3ced2ad34c5305f8a08ff0c1373b7f11906607a1d32b28afe39532a26646",
+      "export_bytes": 3071
     },
     {
       "source": ".local/hybrid/measurements/20261117T180150Z/variant-plan.json",
@@ -1953,8 +1953,8 @@
       "source": ".local/hybrid/measurements/20261117T181124Z/report.md",
       "target": "R1-R2/20261117T181124Z/report.md",
       "source_sha256": "39a871440f0158e82ef92b81a7bda8ddccd6416010a5ed0759acb8dc7fe73b68",
-      "export_sha256": "39a871440f0158e82ef92b81a7bda8ddccd6416010a5ed0759acb8dc7fe73b68",
-      "export_bytes": 2825
+      "export_sha256": "335b35c1771befaceac3b871c4e54afce29ecd9b61a1170eac328dd712bd5a03",
+      "export_bytes": 2786
     },
     {
       "source": ".local/hybrid/measurements/20261117T181124Z/runtime-plan.json",
@@ -2065,8 +2065,8 @@
       "source": ".local/hybrid/measurements/20261117T181435Z/report.md",
       "target": "R1-R2/20261117T181435Z/report.md",
       "source_sha256": "0916f1d4243f9e9014722e7a73d0a9afb0e18e5d8c3b8e333d30e3f39a626fde",
-      "export_sha256": "0916f1d4243f9e9014722e7a73d0a9afb0e18e5d8c3b8e333d30e3f39a626fde",
-      "export_bytes": 1032
+      "export_sha256": "f9c4191673da8cb371e362b935e74354b4ef5ff9d8ecaa29bf6a62861f4be2a5",
+      "export_bytes": 1018
     },
     {
       "source": ".local/hybrid/measurements/20261117T181435Z/runtime-plan.json",
@@ -2149,8 +2149,8 @@
       "source": ".local/hybrid/measurements/20261117T181632Z/report.md",
       "target": "R1-R2/20261117T181632Z/report.md",
       "source_sha256": "5cfda76a18cbd3110726b52f686a9db599cdfb4b434289784e3e844480eba4f3",
-      "export_sha256": "5cfda76a18cbd3110726b52f686a9db599cdfb4b434289784e3e844480eba4f3",
-      "export_bytes": 986
+      "export_sha256": "798014220173d26d11ddf9fd04af4b45c1fe501f8fa77da1e0f449e255f43b3c",
+      "export_bytes": 972
     },
     {
       "source": ".local/hybrid/measurements/20261117T181632Z/runtime-plan.json",
@@ -2233,8 +2233,8 @@
       "source": ".local/hybrid/measurements/20261117T181902Z/report.md",
       "target": "R1-R2/20261117T181902Z/report.md",
       "source_sha256": "d12df907a3cf1edf334615e79d69ec8f0c1be20676d98f3dd90530e08ecbad60",
-      "export_sha256": "d12df907a3cf1edf334615e79d69ec8f0c1be20676d98f3dd90530e08ecbad60",
-      "export_bytes": 1543
+      "export_sha256": "3e669c99903a6f0cfb6d0f2d5f78bd59e05fd059f3fe36d9832819e24cec741b",
+      "export_bytes": 1524
     },
     {
       "source": ".local/hybrid/measurements/20261117T181902Z/runtime-plan.json",

@@ -46,11 +46,14 @@ def main():
         elif source.suffix=='.jsonl':output=('\n'.join(json.dumps(relative_strings(json.loads(line)),ensure_ascii=False) for line in raw.decode('utf-8-sig').splitlines())+'\n').encode()
         elif source.suffix=='.png':output=raw
         else:output=relative_strings(raw.decode('utf-8-sig')).encode()
+        # Git normalizes text on this Windows checkout. Hash the portable bytes
+        # that reviewers actually receive rather than a CRLF-only worktree view.
+        if source.suffix!='.png':output=output.replace(b'\r\n',b'\n')
         target.parent.mkdir(parents=True,exist_ok=True)
         with target.open('xb') as stream:stream.write(output)
         manifest.append({'source':source.relative_to(ROOT).as_posix(),'target':target.relative_to(destination).as_posix(),
             'source_sha256':hashlib.sha256(raw).hexdigest(),'export_sha256':hashlib.sha256(output).hexdigest(),'export_bytes':len(output)})
-    value={'created_at':datetime.now(timezone.utc).isoformat(),'transformation':'JSON formatting and absolute repository path replacement only; original evidence is retained locally',
+    value={'created_at':datetime.now(timezone.utc).isoformat(),'transformation':'JSON formatting, absolute repository path replacement and LF text line endings; original evidence is retained locally',
         'scope':'explicit selection; full vectors, original media, credentials and large raw output excluded','files':manifest}
     (destination/'manifest.json').write_text(json.dumps(value,ensure_ascii=False,indent=2),encoding='utf-8')
     print(json.dumps({'directory':str(destination),'files':len(manifest),'bytes':sum(v['export_bytes'] for v in manifest)}))

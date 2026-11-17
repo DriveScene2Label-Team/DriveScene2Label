@@ -229,6 +229,12 @@ S2의 같은 109MB 파일 multipart/Range 1·2·4 비교와 Q2의 실제 검색 
 
 로컬의 2개 skip을 통과로 계산하지 않는다. 새 Q2 Java CLI는 실제 RDS 실행을 하지 않았으며 최종 remote CI에서 컴파일한다. GitHub CI는 `RUN_GATEWAY_INTEGRATION=1`로 해당 통합 테스트를 포함하며 전체 Java·프론트·업로드/편집 브라우저 계약도 실행한다. GPU·AWS 실험은 CI가 대신하지 않는다. 최종 push의 CI 결과는 해당 commit의 Actions 기록으로 확인한다.
 
+## 최종 CI에서 발견한 테스트 자원 제한
+
+첫 push `5d0f70b`의 원격 CI는 Java 컴파일·JAR 생성은 통과했으나 85개 테스트 중 마지막 worker 컨텍스트가 DB 연결에 실패했다. PostgreSQL 로그의 `FATAL: sorry, too many clients already`와 여러 Hikari pool 종료 기록을 확인했다. 새 prefetch 비교 컨텍스트까지 캐시되며 연결 풀이 누적된 사례다. `build.gradle`의 **test JVM에만** maximum-pool-size=4, minimum-idle=1을 지정해 전체 테스트를 다시 실행한다. 운영 RDS나 서비스 풀 설정을 늘리지 않았다. 최종 결과는 해당 후속 commit의 GitHub Actions를 확인한다.
+
+검토용 증거의 source SHA는 원본을, export SHA는 Git에 들어가는 LF 텍스트를 기준으로 한다. Windows CRLF 정규화에 따른 23개 텍스트 hash 차이를 검출해 exporter와 manifest를 수정했고 341개 staging blob을 다시 대조했다. 수치·판정·원본 로그는 변경하지 않았다.
+
 ## 재현과 원복
 
 정상 운영은 보호된 compose.env와 기존 시작 절차를 사용한다. 실험 도구의 비밀값은 명령행·로그에 넣지 않는다. 재현 시 기존 작업이 없는지 확인하고 새 증거 디렉터리를 만든다.

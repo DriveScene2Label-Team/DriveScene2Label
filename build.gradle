@@ -45,4 +45,9 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+	// Cached Spring test contexts each own a pool. Keep their combined demand
+	// below the CI PostgreSQL connection limit, with room for concurrent workers.
+	// These properties apply only to the test JVM, never to the shipped service.
+	systemProperty 'spring.datasource.hikari.maximum-pool-size', '4'
+	systemProperty 'spring.datasource.hikari.minimum-idle', '1'
 }
