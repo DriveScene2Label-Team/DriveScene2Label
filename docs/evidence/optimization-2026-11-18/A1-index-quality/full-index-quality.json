@@ -1,0 +1,32 @@
+{
+  "scope": "full mini quality regression only; historical reference is not a controlled timing baseline",
+  "datasets": [
+    7,
+    21
+  ],
+  "same_version": true,
+  "same_catalog": true,
+  "vectors": {
+    "same_keys": true,
+    "same_model": true,
+    "unique_exports": true,
+    "pairs": 2424,
+    "max_absolute_difference": 0.0,
+    "min_cosine": 1.0,
+    "valid_geometry": true,
+    "exact_pairs": 2424,
+    "passed": true
+  },
+  "rankings": {
+    "queries": 18,
+    "same_order": true,
+    "same_metadata": true,
+    "finite_scores": true,
+    "nonempty": true,
+    "max_score_difference": 0.0,
+    "passed": true
+  },
+  "passed": true,
+  "same_metadata_checksum": true,
+  "checksum_definition": "dataset.sourceChecksum hashes named metadata JSON tables, not archive bytes; archive SHA256 is checked independently in S1"
+}

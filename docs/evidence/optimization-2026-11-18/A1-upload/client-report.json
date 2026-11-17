@@ -1,0 +1,31 @@
+{
+  "started_at": "2026-11-17T16:05:26.851391+00:00",
+  "origin": "http://127.0.0.1:8080",
+  "client": "Python HTTP client, normal resumable upload API; not a browser",
+  "archive_name": "v1.0-mini.tgz",
+  "archive_bytes": 4168148189,
+  "concurrent_agent_work": "Only log/status collection; no VESPA, builds, or AWS deployment",
+  "status": "completed",
+  "upload_id": "f00cc327-dc93-4e82-a8aa-ef9d18dcc550",
+  "upload_created_at": "2026-11-17T16:05:26.925009+00:00",
+  "sent_bytes": 4168148189,
+  "transfer_elapsed_seconds": 127.937,
+  "transfer_completed_at": "2026-11-17T16:07:34.799480+00:00",
+  "transfer_seconds": 127.937,
+  "submitted_at": "2026-11-17T16:07:34.841955+00:00",
+  "dataset_id": 21,
+  "scene_count": 10,
+  "import_completed_at": "2026-11-17T16:15:25.809924+00:00",
+  "elapsed_to_import_seconds": 598.953,
+  "index_status": {
+    "datasetId": 21,
+    "status": "COMPLETED",
+    "indexedImages": 2424,
+    "totalImages": 2424,
+    "errorMessage": null,
+    "workerEnabled": true
+  },
+  "last_observed_at": "2026-11-17T16:19:37.400006+00:00",
+  "completed_at": "2026-11-17T16:19:37.401094+00:00",
+  "total_seconds": 850.547
+}

@@ -1,0 +1,11 @@
+{
+  "scene": "scene-0061",
+  "sample_tokens": [
+    "ca9a282c9e77460f8360f564131a8af5",
+    "b26e791522294bec90f86fd72226e35c",
+    "ed5fc18c31904f96a8f0dbb99ff069c0"
+  ],
+  "radius_m": 50,
+  "coordinates": "ego at keyframe LIDAR_TOP pose",
+  "scope": "selected visual examples; not a quantitative acceptance gate"
+}

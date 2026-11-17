@@ -1,0 +1,16 @@
+{
+  "started_at": "2026-11-17T16:32:39.167413+00:00",
+  "directory": "$REPO\\.local\\hybrid\\measurements\\20261117T163238Z",
+  "command": [
+    "python",
+    "scripts/hybrid/benchmark_label_cycle.py",
+    "--directory",
+    "$REPO\\.local\\hybrid\\measurements\\20261117T163238Z",
+    "--dataset-id",
+    "21"
+  ],
+  "exit_code": 0,
+  "command_wall_seconds": 2479.4379999999983,
+  "finished_at": "2026-11-17T17:13:58.601157+00:00",
+  "final_collect_exit_code": 0
+}

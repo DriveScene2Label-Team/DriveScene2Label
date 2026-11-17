@@ -4,9 +4,30 @@ nuScenes 원본을 올리고, 주행 씬을 찾아 **선택한 씬의 3D 라벨�
 
 **[서비스 열기](https://drivescene2label.vercel.app) · [API 명세](README_API.md) · [구조·병목 분석·면접 학습 문서](docs/architecture-and-measurement-2026-11-12.md)**
 
-> **운영 일시중지 · 2026-11-12 20:39 KST 확인.** 로컬 서버·GPU·터널을 종료하고 Vercel을 pause했습니다. RDS는 `stopped`, 종료용 암호화 스냅샷은 `available`입니다. 원본·라벨·백업은 유지합니다. Git 자동 배포도 `git.deploymentEnabled=false`로 중지했으며, 아래 화면과 배포 성공 기록은 중지 전 검증 이력입니다. RDS 자동 재시작 예정은 **11월 19일 20:39 KST**입니다. [최종 중지 상태·다시 켜는 순서](docs/shutdown-2026-11-12.md).
+> **운영 중지 · 2026-11-18 03:36 KST 확인.** 사용자 요청으로 GPU 추론·백엔드·인증 컨테이너를 종료했습니다. RDS는 `stopped`, 기존 Vercel pause·Git 자동 배포 false를 유지합니다. 원본·라벨·볼륨은 보존하며 RDS 자동 재시작 예정은 **11월 25일 02:21:40 KST**입니다. [최종 중지 상태](docs/shutdown-2026-11-18.md).
 
-기준: **2026-11-12 · `release-version`**. 현재 프론트는 Vercel, 백엔드와 GPU는 로컬 PC, 원본은 AWS S3, 메타데이터·라벨은 RDS에 둡니다. **EC2·ECS·EKS는 이번 MVP에 사용하지 않습니다.** 과거 전체 AWS 운영 명령과 검증 기록은 [별도 이력 문서](docs/aws-deployment-history-2026-11-09.md)로 옮겼습니다.
+기준: **2026-11-18 · `release-version`**. 현재 프론트는 Vercel, 백엔드와 GPU는 로컬 PC, 원본은 AWS S3, 메타데이터·라벨은 RDS에 둡니다. **EC2·ECS·EKS는 이번 MVP에 사용하지 않습니다.** 과거 전체 AWS 운영 명령과 검증 기록은 [별도 이력 문서](docs/aws-deployment-history-2026-11-09.md)로 옮겼습니다.
+
+## 11월 17~18일 최적화·검증 버전
+
+문제 정의는 **반복 Grounding 전처리**와 **CLIP 인덱싱의 원격 DB 왕복**으로 나눴습니다. 같은 입력·모델로 한 변경씩 비교하고 출력 회귀를 통과한 두 설정을 hybrid 기본값에 적용했습니다. 아래 ID는 실험 버전이며 제품 SemVer가 아닙니다.
+
+| 버전 | 변경·실험 | 측정 결과와 결정 |
+|---|---|---|
+| B0 / C0 | 최신 CLIP 기준선·정상 원본 업로드 | AI 단독과 전체 업로드를 분리해 계측. 측정 경계가 달라 서로 개선율로 비교하지 않음 |
+| G0 / G1 | Grounding 반복 호출 계측 → 이미지 전처리 재사용 | 소량 입력에서 전처리 360→36회, 검출 36쌍 일치. 모델 forward 횟수 유지 |
+| G2 | 실제 전체 씬 3D 회귀 | **2,242.293→2,173.204초(3.08% 감소)**. 234검출·39프레임·1,308박스·track·GT 지표 일치. `reuse` 채택 |
+| C1 | pending Source 재사용으로 이미지별 SELECT 제거 | 474장 × 3쌍 중앙값 **49.192→42.948초(12.69% 감소)**. 벡터 1,422쌍·검색 54개 일치. prefetch 채택 |
+| A1 | 기존 S3·RDS를 사용하는 전체 원본 서비스 사이클 | 4.168GB 업로드·10씬·2,424벡터와 검색 확인. 정상 라벨 39프레임·1,308박스 RDS 왕복 일치, RRD 생성·다운로드·Range 통과 |
+| S1 | 추출 캐시 / 로컬 압축파일 / S3 복원 | 13개 파일 GET 합 **0.359 / 71.078 / 431.500초**. 해시·inventory·catalog 유지. 반복 사용 시 캐시 보존이 유리 |
+| T3 / T4 | CPU 스레드 1·2·4 → 전체 씬 후보 2 검증 | SAM은 빨라졌지만 최종 한 박스의 9개 필드가 달라 채택 보류. 기본값 1 유지 |
+| A2 / P | SDPA·FlashAttention·FP16/BF16/TF32 | 현재 모델의 attention 설정 미지원. AMP FP16은 30.198→22.428초지만 검출 차이로 보류 |
+| R1 / R2 | 실제 ONNX·ORT·TensorRT 변환 | ONNX 검사·ORT CUDA 실행·TRT parse 성공. ORT raw 출력 불일치, TRT 빌드 중 사용자 요청으로 중지. 엔진 채택 없음 |
+| S2 / Q2 · 다음 후보 | S3 병렬 전송·RDS SQL 비교·캐시/중복 요청 | 비교 코드 준비. 추가 AWS 측정은 미실행. 인증·캐시·비동기·도구 선택은 아래 학습 문서 참조 |
+
+G2는 전체 씬 1쌍이며 전체 데이터셋 정확도나 p95 개선을 입증하지 않습니다. C1의 재시작 조건이 달랐던 pilot은 성능 근거에서 제외하고 다시 측정했습니다. A1 전체 업로드는 S3 보관 구간이 늘어 과거 C0보다 느렸습니다. 두 채택 최적화의 개선율을 서비스 전체에 그대로 적용하지 않습니다.
+
+**[문제·해결·도구 선택 이유·상황별 장단점·전체 결과](docs/optimization-results-2026-11-18.md)** · [코드 위치·구현·검증·원복](docs/optimization-code-map-2026-11-18.md) · [추가 실험 계획](docs/optimization-expansion-2026-11-18.md) · [인증·캐시·쿼리·비동기 학습과 새 후보](docs/request-cache-query-study-2026-11-18.md) · [실험 이력](docs/optimization-experiment-log.md). [Git 검토용 증거](docs/evidence/optimization-2026-11-18/README.md)와 로컬 원본 로그를 함께 보존합니다. 비밀·원본 데이터·모델은 Git에서 제외합니다. 공개 Vercel의 새 브라우저 시험이나 EC2 이전 비교는 이번 결과에 포함하지 않습니다.
 
 ## 사용 흐름
 
@@ -22,7 +43,9 @@ nuScenes 원본을 올리고, 주행 씬을 찾아 **선택한 씬의 3D 라벨�
 
 서비스의 Cognito 로그인은 데이터·GPU 실행 권한을 보호합니다. Vercel 로그인은 배포 관리 권한입니다. GitHub 자동 배포가 연결되면 허용된 브랜치에 push해 프론트를 배포하며, 팀원이 매번 Vercel CLI로 로그인할 필요는 없습니다. 로컬 백엔드·GPU 이미지는 Git push만으로 갱신되지 않습니다.
 
-## 현재 화면과 확인 상태
+## 공개 화면 검증 이력 — 11월 12일
+
+아래는 이전 공개 브라우저 확인 기록입니다. 11월 18일에는 loopback 정상 API로 새 dataset 21·job 13·recording 13의 전체 사이클을 검증했습니다. 최신 결과는 위 최적화 버전 표와 결과 문서를 따릅니다.
 
 **11월 12일 17:58 KST 공개 서비스 확인:** Cognito 로그인 후 씬 10개, 검색 임베딩 **2,424/2,424장**, `scene-0061` 카메라 6개·GT·LiDAR 3D, 사용자 실행 작업 **#12의 진행 상태 조회**를 확인했습니다. 이때 #12는 실행 중이며 아래 화면은 예측 생성 완료 증거가 아닙니다. HTTP 400 조회 오류를 복구하는 동안 backend·AI 컨테이너와 작업 시작 시각을 유지했습니다.
 
@@ -210,7 +233,6 @@ GitHub 저장소를 기존 Vercel 프로젝트에 연결하고 **Production Bran
 |---|---|
 |[구조 선택·인증·DB·병목 분석](docs/architecture-and-measurement-2026-11-12.md)|장단점, 코드 근거, 측정 해석, 면접·학습|
 |[Claude 전달 프롬프트](docs/claude-hybrid-architecture-prompt.md)|현재 인프라 구조도·시퀀스·설계 이유·실측 분석을 요청할 본문|
-|[교수님 발표 10장 프롬프트](docs/presentation-prompt-2026-11-12.md)|이전 L4/AWS 구성, 현재 배포, 비용 판단, 통신·백엔드·실측 병목|
 |[11월 12일 직접 업로드 실측](docs/upload-measurement-2026-11-12.md)|공개 전송·S3·RDS·CLIP 시간과 실행 순서 문제|
 |[현재 실행 설정](docs/hybrid-setup.md)|보호된 설정·GPU·로그인·터널·재부팅|
 |[트러블슈팅](docs/troubleshooting-2026-11-11.md)|업로드 오류, 저장·3D·모델·실측 사례|

@@ -30,7 +30,7 @@ class SceneSearchTests {
  private static final AtomicReference<String> RESPONSE=new AtomicReference<>();
  private static final AtomicReference<String> REQUEST=new AtomicReference<>();
  private static final AtomicInteger STATUS=new AtomicInteger(200), CALLS=new AtomicInteger();
- private static final HttpServer AI=startAi();
+ private static HttpServer AI=startAi();
  private static HttpServer startAi() {
   try {
    var server=HttpServer.create(new InetSocketAddress("127.0.0.1",0),0);
@@ -46,14 +46,21 @@ class SceneSearchTests {
   } catch(Exception e) { throw new IllegalStateException(e); }
  }
  @DynamicPropertySource static void aiProperties(DynamicPropertyRegistry registry) {
-  registry.add("ai-server.base-url",()->"http://127.0.0.1:"+AI.getAddress().getPort());
+  registry.add("ai-server.base-url",SceneSearchTests::aiUrl);
  }
- @AfterAll static void stopAi() { AI.stop(0); }
+ private static synchronized String aiUrl() {
+  // Each inherited test class has a separate Spring context and closes its fake server.
+  if(AI==null) AI=startAi();
+  return "http://127.0.0.1:"+AI.getAddress().getPort();
+ }
+ @AfterAll static synchronized void stopAi() { if(AI!=null) { AI.stop(0); AI=null; } }
  @BeforeEach void resetAi() { STATUS.set(200); RESPONSE.set(aiResponse()); CALLS.set(0); }
  @Autowired JdbcClient jdbc;
  @Autowired MockMvc mvc;
  @Autowired com.example.demo.nuscenes.service.DatasetSearchIndexService indexes;
  @Autowired com.example.demo.nuscenes.storage.DatasetStorage storage;
+ @Autowired com.example.demo.nuscenes.service.ImageEmbeddingService imageEmbeddings;
+ @Autowired com.example.demo.nuscenes.repository.ImageEmbeddingRepository imageRepository;
 
  private static String vector(double cosine) {
   var b=new StringBuilder("[").append(cosine).append(',').append(Math.sqrt(1-cosine*cosine));
@@ -106,6 +113,18 @@ class SceneSearchTests {
  @Test void emptySceneSearchAndMissingRequest() throws Exception {
   mvc.perform(get("/api/search/scenes").param("q","road")).andExpect(status().isOk()).andExpect(jsonPath("$.scenes.length()").value(0));
   mvc.perform(get("/api/search/scenes")).andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("INVALID_REQUEST"));
+ }
+ @Test void pendingSnapshotNeverOverwritesAConcurrentStoredVector() {
+  long d=dataset("pending-race"); scene(d,"a","A",.5);
+  jdbc.sql("UPDATE dataset SET storage_key='nuscenes' WHERE id=:d").param("d",d).update();
+  long id=jdbc.sql("SELECT id FROM sample_data WHERE dataset_id=:d").param("d",d).query(Long.class).single();
+  var source=imageRepository.source(id).orElseThrow();
+  // The pending snapshot is stale: another writer has stored a different valid vector.
+  RESPONSE.set(aiResponse().replace("clip-text-tokenizer",PREPROCESS));
+  assertThat(imageEmbeddings.embedPending(id,source).status()).isEqualTo("SKIPPED");
+  assertThat(CALLS.get()).isEqualTo(1);
+  assertThat(jdbc.sql("SELECT count(*) FROM image_embedding WHERE dataset_id=:d").param("d",d).query(Long.class).single()).isEqualTo(1);
+  assertThat(jdbc.sql("SELECT embedding <=> CAST(:v AS vector) FROM image_embedding WHERE dataset_id=:d").param("v",vector(.5)).param("d",d).query(Double.class).single()).isCloseTo(0,within(1e-6));
  }
  @Test void uploadedSearchIndexRetriesOnlyMissingKeyframes() throws Exception {
   long d=dataset("uploaded-index"); scene(d,"a","A",1,.8);

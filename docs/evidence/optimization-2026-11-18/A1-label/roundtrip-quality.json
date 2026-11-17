@@ -1,0 +1,18 @@
+{
+  "regression": {
+    "exact": true,
+    "within_tolerance": true,
+    "tolerance": 1e-09,
+    "max_numeric_absolute_difference": 0.0,
+    "difference_count": 0,
+    "first_differences": []
+  },
+  "indices_valid": true,
+  "checksum_matches": true,
+  "geometry_valid": true,
+  "unchanged_edits": true,
+  "semantics_match": true,
+  "keyframes": 39,
+  "boxes": 1308,
+  "passed": true
+}

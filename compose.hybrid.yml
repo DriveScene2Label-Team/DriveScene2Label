@@ -35,6 +35,8 @@ services:
       AUTO_LABEL_WORKER_ENABLED: ${AUTO_LABEL_WORKER_ENABLED:-false}
       UPLOAD_WORKER_ENABLED: ${UPLOAD_WORKER_ENABLED:-false}
       EMBEDDING_INDEX_WORKER_ENABLED: ${EMBEDDING_INDEX_WORKER_ENABLED:-false}
+      # C1: paired RDS timing and full vector/search equivalence passed.
+      EMBEDDING_INDEX_PREFETCH_ENABLED: ${EMBEDDING_INDEX_PREFETCH_ENABLED:-true}
       RECORDING_WORKER_ENABLED: ${RECORDING_WORKER_ENABLED:-false}
       RECORDING_READ_TIMEOUT: ${RECORDING_READ_TIMEOUT:-660s}
       RECORDING_ROOT: /recordings
@@ -70,6 +72,9 @@ services:
       AI_REQUIRE_GPU: "true"
       VESPA_DATASET_VERSION: ${NUSCENES_VERSION:-v1.0-mini}
       VESPA_NUM_THREADS: ${VESPA_NUM_THREADS:-1}
+      # G2: all 234 detections and 1,308 final 3D boxes exactly matched baseline.
+      # Set baseline to restore the original per-class image preprocessing.
+      VESPA_GROUNDING_PREPROCESS: ${VESPA_GROUNDING_PREPROCESS:-reuse}
       VESPA_TIMEOUT_SECONDS: ${VESPA_TIMEOUT_SECONDS:-7200}
       RECORDING_TIMEOUT_SECONDS: ${RECORDING_TIMEOUT_SECONDS:-600}
       UPLOAD_ROOT: /uploads

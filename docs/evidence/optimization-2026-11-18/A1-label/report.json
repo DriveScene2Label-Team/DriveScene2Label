@@ -1,0 +1,530 @@
+{
+  "collected_at": "2026-11-17T17:14:06.207361+00:00",
+  "started_at": "2026-11-17T16:32:38.841924+00:00",
+  "capture_errors": [],
+  "events": 2335,
+  "timings": [
+    {
+      "boundary": "DS2L_STAGE / annotation_mapping / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / cpu_seconds",
+      "count": 1,
+      "sum_ms": 170.108,
+      "p50_ms": 170.108,
+      "p95_ms": 170.108,
+      "max_ms": 170.108
+    },
+    {
+      "boundary": "DS2L_STAGE / annotation_mapping / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / wall_seconds",
+      "count": 1,
+      "sum_ms": 168.71,
+      "p50_ms": 168.71,
+      "p95_ms": 168.71,
+      "max_ms": 168.71
+    },
+    {
+      "boundary": "DS2L_STAGE / bbox_inflation / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / cpu_seconds",
+      "count": 1,
+      "sum_ms": 29.627,
+      "p50_ms": 29.627,
+      "p95_ms": 29.627,
+      "max_ms": 29.627
+    },
+    {
+      "boundary": "DS2L_STAGE / bbox_inflation / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / wall_seconds",
+      "count": 1,
+      "sum_ms": 29.388,
+      "p50_ms": 29.388,
+      "p95_ms": 29.388,
+      "max_ms": 29.388
+    },
+    {
+      "boundary": "DS2L_STAGE / class_assignment / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / cpu_seconds",
+      "count": 1,
+      "sum_ms": 23.158,
+      "p50_ms": 23.158,
+      "p95_ms": 23.158,
+      "max_ms": 23.158
+    },
+    {
+      "boundary": "DS2L_STAGE / class_assignment / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / wall_seconds",
+      "count": 1,
+      "sum_ms": 22.932,
+      "p50_ms": 22.932,
+      "p95_ms": 22.932,
+      "max_ms": 22.932
+    },
+    {
+      "boundary": "DS2L_STAGE / class_prior_preparation / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / cpu_seconds",
+      "count": 1,
+      "sum_ms": 23.211,
+      "p50_ms": 23.211,
+      "p95_ms": 23.211,
+      "max_ms": 23.211
+    },
+    {
+      "boundary": "DS2L_STAGE / class_prior_preparation / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / wall_seconds",
+      "count": 1,
+      "sum_ms": 23.002,
+      "p50_ms": 23.002,
+      "p95_ms": 23.002,
+      "max_ms": 23.002
+    },
+    {
+      "boundary": "DS2L_STAGE / cluster_denoising / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / cpu_seconds",
+      "count": 1,
+      "sum_ms": 8936.509,
+      "p50_ms": 8936.509,
+      "p95_ms": 8936.509,
+      "max_ms": 8936.509
+    },
+    {
+      "boundary": "DS2L_STAGE / cluster_denoising / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / wall_seconds",
+      "count": 1,
+      "sum_ms": 8855.73,
+      "p50_ms": 8855.73,
+      "p95_ms": 8855.73,
+      "max_ms": 8855.73
+    },
+    {
+      "boundary": "DS2L_STAGE / dataset_load / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / cpu_seconds",
+      "count": 1,
+      "sum_ms": 11296.399,
+      "p50_ms": 11296.399,
+      "p95_ms": 11296.399,
+      "max_ms": 11296.399
+    },
+    {
+      "boundary": "DS2L_STAGE / dataset_load / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / wall_seconds",
+      "count": 1,
+      "sum_ms": 11274.597,
+      "p50_ms": 11274.597,
+      "p95_ms": 11274.597,
+      "max_ms": 11274.597
+    },
+    {
+      "boundary": "DS2L_STAGE / detector_model_get / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / cpu_seconds",
+      "count": 39,
+      "sum_ms": 7767.491,
+      "p50_ms": 0.012,
+      "p95_ms": 0.044,
+      "max_ms": 7766.975
+    },
+    {
+      "boundary": "DS2L_STAGE / detector_model_get / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / wall_seconds",
+      "count": 39,
+      "sum_ms": 8973.008,
+      "p50_ms": 0.011,
+      "p95_ms": 0.041,
+      "max_ms": 8972.516
+    },
+    {
+      "boundary": "DS2L_STAGE / dinov2_features / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / cpu_seconds",
+      "count": 1,
+      "sum_ms": 135043.581,
+      "p50_ms": 135043.581,
+      "p95_ms": 135043.581,
+      "max_ms": 135043.581
+    },
+    {
+      "boundary": "DS2L_STAGE / dinov2_features / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / wall_seconds",
+      "count": 1,
+      "sum_ms": 138361.509,
+      "p50_ms": 138361.509,
+      "p95_ms": 138361.509,
+      "max_ms": 138361.509
+    },
+    {
+      "boundary": "DS2L_STAGE / ground_removal / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / cpu_seconds",
+      "count": 1,
+      "sum_ms": 227600.674,
+      "p50_ms": 227600.674,
+      "p95_ms": 227600.674,
+      "max_ms": 227600.674
+    },
+    {
+      "boundary": "DS2L_STAGE / ground_removal / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / wall_seconds",
+      "count": 1,
+      "sum_ms": 224853.802,
+      "p50_ms": 224853.802,
+      "p95_ms": 224853.802,
+      "max_ms": 224853.802
+    },
+    {
+      "boundary": "DS2L_STAGE / grounding_dino_detection / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / cpu_seconds",
+      "count": 234,
+      "sum_ms": 1159069.05,
+      "p50_ms": 4876.086,
+      "p95_ms": 5364.207,
+      "max_ms": 18580.086
+    },
+    {
+      "boundary": "DS2L_STAGE / grounding_dino_detection / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / wall_seconds",
+      "count": 234,
+      "sum_ms": 1142508.561,
+      "p50_ms": 4808.511,
+      "p95_ms": 5225.799,
+      "max_ms": 18670.844
+    },
+    {
+      "boundary": "DS2L_STAGE / image_detection_segmentation / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / cpu_seconds",
+      "count": 1,
+      "sum_ms": 1951707.702,
+      "p50_ms": 1951707.702,
+      "p95_ms": 1951707.702,
+      "max_ms": 1951707.702
+    },
+    {
+      "boundary": "DS2L_STAGE / image_detection_segmentation / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / wall_seconds",
+      "count": 1,
+      "sum_ms": 1921929.524,
+      "p50_ms": 1921929.524,
+      "p95_ms": 1921929.524,
+      "max_ms": 1921929.524
+    },
+    {
+      "boundary": "DS2L_STAGE / lidar_reprojection / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / cpu_seconds",
+      "count": 1,
+      "sum_ms": 17490.183,
+      "p50_ms": 17490.183,
+      "p95_ms": 17490.183,
+      "max_ms": 17490.183
+    },
+    {
+      "boundary": "DS2L_STAGE / lidar_reprojection / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / wall_seconds",
+      "count": 1,
+      "sum_ms": 17317.895,
+      "p50_ms": 17317.895,
+      "p95_ms": 17317.895,
+      "max_ms": 17317.895
+    },
+    {
+      "boundary": "DS2L_STAGE / mask_nms / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / cpu_seconds",
+      "count": 233,
+      "sum_ms": 68704.125,
+      "p50_ms": 221.903,
+      "p95_ms": 916.462,
+      "max_ms": 1477.163
+    },
+    {
+      "boundary": "DS2L_STAGE / mask_nms / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / wall_seconds",
+      "count": 233,
+      "sum_ms": 67776.853,
+      "p50_ms": 220.105,
+      "p95_ms": 906.765,
+      "max_ms": 1458.293
+    },
+    {
+      "boundary": "DS2L_STAGE / mask_refinement / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / cpu_seconds",
+      "count": 233,
+      "sum_ms": 8658.347,
+      "p50_ms": 35.603,
+      "p95_ms": 76.456,
+      "max_ms": 120.007
+    },
+    {
+      "boundary": "DS2L_STAGE / mask_refinement / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / wall_seconds",
+      "count": 233,
+      "sum_ms": 2840.167,
+      "p50_ms": 11.84,
+      "p95_ms": 26.604,
+      "max_ms": 47.467
+    },
+    {
+      "boundary": "DS2L_STAGE / multicamera_merge / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / cpu_seconds",
+      "count": 1,
+      "sum_ms": 28060.735,
+      "p50_ms": 28060.735,
+      "p95_ms": 28060.735,
+      "max_ms": 28060.735
+    },
+    {
+      "boundary": "DS2L_STAGE / multicamera_merge / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / wall_seconds",
+      "count": 1,
+      "sum_ms": 27765.922,
+      "p50_ms": 27765.922,
+      "p95_ms": 27765.922,
+      "max_ms": 27765.922
+    },
+    {
+      "boundary": "DS2L_STAGE / object_filtering / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / cpu_seconds",
+      "count": 1,
+      "sum_ms": 1.264,
+      "p50_ms": 1.264,
+      "p95_ms": 1.264,
+      "max_ms": 1.264
+    },
+    {
+      "boundary": "DS2L_STAGE / object_filtering / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / wall_seconds",
+      "count": 1,
+      "sum_ms": 1.263,
+      "p50_ms": 1.263,
+      "p95_ms": 1.263,
+      "max_ms": 1.263
+    },
+    {
+      "boundary": "DS2L_STAGE / result_json_write / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / cpu_seconds",
+      "count": 1,
+      "sum_ms": 58.478,
+      "p50_ms": 58.478,
+      "p95_ms": 58.478,
+      "max_ms": 58.478
+    },
+    {
+      "boundary": "DS2L_STAGE / result_json_write / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / wall_seconds",
+      "count": 1,
+      "sum_ms": 57.967,
+      "p50_ms": 57.967,
+      "p95_ms": 57.967,
+      "max_ms": 57.967
+    },
+    {
+      "boundary": "DS2L_STAGE / rigid_cache_save / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / cpu_seconds",
+      "count": 1,
+      "sum_ms": 38356.396,
+      "p50_ms": 38356.396,
+      "p95_ms": 38356.396,
+      "max_ms": 38356.396
+    },
+    {
+      "boundary": "DS2L_STAGE / rigid_cache_save / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / wall_seconds",
+      "count": 1,
+      "sum_ms": 37887.088,
+      "p50_ms": 37887.088,
+      "p95_ms": 37887.088,
+      "max_ms": 37887.088
+    },
+    {
+      "boundary": "DS2L_STAGE / runtime_import / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / cpu_seconds",
+      "count": 1,
+      "sum_ms": 10086.792,
+      "p50_ms": 10086.792,
+      "p95_ms": 10086.792,
+      "max_ms": 10086.792
+    },
+    {
+      "boundary": "DS2L_STAGE / runtime_import / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / wall_seconds",
+      "count": 1,
+      "sum_ms": 10896.225,
+      "p50_ms": 10896.225,
+      "p95_ms": 10896.225,
+      "max_ms": 10896.225
+    },
+    {
+      "boundary": "DS2L_STAGE / sam_inference_postprocess / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / cpu_seconds",
+      "count": 233,
+      "sum_ms": 686528.039,
+      "p50_ms": 2913.556,
+      "p95_ms": 6652.316,
+      "max_ms": 9051.076
+    },
+    {
+      "boundary": "DS2L_STAGE / sam_inference_postprocess / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / wall_seconds",
+      "count": 233,
+      "sum_ms": 677478.28,
+      "p50_ms": 2879.308,
+      "p95_ms": 6551.836,
+      "max_ms": 8916.488
+    },
+    {
+      "boundary": "DS2L_STAGE / sam_model_get / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / cpu_seconds",
+      "count": 39,
+      "sum_ms": 3815.525,
+      "p50_ms": 0.005,
+      "p95_ms": 0.104,
+      "max_ms": 3815.194
+    },
+    {
+      "boundary": "DS2L_STAGE / sam_model_get / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / wall_seconds",
+      "count": 39,
+      "sum_ms": 5514.975,
+      "p50_ms": 0.004,
+      "p95_ms": 0.132,
+      "max_ms": 5514.689
+    },
+    {
+      "boundary": "DS2L_STAGE / tracklet_build / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / cpu_seconds",
+      "count": 1,
+      "sum_ms": 1461.934,
+      "p50_ms": 1461.934,
+      "p95_ms": 1461.934,
+      "max_ms": 1461.934
+    },
+    {
+      "boundary": "DS2L_STAGE / tracklet_build / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / wall_seconds",
+      "count": 1,
+      "sum_ms": 1439.398,
+      "p50_ms": 1439.398,
+      "p95_ms": 1439.398,
+      "max_ms": 1439.398
+    },
+    {
+      "boundary": "DS2L_STAGE / velocity_tracking / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / cpu_seconds",
+      "count": 1,
+      "sum_ms": 13675.88,
+      "p50_ms": 13675.88,
+      "p95_ms": 13675.88,
+      "max_ms": 13675.88
+    },
+    {
+      "boundary": "DS2L_STAGE / velocity_tracking / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / wall_seconds",
+      "count": 1,
+      "sum_ms": 13523.747,
+      "p50_ms": 13523.747,
+      "p95_ms": 13523.747,
+      "max_ms": 13523.747
+    },
+    {
+      "boundary": "DS2L_STAGE / yaw_estimation / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / cpu_seconds",
+      "count": 1,
+      "sum_ms": 94.831,
+      "p50_ms": 94.831,
+      "p95_ms": 94.831,
+      "max_ms": 94.831
+    },
+    {
+      "boundary": "DS2L_STAGE / yaw_estimation / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / wall_seconds",
+      "count": 1,
+      "sum_ms": 93.765,
+      "p50_ms": 93.765,
+      "p95_ms": 93.765,
+      "max_ms": 93.765
+    },
+    {
+      "boundary": "HTTP / /api/auto-label/jobs / all / observed / wall_ms",
+      "count": 1,
+      "sum_ms": 26543.0,
+      "p50_ms": 26543.0,
+      "p95_ms": 26543.0,
+      "max_ms": 26543.0
+    },
+    {
+      "boundary": "HTTP / /api/auto-label/jobs/{id} / all / observed / wall_ms",
+      "count": 163,
+      "sum_ms": 2941.0,
+      "p50_ms": 17.0,
+      "p95_ms": 36.0,
+      "max_ms": 117.0
+    },
+    {
+      "boundary": "HTTP / /api/auto-label/jobs/{id}/results / all / observed / wall_ms",
+      "count": 1,
+      "sum_ms": 424.0,
+      "p50_ms": 424.0,
+      "p95_ms": 424.0,
+      "max_ms": 424.0
+    },
+    {
+      "boundary": "HTTP / /api/datasets / all / observed / wall_ms",
+      "count": 82,
+      "sum_ms": 1677.0,
+      "p50_ms": 18.0,
+      "p95_ms": 32.0,
+      "max_ms": 136.0
+    },
+    {
+      "boundary": "HTTP / /api/datasets/{id}/scenes / all / observed / wall_ms",
+      "count": 1,
+      "sum_ms": 110.0,
+      "p50_ms": 110.0,
+      "p95_ms": 110.0,
+      "max_ms": 110.0
+    },
+    {
+      "boundary": "HTTP / /api/recordings/{id} / all / observed / wall_ms",
+      "count": 2,
+      "sum_ms": 83.0,
+      "p50_ms": 40.0,
+      "p95_ms": 43.0,
+      "max_ms": 43.0
+    },
+    {
+      "boundary": "HTTP / /api/recordings/{id}/content / all / observed / wall_ms",
+      "count": 2,
+      "sum_ms": 130.0,
+      "p50_ms": 32.0,
+      "p95_ms": 98.0,
+      "max_ms": 98.0
+    },
+    {
+      "boundary": "HTTP / /api/scenes/{id}/samples / all / observed / wall_ms",
+      "count": 1,
+      "sum_ms": 81.0,
+      "p50_ms": 81.0,
+      "p95_ms": 81.0,
+      "max_ms": 81.0
+    },
+    {
+      "boundary": "HTTP / /api/scenes/{sceneId}/recordings / all / observed / wall_ms",
+      "count": 1,
+      "sum_ms": 1185.0,
+      "p50_ms": 1185.0,
+      "p95_ms": 1185.0,
+      "max_ms": 1185.0
+    },
+    {
+      "boundary": "RERUN_STAGE / ai_export / 13 / observed / wall_ms",
+      "count": 1,
+      "sum_ms": 6184.0,
+      "p50_ms": 6184.0,
+      "p95_ms": 6184.0,
+      "max_ms": 6184.0
+    },
+    {
+      "boundary": "RERUN_STAGE / request_build / 13 / observed / wall_ms",
+      "count": 1,
+      "sum_ms": 865.0,
+      "p50_ms": 865.0,
+      "p95_ms": 865.0,
+      "max_ms": 865.0
+    },
+    {
+      "boundary": "RERUN_STAGE / result_storage / 13 / observed / wall_ms",
+      "count": 1,
+      "sum_ms": 80.0,
+      "p50_ms": 80.0,
+      "p95_ms": 80.0,
+      "max_ms": 80.0
+    },
+    {
+      "boundary": "VESPA_STAGE / ai_request / 13 / completed / wall_ms",
+      "count": 1,
+      "sum_ms": 2420229.0,
+      "p50_ms": 2420229.0,
+      "p95_ms": 2420229.0,
+      "max_ms": 2420229.0
+    },
+    {
+      "boundary": "VESPA_STAGE / dataset_prepare / 13 / completed / wall_seconds",
+      "count": 1,
+      "sum_ms": 1.0,
+      "p50_ms": 1.0,
+      "p95_ms": 1.0,
+      "max_ms": 1.0
+    },
+    {
+      "boundary": "VESPA_STAGE / executor / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / wall_seconds",
+      "count": 1,
+      "sum_ms": 2419534.0,
+      "p50_ms": 2419534.0,
+      "p95_ms": 2419534.0,
+      "max_ms": 2419534.0
+    },
+    {
+      "boundary": "VESPA_STAGE / result_storage / 13 / completed / wall_ms",
+      "count": 1,
+      "sum_ms": 11570.0,
+      "p50_ms": 11570.0,
+      "p95_ms": 11570.0,
+      "max_ms": 11570.0
+    },
+    {
+      "boundary": "VESPA_STAGE / result_validation / 2238415e-bf4b-401b-9eac-9538012f3580 / completed / wall_seconds",
+      "count": 1,
+      "sum_ms": 75.0,
+      "p50_ms": 75.0,
+      "p95_ms": 75.0,
+      "max_ms": 75.0
+    }
+  ],
+  "failures": [],
+  "limitation": "Inclusive/nested spans overlap; do not sum rows. Missing stages are unmeasured. Browser metrics are self-reported. CPU time is not CUDA kernel time."
+}

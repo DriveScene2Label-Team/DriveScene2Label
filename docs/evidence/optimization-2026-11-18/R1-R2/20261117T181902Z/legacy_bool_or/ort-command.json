@@ -1,0 +1,20 @@
+[
+  "docker",
+  "exec",
+  "--env",
+  "PYTHONPATH=/results/experiments/20261117T181902Z-runtime/dependencies",
+  "--env",
+  "HF_HUB_OFFLINE=1",
+  "--env",
+  "PYTHONUNBUFFERED=1",
+  "drivescene-hybrid-ai-server-1",
+  "timeout",
+  "--signal=TERM",
+  "--kill-after=10s",
+  "300s",
+  "/opt/vespa-env/bin/python",
+  "/tmp/ds2l-runtime-20261117T181902Z/tools/probe_grounding_runtime.py",
+  "ort",
+  "--output",
+  "/results/experiments/20261117T181902Z-runtime/legacy_bool_or"
+]

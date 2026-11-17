@@ -1,0 +1,3 @@
+{"detail": "Queried stopped legacy drivescene2label-ai-server-1 by mistake; actual drivescene-hybrid-ai-server-1 and session6735 remained healthy. No experiment interruption.", "at": "2026-11-17T14:48:34Z", "kind": "status_query_correction"}
+{"detail": "Seven pure Python comparator unit tests ran on host; unittest reports 0.005 seconds. No model loading, GPU use, uploads, Java compilation, or builds.", "at": "2026-11-17T14:56:50.3463619Z", "kind": "minor_concurrent_host_work"}
+{"kind": "minor_concurrent_host_work", "detail": "Host measurement/comparison utility suite: 38 discovered, 36 passed, 2 skipped, 0.897 seconds test time. No model loading, GPU inference, builds, Java tests or uploads.", "at": "2026-11-17T15:14:13.4528629Z"}

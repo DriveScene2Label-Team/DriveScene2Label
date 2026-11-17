@@ -1,0 +1,90 @@
+{
+  "created_at": "2026-11-17T17:27:47.584838+00:00",
+  "scope": "separate six-image Grounding and fixed-box SAM medians; not total pipeline latency",
+  "grounding_directory": ".local\\hybrid\\measurements\\20261117T171553Z",
+  "sam_directory": ".local\\hybrid\\measurements\\20261117T172440Z",
+  "quality_passed": true,
+  "summaries": {
+    "grounding": {
+      "1": {
+        "wall_seconds": 29.355217075994005,
+        "cpu_seconds": 29.355865060999992,
+        "voluntary_context_switches": 586,
+        "involuntary_context_switches": 64,
+        "model_load_seconds": 6.169536468998558,
+        "command_wall_seconds": 47.875
+      },
+      "2": {
+        "wall_seconds": 29.406262817003153,
+        "cpu_seconds": 29.44177797999999,
+        "voluntary_context_switches": 587,
+        "involuntary_context_switches": 58,
+        "model_load_seconds": 8.757962219002366,
+        "command_wall_seconds": 49.34400000000096
+      },
+      "4": {
+        "wall_seconds": 28.950249855999573,
+        "cpu_seconds": 29.065769494,
+        "voluntary_context_switches": 596,
+        "involuntary_context_switches": 73,
+        "model_load_seconds": 6.310910800999409,
+        "command_wall_seconds": 47.06299999999828
+      }
+    },
+    "sam": {
+      "1": {
+        "wall_seconds": 11.135551035997196,
+        "cpu_seconds": 11.145475,
+        "voluntary_context_switches": 264,
+        "involuntary_context_switches": 2067,
+        "model_load_seconds": 2.3483558139996603,
+        "command_wall_seconds": 24.46900000000096
+      },
+      "2": {
+        "wall_seconds": 3.0956885910018173,
+        "cpu_seconds": 4.589337474000002,
+        "voluntary_context_switches": 110,
+        "involuntary_context_switches": 18,
+        "model_load_seconds": 2.3244639090007695,
+        "command_wall_seconds": 15.453000000001339
+      },
+      "4": {
+        "wall_seconds": 2.69560343899866,
+        "cpu_seconds": 6.0796846339999995,
+        "voluntary_context_switches": 112,
+        "involuntary_context_switches": 85,
+        "model_load_seconds": 2.3205662809996284,
+        "command_wall_seconds": 15.56300000000192
+      }
+    }
+  },
+  "combined_median_seconds": {
+    "1": 40.4907681119912,
+    "2": 32.50195140800497,
+    "4": 31.645853294998233
+  },
+  "best_observed_threads": 4,
+  "candidate_threads": 2,
+  "predeclared_selection": "lowest thread count within 5% of best combined median; operational headroom criterion, not statistical significance",
+  "decision": "full-scene quality and wall-time gate required; no production change",
+  "resources": {
+    "grounding": {
+      "samples": 15,
+      "valid_guest_samples": 15,
+      "host_available_mb_min": 4427,
+      "oom_kill_delta": 0,
+      "max_sampled_memory_some_avg10": 0.05,
+      "max_sampled_cpu_some_avg10": 0.01,
+      "note": "30-second samples include model loading and warmup; not per-case causal attribution or unsampled peak."
+    },
+    "sam": {
+      "samples": 6,
+      "valid_guest_samples": 6,
+      "host_available_mb_min": 4173,
+      "oom_kill_delta": 0,
+      "max_sampled_memory_some_avg10": 0.0,
+      "max_sampled_cpu_some_avg10": 0.0,
+      "note": "30-second samples include model loading and warmup; not per-case causal attribution or unsampled peak."
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "at": "2026-11-17T17:13:58.578548+00:00",
+  "dataset": 21,
+  "job": 13,
+  "recording": 13,
+  "keyframes": 39,
+  "boxes": 1308,
+  "scope": "normal APIs through local backend to existing RDS; GPU inference and recording generation on local GPU host",
+  "recording_binary_downloaded_and_range_checked": true,
+  "browser_render_visual_check": false
+}

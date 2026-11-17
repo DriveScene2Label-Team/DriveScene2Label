@@ -1,0 +1,34 @@
+{
+  "kind": "storage",
+  "events": 73,
+  "capture_errors": [],
+  "failed_events": 0,
+  "dataset": 21,
+  "cases": [
+    {
+      "mode": "warm",
+      "read_seconds": 0.35899999999674037,
+      "first_read_seconds": 0.01599999999962165,
+      "files_match_warm": true,
+      "archive_matches_original": true,
+      "inventory_matches_warm": true
+    },
+    {
+      "mode": "archive-only",
+      "read_seconds": 71.0779999999977,
+      "first_read_seconds": 70.8279999999977,
+      "files_match_warm": true,
+      "archive_matches_original": true,
+      "inventory_matches_warm": true
+    },
+    {
+      "mode": "s3-cold",
+      "read_seconds": 431.5,
+      "first_read_seconds": 431.28199999999924,
+      "files_match_warm": true,
+      "archive_matches_original": true,
+      "inventory_matches_warm": true
+    }
+  ],
+  "passed": true
+}

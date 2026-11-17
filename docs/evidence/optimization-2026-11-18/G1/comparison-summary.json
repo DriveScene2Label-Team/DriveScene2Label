@@ -1,0 +1,47 @@
+{
+  "expected_observations": 72,
+  "observations": 72,
+  "unique_observations": 72,
+  "complete": true,
+  "totals": {
+    "baseline": {
+      "wall_ms": 196234.77465299948,
+      "image_processor_calls": 360,
+      "image_processor_ms": 25026.05222400507,
+      "forward_calls": 360,
+      "forward_host_ms": 155410.62562100432,
+      "to_cpu_calls": 360,
+      "to_cpu_ms": 11358.274192981298,
+      "to_device_ms": 3571.5088549959546,
+      "postprocess_ms": 163.5968349983159
+    },
+    "reuse": {
+      "wall_ms": 172340.48599099513,
+      "image_processor_calls": 36,
+      "image_processor_ms": 1884.4734659969617,
+      "forward_calls": 360,
+      "forward_host_ms": 154030.83828300989,
+      "to_cpu_calls": 360,
+      "to_cpu_ms": 12313.531619985952,
+      "to_device_ms": 3323.4047080050004,
+      "postprocess_ms": 148.7935390041457
+    }
+  },
+  "quality_scope": "exact 2D detector output regression; not ground-truth accuracy or end-to-end 3D quality",
+  "exact_regression_passed": true,
+  "regression": {
+    "pairs": 36,
+    "exact_output_matches": 36,
+    "baseline_forward_calls": 360,
+    "reuse_forward_calls": 360,
+    "baseline_processor_calls": 360,
+    "reuse_processor_calls": 36
+  },
+  "median_repeat_wall_reduction": 0.11806169350722162,
+  "repeat_wall_reductions": [
+    0.1297307788877079,
+    0.11782076286926835,
+    0.11758629771714968
+  ],
+  "decision": "candidate_pending_full_scene_validation"
+}

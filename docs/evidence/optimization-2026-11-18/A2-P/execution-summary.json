@@ -1,0 +1,16 @@
+{
+  "started_at": "2026-11-17T18:01:51.064436+00:00",
+  "directory": "$REPO\\.local\\hybrid\\measurements\\20261117T180150Z",
+  "command": [
+    "python",
+    "scripts/hybrid/run_grounding_variants.py",
+    "--directory",
+    "$REPO\\.local\\hybrid\\measurements\\20261117T180150Z",
+    "--dataset-key",
+    "f00cc327-dc93-4e82-a8aa-ef9d18dcc550"
+  ],
+  "exit_code": 0,
+  "command_wall_seconds": 553.1409999999996,
+  "finished_at": "2026-11-17T18:11:04.201876+00:00",
+  "final_collect_exit_code": 0
+}

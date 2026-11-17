@@ -1,0 +1,4 @@
+{
+  "all_four_boolean_combinations_match": true,
+  "scope": "small exporter truth-table guard, not model accuracy"
+}

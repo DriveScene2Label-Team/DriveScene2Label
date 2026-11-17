@@ -1,0 +1,9 @@
+{
+  "bytes": 17202643,
+  "sha256": "f7eca2ecb5e9f67aa80d96f865e6885f483977216a9e58b4f8e4bb6d0ecb332b",
+  "first_12_bytes_hex": "525246320026010001020000",
+  "wall_seconds": 0.21900000000096043,
+  "size_matches": true,
+  "url": "/api/recordings/13/content",
+  "range_request_passed": true
+}

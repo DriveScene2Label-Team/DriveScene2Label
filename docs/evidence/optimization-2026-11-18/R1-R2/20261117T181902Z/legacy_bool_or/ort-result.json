@@ -1,0 +1,74 @@
+{
+  "status": "completed",
+  "version": "1.32.0",
+  "providers": [
+    "CUDAExecutionProvider",
+    "CPUExecutionProvider"
+  ],
+  "profile_node_provider_counts": {
+    "CUDAExecutionProvider": 4411,
+    "CPUExecutionProvider": 10
+  },
+  "diagnostic_initialization_seconds": 9.3559820340015,
+  "quality": {
+    "outputs": [
+      {
+        "name": "logits",
+        "same_shape": true,
+        "reference_shape": [
+          1,
+          900,
+          256
+        ],
+        "actual_shape": [
+          1,
+          900,
+          256
+        ],
+        "max_finite_absolute_difference": 4.088332176208496,
+        "infinity_signs_match": true,
+        "has_nan": false,
+        "within_tolerance": false
+      },
+      {
+        "name": "pred_boxes",
+        "same_shape": true,
+        "reference_shape": [
+          1,
+          900,
+          4
+        ],
+        "actual_shape": [
+          1,
+          900,
+          4
+        ],
+        "max_finite_absolute_difference": 0.9683489203453064,
+        "infinity_signs_match": true,
+        "has_nan": false,
+        "within_tolerance": false
+      }
+    ],
+    "passed": false,
+    "rtol": 0.0001,
+    "atol": 1e-05,
+    "scope": "raw logits/boxes for one fixed image and prompt only; padding negative infinities compared by sign"
+  },
+  "timing_boundary": "host arrays -> ORT forward -> host arrays",
+  "repetitions": 10,
+  "warmups": 3,
+  "seconds": [
+    0.38125470200247946,
+    0.3626449900002626,
+    0.38861150099910446,
+    0.3899013410009502,
+    0.3662525840009039,
+    0.35627550299977884,
+    0.38413370000125724,
+    0.35588787400047295,
+    0.38182961699931184,
+    0.3646657499994035
+  ],
+  "median_seconds": 0.37375364300169167,
+  "decision": "static raw-model probe only; no production adoption or full pipeline claim"
+}

@@ -1,0 +1,48 @@
+{
+  "verified_at": "2026-11-17T18:36:05.859807+00:00",
+  "containers": [
+    {
+      "name": "drivescene-hybrid-ai-server-1",
+      "id": "eb4390ee4e2fc4c4bc7d5f38af447125420b8ea57219324ea1f15e56059c8782",
+      "image": "sha256:f3cfadad0f5a625dc9cac4c017d97abef9ff243c11429fe354d5f9c06681d8c4",
+      "status": "exited",
+      "running": false,
+      "finished_at": "2026-11-17T18:31:27.27380564Z",
+      "settings": {
+        "VESPA_NUM_THREADS": "1",
+        "VESPA_GROUNDING_PREPROCESS": "reuse"
+      }
+    },
+    {
+      "name": "drivescene-hybrid-backend-1",
+      "id": "5b57a21756b403d6078c575de1fc696a57c03fe0336225d9de2181659ab74d01",
+      "image": "sha256:9d8f86137c96ad22d5c6bd33ba56c5a8b62f2c36a7b08767589d0b8d03b0f984",
+      "status": "exited",
+      "running": false,
+      "finished_at": "2026-11-17T17:15:13.033128366Z",
+      "settings": {
+        "EMBEDDING_INDEX_PREFETCH_ENABLED": "true"
+      }
+    },
+    {
+      "name": "drivescene-hybrid-auth-gateway-1",
+      "id": "6fddd6c0fd72c6160716031df600ed7aa59e5fb9e5e001db69a46d99e5a4cc54",
+      "image": "sha256:8498b0d0ef0a7b29686414000a08aee467f02d0299c9ed1e006a8f33fc017916",
+      "status": "exited",
+      "running": false,
+      "finished_at": "2026-11-12T11:32:01.261604051Z",
+      "settings": {}
+    },
+    {
+      "name": "drivescene-hybrid-auth-upstream-1",
+      "id": "cbe3349a5879824b23db3b73f77618b59f1f4125e2ddf4f71a0ea33779246069",
+      "image": "sha256:dc5069ad14f19660b141b21236140b91656bf89bbc3e2417c70ae650cd66104c",
+      "status": "exited",
+      "running": false,
+      "finished_at": "2026-11-12T11:32:01.61759526Z",
+      "settings": {}
+    }
+  ],
+  "gpu_sample": "16 %, 645 MiB, 8.05 W",
+  "note": "AI inference stopped at user request; Windows display can continue using GPU. No model restarted."
+}

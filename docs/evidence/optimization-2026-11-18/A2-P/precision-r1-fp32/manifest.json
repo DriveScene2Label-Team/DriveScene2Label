@@ -1,0 +1,109 @@
+{
+  "started_at": "2026-11-17T18:07:36.223743+00:00",
+  "scope": "detector only; no SAM/3D/RDS/S3",
+  "scene": "scene-0061",
+  "frames": 1,
+  "images": 6,
+  "repeats": 1,
+  "mode": "reuse",
+  "diagnostic": false,
+  "threads": 1,
+  "seed": 42,
+  "requested_precision": "fp32",
+  "requested_attention": "auto",
+  "requested_matmul_tf32": "baseline",
+  "torch_threads": 1,
+  "torch_interop_threads": 8,
+  "cpu_affinity_count": 8,
+  "source_sha256": {
+    "benchmark_grounding.py": "7cc7310dc5ba174457e889fc404c7489fec3b0390cef30d9211da61684669e8b",
+    "grounding_probe.py": "e7fdce4adc0737269166b33b6c1b318216585af192aa338ef8ccd6042438e0b1"
+  },
+  "model": "IDEA-Research/grounding-dino-base",
+  "threshold": 0.3,
+  "labels": [
+    "car.",
+    "truck.",
+    "bus.",
+    "trailer.",
+    "excavator.",
+    "pedestrian.",
+    "motorcycle.",
+    "bicycle.",
+    "barrier.",
+    "traffic cone."
+  ],
+  "config_sha256": "bdb76615c9db9ed9e170caad5fdee682b7ae70e65b200f27b230f9563aed3bb6",
+  "torch": "2.14.1+cu130",
+  "transformers": "4.49.0",
+  "cuda": "13.0",
+  "cudnn": 92400,
+  "gpu": "NVIDIA GeForce RTX 5060 Ti",
+  "arch_list": [
+    "sm_75",
+    "sm_80",
+    "sm_86",
+    "sm_90",
+    "sm_100",
+    "sm_120"
+  ],
+  "matmul_tf32": false,
+  "cudnn_tf32": true,
+  "cudnn_benchmark": false,
+  "inputs": [
+    {
+      "token": "fe5422747a7d4268a4b07fc396707b23",
+      "path": "samples/CAM_FRONT_LEFT/n015-2018-07-24-11-22-45+0800__CAM_FRONT_LEFT__1532402927604844.jpg",
+      "sha256": "2c8c49149411fa88cd36f9076d19e064be963deaf4e7c0dde4a7c691e83e1e5a"
+    },
+    {
+      "token": "e3d495d4ac534d54b321f50006683844",
+      "path": "samples/CAM_FRONT/n015-2018-07-24-11-22-45+0800__CAM_FRONT__1532402927612460.jpg",
+      "sha256": "b7b7d466207462cf46742297a36afdd65315c05ae33126d5d36412aae70a0b62"
+    },
+    {
+      "token": "aac7867ebf4f446395d29fbd60b63b3b",
+      "path": "samples/CAM_FRONT_RIGHT/n015-2018-07-24-11-22-45+0800__CAM_FRONT_RIGHT__1532402927620339.jpg",
+      "sha256": "005ce4aff67c8df56233457218363687132fe7f40de758cf030aace578f55497"
+    },
+    {
+      "token": "79dbb4460a6b40f49f9c150cb118247e",
+      "path": "samples/CAM_BACK_RIGHT/n015-2018-07-24-11-22-45+0800__CAM_BACK_RIGHT__1532402927627893.jpg",
+      "sha256": "ab220a717b467d4fbed66b1a8a923dc522cc3aaaafa041613bcbfca3dd34ad9b"
+    },
+    {
+      "token": "03bea5763f0f4722933508d5999c5fd8",
+      "path": "samples/CAM_BACK/n015-2018-07-24-11-22-45+0800__CAM_BACK__1532402927637525.jpg",
+      "sha256": "51fe14c13dc4f2ab0f7f59b6634b98925b767939b3417a9db617bd3c178c9bb4"
+    },
+    {
+      "token": "43893a033f9c46d4a51b5e08a67a1eb7",
+      "path": "samples/CAM_BACK_LEFT/n015-2018-07-24-11-22-45+0800__CAM_BACK_LEFT__1532402927647423.jpg",
+      "sha256": "3ffae8abed7fc7e703cad8f10f92535c5f55314433660f11b1ed6ef02ebd41bf"
+    }
+  ],
+  "cache": "existing model/data files; OS page cache uncontrolled; same first image warmup for each mode",
+  "dtype": "torch.float32",
+  "model_class": "GroundingDinoForObjectDetection",
+  "actual_attention": "eager",
+  "attention_support": {
+    "_supports_sdpa": false,
+    "_supports_flash_attn_2": false,
+    "_supports_flex_attn": false
+  },
+  "disable_custom_kernels": false,
+  "custom_deformable_kernel_loaded": false,
+  "ninja_executable": null,
+  "nvcc_executable": null,
+  "attention_module_types": {
+    "SwinAttention": 24,
+    "SwinSelfAttention": 24,
+    "BertAttention": 12,
+    "BertSdpaSelfAttention": 12,
+    "GroundingDinoMultiheadAttention": 18,
+    "GroundingDinoBiMultiHeadAttention": 6,
+    "GroundingDinoMultiscaleDeformableAttention": 12
+  },
+  "model_commit": "12bdfa3120f3e7ec7b434d90674b3396eccf88eb",
+  "pipeline_batch_size": null
+}

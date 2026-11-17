@@ -1,0 +1,1 @@
+docker exec AI /opt/vespa-env/bin/python /tmp/ds2l-experiments/tools/benchmark_grounding.py --data-root /uploads/datasets/4e5b8e11-a0dc-47b0-81ee-c8c389090844 --output /tmp/ds2l-experiments/results/20261117T1330Z-G1 --frames 2 --repeats 3 --mode compare

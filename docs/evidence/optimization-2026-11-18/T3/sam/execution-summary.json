@@ -1,0 +1,18 @@
+{
+  "started_at": "2026-11-17T17:24:40.892154+00:00",
+  "directory": "$REPO\\.local\\hybrid\\measurements\\20261117T172440Z",
+  "command": [
+    "python",
+    "scripts/hybrid/run_sam_thread_cases.py",
+    "--directory",
+    "$REPO\\.local\\hybrid\\measurements\\20261117T172440Z",
+    "--grounding-directory",
+    ".local/hybrid/measurements/20261117T171553Z",
+    "--dataset-key",
+    "f00cc327-dc93-4e82-a8aa-ef9d18dcc550"
+  ],
+  "exit_code": 0,
+  "command_wall_seconds": 168.29699999999866,
+  "finished_at": "2026-11-17T17:27:29.191916+00:00",
+  "final_collect_exit_code": 0
+}

@@ -1,0 +1,9 @@
+{
+  "at": "2026-11-17T18:32:49.067147+00:00",
+  "reason": "User requested no further GPU work because of noise and sleep",
+  "action": "Stopped only project AI container; backend already stopped",
+  "trt_exit_code": 137,
+  "classification": "user_interrupted_during_build; not evidence of OOM or engine performance",
+  "gpu_restarted": false,
+  "production_engine_changed": false
+}

@@ -1,0 +1,10 @@
+{
+  "at": "2026-11-17T17:15:17.638226+00:00",
+  "exit_code": 0,
+  "result": {
+    "id": "ds2l-hybrid-database",
+    "status": "stopping",
+    "restart": null
+  },
+  "error": null
+}

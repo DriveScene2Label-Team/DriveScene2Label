@@ -1,0 +1,17 @@
+{
+  "kind": "upload",
+  "events": 7106,
+  "capture_errors": [],
+  "failed_events": 0,
+  "dataset": 21,
+  "images": 2424,
+  "clip_events": 2424,
+  "ai_image_events": 2424,
+  "sources": {
+    "pending_batch": 2424
+  },
+  "client_seconds": 850.547,
+  "transfer_seconds": 127.937,
+  "index_seconds": 253.359,
+  "passed": true
+}

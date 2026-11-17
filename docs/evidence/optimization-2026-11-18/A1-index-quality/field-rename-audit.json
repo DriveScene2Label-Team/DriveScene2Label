@@ -1,0 +1,5 @@
+{
+  "reason": "SourceChecksum is metadata fingerprint per NuscenesImporter, not archive SHA256",
+  "changed": "field name and explanatory note only; vector/ranking values and pass decision unchanged",
+  "original": "full-index-quality-before-field-rename.json"
+}

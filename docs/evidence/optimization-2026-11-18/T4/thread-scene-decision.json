@@ -1,0 +1,14 @@
+{
+  "candidate_threads": 2,
+  "quality_passed": false,
+  "exact_quality_passed": false,
+  "adoption_eligible": false,
+  "wall_seconds": {
+    "baseline": 2173.2038209389993,
+    "reuse": 1907.4061490370004
+  },
+  "remote_output": "/results/experiments/20261117T172817Z-thread-scene",
+  "timing_scope": "historical threads=1 reuse reference, not contemporaneous controlled causal timing",
+  "baseline_means": "G2 preprocessing reuse with native threads=1",
+  "reuse_means": "same preprocessing reuse with native threads=2"
+}

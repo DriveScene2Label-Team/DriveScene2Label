@@ -1,0 +1,8 @@
+[
+  "python",
+  "scripts/hybrid/benchmark_clip.py",
+  "--directory",
+  "$REPO\\.local\\hybrid\\measurements\\20261117T160526Z",
+  "--archive",
+  "C:/Users/User/Downloads/v1.0-mini.tgz"
+]

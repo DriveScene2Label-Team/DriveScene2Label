@@ -1,0 +1,8 @@
+{
+  "at": "2026-11-17T18:17:19.100061+00:00",
+  "classification": "experiment harness import error, not model incompatibility",
+  "cause": "PyTorch 2.14 moved private _type_utils beneath torchscript_exporter; direct torch.onnx import unavailable",
+  "fix": "Use actual installed symbolic_helper._type_utils after read-only source/runtime check",
+  "rerun": "20261117T181632Z",
+  "production_changed": false
+}

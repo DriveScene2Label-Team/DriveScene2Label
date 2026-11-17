@@ -1,0 +1,18 @@
+{
+  "started_at": "2026-11-17T17:28:17.372697+00:00",
+  "directory": "$REPO\\.local\\hybrid\\measurements\\20261117T172817Z",
+  "command": [
+    "python",
+    "scripts/hybrid/run_thread_scene.py",
+    "--directory",
+    "$REPO\\.local\\hybrid\\measurements\\20261117T172817Z",
+    "--selection",
+    ".local/hybrid/experiments/20261117T1727Z-T3-threads/comparison.json",
+    "--dataset-key",
+    "f00cc327-dc93-4e82-a8aa-ef9d18dcc550"
+  ],
+  "exit_code": 0,
+  "command_wall_seconds": 1925.688000000002,
+  "finished_at": "2026-11-17T18:00:23.053852+00:00",
+  "final_collect_exit_code": 0
+}

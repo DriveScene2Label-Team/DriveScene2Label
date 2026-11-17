@@ -1,0 +1,86 @@
+{
+  "status": "exported_and_checked",
+  "export_seconds": 33.9598583549996,
+  "operators": {
+    "Identity": 43,
+    "Constant": 12281,
+    "Equal": 504,
+    "Or": 4,
+    "NonZero": 1,
+    "Transpose": 493,
+    "ConstantOfShape": 644,
+    "EyeLike": 1,
+    "Cast": 974,
+    "Unsqueeze": 2559,
+    "Expand": 620,
+    "Tile": 7,
+    "Gather": 1394,
+    "Split": 145,
+    "Squeeze": 318,
+    "Shape": 2414,
+    "Reshape": 1418,
+    "Add": 1195,
+    "Mul": 817,
+    "Where": 557,
+    "Concat": 1313,
+    "Slice": 1133,
+    "ScatterND": 121,
+    "Sub": 137,
+    "Range": 470,
+    "LayerNormalization": 147,
+    "MatMul": 597,
+    "Sqrt": 36,
+    "Div": 310,
+    "Softmax": 78,
+    "Erf": 36,
+    "Mod": 22,
+    "Pad": 28,
+    "Conv": 5,
+    "Not": 38,
+    "Resize": 4,
+    "CumSum": 8,
+    "Sin": 38,
+    "Cos": 38,
+    "InstanceNormalization": 4,
+    "Flatten": 4,
+    "ReduceSum": 29,
+    "ReduceMax": 13,
+    "Clip": 12,
+    "Relu": 50,
+    "GridSample": 48,
+    "Greater": 13,
+    "Less": 12,
+    "And": 1,
+    "Log": 12,
+    "TopK": 1,
+    "GatherElements": 1,
+    "Sigmoid": 13
+  },
+  "nodes": 31161,
+  "files": [
+    {
+      "name": "reference.npz",
+      "bytes": 936518
+    },
+    {
+      "name": "model.onnx",
+      "bytes": 967194208
+    },
+    {
+      "name": "inputs.npz",
+      "bytes": 19996396
+    },
+    {
+      "name": "export-adapter.json",
+      "bytes": 273
+    },
+    {
+      "name": "manifest.json",
+      "bytes": 1442
+    },
+    {
+      "name": "pytorch-timing.json",
+      "bytes": 434
+    }
+  ]
+}

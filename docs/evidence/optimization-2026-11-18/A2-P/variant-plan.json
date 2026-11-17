@@ -1,0 +1,37 @@
+{
+  "orders": [
+    [
+      "fp32",
+      "fp16",
+      "bf16",
+      "amp_fp16",
+      "amp_bf16",
+      "tf32"
+    ],
+    [
+      "tf32",
+      "amp_bf16",
+      "amp_fp16",
+      "bf16",
+      "fp16",
+      "fp32"
+    ],
+    [
+      "amp_fp16",
+      "fp32",
+      "tf32",
+      "fp16",
+      "amp_bf16",
+      "bf16"
+    ]
+  ],
+  "threads": 1,
+  "seed": 42,
+  "frames": 1,
+  "source_sha256": {
+    "ai-server\\tools\\benchmark_grounding.py": "7cc7310dc5ba174457e889fc404c7489fec3b0390cef30d9211da61684669e8b",
+    "ai-server\\services\\grounding_probe.py": "e7fdce4adc0737269166b33b6c1b318216585af192aa338ef8ccd6042438e0b1"
+  },
+  "gate": "No automatic production adoption. Exact output + full-scene validation required; any approximation reported separately.",
+  "attention_checks": "sdpa FP32 and flash_attention_2 FP16 constructor/capability attempts, not a paired performance claim"
+}

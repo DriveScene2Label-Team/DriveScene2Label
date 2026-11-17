@@ -1,0 +1,6 @@
+{
+  "experiment": "A1-label-recording",
+  "upload_origin": "http://127.0.0.1:8080",
+  "other_user_work": "not independently verified",
+  "assistant_work": "resource/log collection and source/document editing only; no concurrent model/build/upload"
+}

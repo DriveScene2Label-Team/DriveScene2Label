@@ -1,0 +1,314 @@
+{
+  "pairs": [
+    {
+      "repeat": 0,
+      "baseline": {
+        "directory": "$REPO\\.local\\hybrid\\measurements\\20261117T154442Z",
+        "mode": "baseline",
+        "repeat": 0,
+        "dataset_id": 14,
+        "valid": true,
+        "images": 474,
+        "clip_stage_images": 474,
+        "source_counts": {
+          "per_image": 474
+        },
+        "index_wall_seconds": 49.192,
+        "client_full_seconds": 64.703,
+        "sums_seconds": {
+          "source_ms": 3.733,
+          "exists_ms": 3.634,
+          "cache_ms": 0.0,
+          "ai_ms": 34.913,
+          "storage_ms": 5.114,
+          "total_ms": 48.162
+        },
+        "image_digests": [
+          "sha256:9d8f86137c96ad22d5c6bd33ba56c5a8b62f2c36a7b08767589d0b8d03b0f984",
+          "sha256:f3cfadad0f5a625dc9cac4c017d97abef9ff243c11429fe354d5f9c06681d8c4"
+        ],
+        "backend_instance": "d2800affc4b699cb72c5a5a0051b6320d8c97154eef1a5ba5cef8673895db251",
+        "ai_instance": "eb4390ee4e2fc4c4bc7d5f38af447125420b8ea57219324ea1f15e56059c8782",
+        "pending_queries_observed": 9,
+        "pending_jdbc_seconds": 0.55,
+        "database_counters": {
+          "available": false,
+          "sqlstate": "42P01",
+          "limitation": "Server counters unavailable; do not claim measured SQL-call reductions from source analysis alone."
+        },
+        "capture_errors": [],
+        "failed_events": 0
+      },
+      "prefetch": {
+        "directory": "$REPO\\.local\\hybrid\\measurements\\20261117T154642Z",
+        "mode": "prefetch",
+        "repeat": 0,
+        "dataset_id": 15,
+        "valid": true,
+        "images": 474,
+        "clip_stage_images": 474,
+        "source_counts": {
+          "pending_batch": 474
+        },
+        "index_wall_seconds": 42.948,
+        "client_full_seconds": 65.313,
+        "sums_seconds": {
+          "source_ms": 0.0,
+          "exists_ms": 0.0,
+          "cache_ms": 0.0,
+          "ai_ms": 36.293,
+          "storage_ms": 5.519,
+          "total_ms": 42.101
+        },
+        "image_digests": [
+          "sha256:9d8f86137c96ad22d5c6bd33ba56c5a8b62f2c36a7b08767589d0b8d03b0f984",
+          "sha256:f3cfadad0f5a625dc9cac4c017d97abef9ff243c11429fe354d5f9c06681d8c4"
+        ],
+        "backend_instance": "09188ad7a5be1f4f2083d86e6d69dad0ce384a67c7a0a23da1944aa616995187",
+        "ai_instance": "eb4390ee4e2fc4c4bc7d5f38af447125420b8ea57219324ea1f15e56059c8782",
+        "pending_queries_observed": 9,
+        "pending_jdbc_seconds": 0.338,
+        "database_counters": {
+          "available": false,
+          "sqlstate": "42P01",
+          "limitation": "Server counters unavailable; do not claim measured SQL-call reductions from source analysis alone."
+        },
+        "capture_errors": [],
+        "failed_events": 0
+      },
+      "vectors": {
+        "same_keys": true,
+        "same_model": true,
+        "unique_exports": true,
+        "pairs": 474,
+        "max_absolute_difference": 0.0,
+        "min_cosine": 1.0,
+        "valid_geometry": true,
+        "exact_pairs": 474,
+        "passed": true
+      },
+      "rankings": {
+        "queries": 18,
+        "same_order": true,
+        "same_metadata": true,
+        "finite_scores": true,
+        "nonempty": true,
+        "max_score_difference": 0.0,
+        "passed": true
+      },
+      "wall_reduction": 0.12693120832655713
+    },
+    {
+      "repeat": 1,
+      "baseline": {
+        "directory": "$REPO\\.local\\hybrid\\measurements\\20261117T155850Z",
+        "mode": "baseline",
+        "repeat": 1,
+        "dataset_id": 18,
+        "valid": true,
+        "images": 474,
+        "clip_stage_images": 474,
+        "source_counts": {
+          "per_image": 474
+        },
+        "index_wall_seconds": 50.598,
+        "client_full_seconds": 64.516,
+        "sums_seconds": {
+          "source_ms": 3.832,
+          "exists_ms": 3.743,
+          "cache_ms": 0.0,
+          "ai_ms": 36.2,
+          "storage_ms": 5.156,
+          "total_ms": 49.739
+        },
+        "image_digests": [
+          "sha256:9d8f86137c96ad22d5c6bd33ba56c5a8b62f2c36a7b08767589d0b8d03b0f984",
+          "sha256:f3cfadad0f5a625dc9cac4c017d97abef9ff243c11429fe354d5f9c06681d8c4"
+        ],
+        "backend_instance": "c04a40cc3a3e24f7ab95846c98a78fe5b987269f0e68e3217733ee4250449d35",
+        "ai_instance": "eb4390ee4e2fc4c4bc7d5f38af447125420b8ea57219324ea1f15e56059c8782",
+        "pending_queries_observed": 9,
+        "pending_jdbc_seconds": 0.356,
+        "database_counters": {
+          "available": false,
+          "sqlstate": "42P01",
+          "limitation": "Server counters unavailable; do not claim measured SQL-call reductions from source analysis alone."
+        },
+        "capture_errors": [],
+        "failed_events": 0
+      },
+      "prefetch": {
+        "directory": "$REPO\\.local\\hybrid\\measurements\\20261117T155651Z",
+        "mode": "prefetch",
+        "repeat": 1,
+        "dataset_id": 17,
+        "valid": true,
+        "images": 474,
+        "clip_stage_images": 474,
+        "source_counts": {
+          "pending_batch": 474
+        },
+        "index_wall_seconds": 42.436,
+        "client_full_seconds": 64.468,
+        "sums_seconds": {
+          "source_ms": 0.0,
+          "exists_ms": 0.0,
+          "cache_ms": 0.001,
+          "ai_ms": 36.227,
+          "storage_ms": 5.073,
+          "total_ms": 41.621
+        },
+        "image_digests": [
+          "sha256:9d8f86137c96ad22d5c6bd33ba56c5a8b62f2c36a7b08767589d0b8d03b0f984",
+          "sha256:f3cfadad0f5a625dc9cac4c017d97abef9ff243c11429fe354d5f9c06681d8c4"
+        ],
+        "backend_instance": "a7bde2e0de7ee55accb8e3dbb39a393ff4b7cdf7f86308902ba64921a5d665d9",
+        "ai_instance": "eb4390ee4e2fc4c4bc7d5f38af447125420b8ea57219324ea1f15e56059c8782",
+        "pending_queries_observed": 9,
+        "pending_jdbc_seconds": 0.324,
+        "database_counters": {
+          "available": false,
+          "sqlstate": "42P01",
+          "limitation": "Server counters unavailable; do not claim measured SQL-call reductions from source analysis alone."
+        },
+        "capture_errors": [],
+        "failed_events": 0
+      },
+      "vectors": {
+        "same_keys": true,
+        "same_model": true,
+        "unique_exports": true,
+        "pairs": 474,
+        "max_absolute_difference": 0.0,
+        "min_cosine": 1.0,
+        "valid_geometry": true,
+        "exact_pairs": 474,
+        "passed": true
+      },
+      "rankings": {
+        "queries": 18,
+        "same_order": true,
+        "same_metadata": true,
+        "finite_scores": true,
+        "nonempty": true,
+        "max_score_difference": 0.0,
+        "passed": true
+      },
+      "wall_reduction": 0.16131072374402144
+    },
+    {
+      "repeat": 2,
+      "baseline": {
+        "directory": "$REPO\\.local\\hybrid\\measurements\\20261117T160059Z",
+        "mode": "baseline",
+        "repeat": 2,
+        "dataset_id": 19,
+        "valid": true,
+        "images": 474,
+        "clip_stage_images": 474,
+        "source_counts": {
+          "per_image": 474
+        },
+        "index_wall_seconds": 48.657,
+        "client_full_seconds": 63.969,
+        "sums_seconds": {
+          "source_ms": 3.45,
+          "exists_ms": 3.283,
+          "cache_ms": 0.0,
+          "ai_ms": 35.225,
+          "storage_ms": 4.922,
+          "total_ms": 47.653
+        },
+        "image_digests": [
+          "sha256:9d8f86137c96ad22d5c6bd33ba56c5a8b62f2c36a7b08767589d0b8d03b0f984",
+          "sha256:f3cfadad0f5a625dc9cac4c017d97abef9ff243c11429fe354d5f9c06681d8c4"
+        ],
+        "backend_instance": "a489655600ad24dfdb68dfdb96cc637fff7fb8191f5720c43a7dc758d87a012b",
+        "ai_instance": "eb4390ee4e2fc4c4bc7d5f38af447125420b8ea57219324ea1f15e56059c8782",
+        "pending_queries_observed": 9,
+        "pending_jdbc_seconds": 0.525,
+        "database_counters": {
+          "available": false,
+          "sqlstate": "42P01",
+          "limitation": "Server counters unavailable; do not claim measured SQL-call reductions from source analysis alone."
+        },
+        "capture_errors": [],
+        "failed_events": 0
+      },
+      "prefetch": {
+        "directory": "$REPO\\.local\\hybrid\\measurements\\20261117T160256Z",
+        "mode": "prefetch",
+        "repeat": 2,
+        "dataset_id": 20,
+        "valid": true,
+        "images": 474,
+        "clip_stage_images": 474,
+        "source_counts": {
+          "pending_batch": 474
+        },
+        "index_wall_seconds": 43.609,
+        "client_full_seconds": 64.078,
+        "sums_seconds": {
+          "source_ms": 0.0,
+          "exists_ms": 0.0,
+          "cache_ms": 0.005,
+          "ai_ms": 36.81,
+          "storage_ms": 5.492,
+          "total_ms": 42.599
+        },
+        "image_digests": [
+          "sha256:9d8f86137c96ad22d5c6bd33ba56c5a8b62f2c36a7b08767589d0b8d03b0f984",
+          "sha256:f3cfadad0f5a625dc9cac4c017d97abef9ff243c11429fe354d5f9c06681d8c4"
+        ],
+        "backend_instance": "5b57a21756b403d6078c575de1fc696a57c03fe0336225d9de2181659ab74d01",
+        "ai_instance": "eb4390ee4e2fc4c4bc7d5f38af447125420b8ea57219324ea1f15e56059c8782",
+        "pending_queries_observed": 9,
+        "pending_jdbc_seconds": 0.498,
+        "database_counters": {
+          "available": false,
+          "sqlstate": "42P01",
+          "limitation": "Server counters unavailable; do not claim measured SQL-call reductions from source analysis alone."
+        },
+        "capture_errors": [],
+        "failed_events": 0
+      },
+      "vectors": {
+        "same_keys": true,
+        "same_model": true,
+        "unique_exports": true,
+        "pairs": 474,
+        "max_absolute_difference": 0.0,
+        "min_cosine": 1.0,
+        "valid_geometry": true,
+        "exact_pairs": 474,
+        "passed": true
+      },
+      "rankings": {
+        "queries": 18,
+        "same_order": true,
+        "same_metadata": true,
+        "finite_scores": true,
+        "nonempty": true,
+        "max_score_difference": 0.0,
+        "passed": true
+      },
+      "wall_reduction": 0.10374663460550371
+    }
+  ],
+  "quality_passed": true,
+  "conditions_passed": true,
+  "same_runtime_images": true,
+  "index_medians_seconds": {
+    "baseline": 49.192,
+    "prefetch": 42.948
+  },
+  "runtime_conditions": {
+    "same_images": true,
+    "distinct_backend_containers": 6,
+    "distinct_ai_containers": 1,
+    "passed": true
+  },
+  "median_wall_reduction": 0.12693120832655713,
+  "scope": "controlled repeated two-scene keyframe input; upload/S3/import recorded separately from index wall time",
+  "decision": "eligible_for_full_cycle"
+}

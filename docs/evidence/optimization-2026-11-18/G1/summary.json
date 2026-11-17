@@ -1,0 +1,34 @@
+{
+  "completed_at": "2026-11-17T13:37:22.197813+00:00",
+  "status": "completed",
+  "scope": "detector only; no SAM/3D/RDS/S3",
+  "diagnostic": false,
+  "timings": {
+    "baseline": {
+      "images": 36,
+      "repeat_total_ms": [
+        66254.02802400095,
+        64603.33764299776,
+        65377.40898600077
+      ],
+      "median_image_ms": 5392.199935499775
+    },
+    "reuse": {
+      "images": 36,
+      "repeat_total_ms": [
+        57658.84136399927,
+        56991.723117998845,
+        57689.92150899703
+      ],
+      "median_image_ms": 4787.2485470002175
+    }
+  },
+  "regression": {
+    "pairs": 36,
+    "exact_output_matches": 36,
+    "baseline_forward_calls": 360,
+    "reuse_forward_calls": 360,
+    "baseline_processor_calls": 360,
+    "reuse_processor_calls": 36
+  }
+}

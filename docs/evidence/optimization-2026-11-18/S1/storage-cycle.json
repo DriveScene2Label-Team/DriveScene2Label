@@ -1,0 +1,421 @@
+{
+  "started_at": "2026-11-17T16:23:18.565411+00:00",
+  "origin": "http://127.0.0.1:8080",
+  "dataset": {
+    "id": 21,
+    "name": "upload-f00cc327-dc93-4e82-a8aa-ef9d18dcc550",
+    "rootRelativePath": "f00cc327-dc93-4e82-a8aa-ef9d18dcc550",
+    "sourceChecksum": "e0d7d33d6673140aaab8f6752cd8fc9aba78c98d6bc9b03ec5df028d963c71ce",
+    "storageKey": "uploads",
+    "version": "v1.0-mini"
+  },
+  "scene": {
+    "datasetId": 21,
+    "description": "Parked truck, construction, intersection, turn left, following a van",
+    "firstSampleToken": "ca9a282c9e77460f8360f564131a8af5",
+    "id": 70,
+    "lastSampleToken": "ed5fc18c31904f96a8f0dbb99ff069c0",
+    "logToken": "7e25a2c8ea1f41c5b0da1e69ecfa71a2",
+    "name": "scene-0061",
+    "nbrSamples": 39,
+    "token": "cc8c0bf57f984915a77078b10eb33198"
+  },
+  "keyframes": 39,
+  "stats_before": {
+    "scenes": 10,
+    "samples": 404,
+    "sensorFiles": 31206,
+    "keyframeFiles": 4848,
+    "gtBoxes": 18538,
+    "maps": 4
+  },
+  "scope": "normal API; first keyframe all sensor modalities and maps; archive SHA256 and full extracted file inventory",
+  "backups_retained": true,
+  "cases": [
+    {
+      "mode": "warm",
+      "started_at": "2026-11-17T16:23:18.637033+00:00",
+      "read_seconds": 0.35899999999674037,
+      "first_read_seconds": 0.01599999999962165,
+      "reads": [
+        {
+          "path": "/api/sensor-files/142424/content",
+          "http_status": 200,
+          "bytes": 144554,
+          "sha256": "51fe14c13dc4f2ab0f7f59b6634b98925b767939b3417a9db617bd3c178c9bb4",
+          "wall_seconds": 0.01599999999962165
+        },
+        {
+          "path": "/api/sensor-files/142642/content",
+          "http_status": 200,
+          "bytes": 145308,
+          "sha256": "3ffae8abed7fc7e703cad8f10f92535c5f55314433660f11b1ed6ef02ebd41bf",
+          "wall_seconds": 0.030999999999039574
+        },
+        {
+          "path": "/api/sensor-files/142237/content",
+          "http_status": 200,
+          "bytes": 164772,
+          "sha256": "ab220a717b467d4fbed66b1a8a923dc522cc3aaaafa041613bcbfca3dd34ad9b",
+          "wall_seconds": 0.01599999999962165
+        },
+        {
+          "path": "/api/sensor-files/141748/content",
+          "http_status": 200,
+          "bytes": 131197,
+          "sha256": "b7b7d466207462cf46742297a36afdd65315c05ae33126d5d36412aae70a0b62",
+          "wall_seconds": 0.014999999999417923
+        },
+        {
+          "path": "/api/sensor-files/142878/content",
+          "http_status": 200,
+          "bytes": 142268,
+          "sha256": "2c8c49149411fa88cd36f9076d19e064be963deaf4e7c0dde4a7c691e83e1e5a",
+          "wall_seconds": 0.030999999999039574
+        },
+        {
+          "path": "/api/sensor-files/141969/content",
+          "http_status": 200,
+          "bytes": 141131,
+          "sha256": "005ce4aff67c8df56233457218363687132fe7f40de758cf030aace578f55497",
+          "wall_seconds": 0.01600000000325963
+        },
+        {
+          "path": "/api/sensor-files/141339/content",
+          "http_status": 200,
+          "bytes": 693760,
+          "sha256": "5f8f9b1b199ceff7d41cd319021a7a7b02dcd44d41f622a9e65a6a4a6be3cbdb",
+          "wall_seconds": 0.06299999999828287
+        },
+        {
+          "path": "/api/sensor-files/140863/content",
+          "http_status": 200,
+          "bytes": 9471,
+          "sha256": "f430eb83ec0661e5d23174ee923dbea77f333d3f5f18bfd500efcf247e9d492a",
+          "wall_seconds": 0.014999999999417923
+        },
+        {
+          "path": "/api/sensor-files/141187/content",
+          "http_status": 200,
+          "bytes": 9471,
+          "sha256": "4ed995e2f786a711eea6c16bef1b655b10afe7f48279d70c4f949f00723618fc",
+          "wall_seconds": 0.030999999999039574
+        },
+        {
+          "path": "/api/sensor-files/140127/content",
+          "http_status": 200,
+          "bytes": 9471,
+          "sha256": "b52cf717c748b3fa91827ac7dc162e1a32c08f1e100f3ede5d054332e5f8fdb4",
+          "wall_seconds": 0.01600000000325963
+        },
+        {
+          "path": "/api/sensor-files/140360/content",
+          "http_status": 200,
+          "bytes": 9342,
+          "sha256": "dbc94c7a2ddae70bf967ccd4fa824cbdb09e28a339279071015d9031a9a0ab15",
+          "wall_seconds": 0.030999999999039574
+        },
+        {
+          "path": "/api/sensor-files/140639/content",
+          "http_status": 200,
+          "bytes": 8611,
+          "sha256": "bc71af68e489e313f1af3fb7e9b133fef46edc3aac0f619f986c820258405f0c",
+          "wall_seconds": 0.0319999999992433
+        },
+        {
+          "path": "/api/maps/72/content",
+          "http_status": 200,
+          "bytes": 1060975,
+          "sha256": "bbbd05286eea0835844548922834781309e0542a75a12f38bf247b04a04c85f3",
+          "wall_seconds": 0.0459999999984575
+        }
+      ],
+      "audit": {
+        "archive_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+        "archive_bytes": 4168148189,
+        "files": 31225,
+        "expanded_bytes": 5374922749,
+        "metadata_sha256": {
+          "calibrated_sensor.json": "13d35eeb08bfbc4d0c9eaede7824ff65efe16f8bf345aa7ba9fd75f9866a8d0f",
+          "scene.json": "cc4dfeac83ac4f5d3e7fc899f90156891a21fa08bc0f8a1ac0e0a27cc1a0bfa6",
+          "visibility.json": "87088bf2c78d070e1e215ff108f9c5c0958d124a14cce8f72bfb5d9651295749",
+          "instance.json": "38bbfcf53fb78469ec2c5b07fdafc9a44e9fbf9ab858d35a007dd8347428a14a",
+          "sample.json": "3c47794e2e6c09af4be7907b83f50750351180008d059899f42a9d405ed68586",
+          "attribute.json": "dc01438363e29188f25785884bb2431a7aa27ba0debbc359cb21cf1f00652210",
+          "category.json": "30f64fb175e5bd7db99892d90f9034481bca491f26600c5c0d1a56106b198dfe",
+          "sensor.json": "4d5c96570e2d8b09b88ce4c605e40ee43c4909f97bea5741185f18f92eb491ae",
+          "ego_pose.json": "62817fd8b1633ed7925db46a29ec4c70f77116b866f248f0dc1bac4774459d70",
+          "map.json": "6b1d504987d0630e7e32affb7ae0d99fe9b427c757a315ec2f56fb09ebd1bfce",
+          "log.json": "d543b6fd127a6496ab9fa8de5c96a0887e0996e56f7a6c606de6d8b34827df58",
+          "sample_annotation.json": "49703705e98ddea281ca321aae3b7352a8b6495840fe654cf0717c5b7b721080",
+          "sample_data.json": "db18a189bd73648013d3e77ce6f5236d7c5997c0bdbf71166ddd8a6cb5c2c288"
+        }
+      },
+      "files_match_warm": true,
+      "archive_matches_original": true,
+      "inventory_matches_warm": true
+    },
+    {
+      "mode": "archive-only",
+      "started_at": "2026-11-17T16:23:24.411560+00:00",
+      "read_seconds": 71.0779999999977,
+      "first_read_seconds": 70.8279999999977,
+      "reads": [
+        {
+          "path": "/api/sensor-files/142424/content",
+          "http_status": 200,
+          "bytes": 144554,
+          "sha256": "51fe14c13dc4f2ab0f7f59b6634b98925b767939b3417a9db617bd3c178c9bb4",
+          "wall_seconds": 70.8279999999977
+        },
+        {
+          "path": "/api/sensor-files/142642/content",
+          "http_status": 200,
+          "bytes": 145308,
+          "sha256": "3ffae8abed7fc7e703cad8f10f92535c5f55314433660f11b1ed6ef02ebd41bf",
+          "wall_seconds": 0.031000000002677552
+        },
+        {
+          "path": "/api/sensor-files/142237/content",
+          "http_status": 200,
+          "bytes": 164772,
+          "sha256": "ab220a717b467d4fbed66b1a8a923dc522cc3aaaafa041613bcbfca3dd34ad9b",
+          "wall_seconds": 0.01599999999962165
+        },
+        {
+          "path": "/api/sensor-files/141748/content",
+          "http_status": 200,
+          "bytes": 131197,
+          "sha256": "b7b7d466207462cf46742297a36afdd65315c05ae33126d5d36412aae70a0b62",
+          "wall_seconds": 0.014999999999417923
+        },
+        {
+          "path": "/api/sensor-files/142878/content",
+          "http_status": 200,
+          "bytes": 142268,
+          "sha256": "2c8c49149411fa88cd36f9076d19e064be963deaf4e7c0dde4a7c691e83e1e5a",
+          "wall_seconds": 0.01599999999962165
+        },
+        {
+          "path": "/api/sensor-files/141969/content",
+          "http_status": 200,
+          "bytes": 141131,
+          "sha256": "005ce4aff67c8df56233457218363687132fe7f40de758cf030aace578f55497",
+          "wall_seconds": 0.030999999999039574
+        },
+        {
+          "path": "/api/sensor-files/141339/content",
+          "http_status": 200,
+          "bytes": 693760,
+          "sha256": "5f8f9b1b199ceff7d41cd319021a7a7b02dcd44d41f622a9e65a6a4a6be3cbdb",
+          "wall_seconds": 0.030999999999039574
+        },
+        {
+          "path": "/api/sensor-files/140863/content",
+          "http_status": 200,
+          "bytes": 9471,
+          "sha256": "f430eb83ec0661e5d23174ee923dbea77f333d3f5f18bfd500efcf247e9d492a",
+          "wall_seconds": 0.0
+        },
+        {
+          "path": "/api/sensor-files/141187/content",
+          "http_status": 200,
+          "bytes": 9471,
+          "sha256": "4ed995e2f786a711eea6c16bef1b655b10afe7f48279d70c4f949f00723618fc",
+          "wall_seconds": 0.01600000000325963
+        },
+        {
+          "path": "/api/sensor-files/140127/content",
+          "http_status": 200,
+          "bytes": 9471,
+          "sha256": "b52cf717c748b3fa91827ac7dc162e1a32c08f1e100f3ede5d054332e5f8fdb4",
+          "wall_seconds": 0.030999999999039574
+        },
+        {
+          "path": "/api/sensor-files/140360/content",
+          "http_status": 200,
+          "bytes": 9342,
+          "sha256": "dbc94c7a2ddae70bf967ccd4fa824cbdb09e28a339279071015d9031a9a0ab15",
+          "wall_seconds": 0.01599999999962165
+        },
+        {
+          "path": "/api/sensor-files/140639/content",
+          "http_status": 200,
+          "bytes": 8611,
+          "sha256": "bc71af68e489e313f1af3fb7e9b133fef46edc3aac0f619f986c820258405f0c",
+          "wall_seconds": 0.01599999999962165
+        },
+        {
+          "path": "/api/maps/72/content",
+          "http_status": 200,
+          "bytes": 1060975,
+          "sha256": "bbbd05286eea0835844548922834781309e0542a75a12f38bf247b04a04c85f3",
+          "wall_seconds": 0.030999999999039574
+        }
+      ],
+      "audit": {
+        "archive_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+        "archive_bytes": 4168148189,
+        "files": 31225,
+        "expanded_bytes": 5374922749,
+        "metadata_sha256": {
+          "calibrated_sensor.json": "13d35eeb08bfbc4d0c9eaede7824ff65efe16f8bf345aa7ba9fd75f9866a8d0f",
+          "scene.json": "cc4dfeac83ac4f5d3e7fc899f90156891a21fa08bc0f8a1ac0e0a27cc1a0bfa6",
+          "visibility.json": "87088bf2c78d070e1e215ff108f9c5c0958d124a14cce8f72bfb5d9651295749",
+          "instance.json": "38bbfcf53fb78469ec2c5b07fdafc9a44e9fbf9ab858d35a007dd8347428a14a",
+          "sample.json": "3c47794e2e6c09af4be7907b83f50750351180008d059899f42a9d405ed68586",
+          "attribute.json": "dc01438363e29188f25785884bb2431a7aa27ba0debbc359cb21cf1f00652210",
+          "category.json": "30f64fb175e5bd7db99892d90f9034481bca491f26600c5c0d1a56106b198dfe",
+          "sensor.json": "4d5c96570e2d8b09b88ce4c605e40ee43c4909f97bea5741185f18f92eb491ae",
+          "ego_pose.json": "62817fd8b1633ed7925db46a29ec4c70f77116b866f248f0dc1bac4774459d70",
+          "map.json": "6b1d504987d0630e7e32affb7ae0d99fe9b427c757a315ec2f56fb09ebd1bfce",
+          "log.json": "d543b6fd127a6496ab9fa8de5c96a0887e0996e56f7a6c606de6d8b34827df58",
+          "sample_annotation.json": "49703705e98ddea281ca321aae3b7352a8b6495840fe654cf0717c5b7b721080",
+          "sample_data.json": "db18a189bd73648013d3e77ce6f5236d7c5997c0bdbf71166ddd8a6cb5c2c288"
+        }
+      },
+      "files_match_warm": true,
+      "archive_matches_original": true,
+      "inventory_matches_warm": true
+    },
+    {
+      "mode": "s3-cold",
+      "started_at": "2026-11-17T16:24:39.297544+00:00",
+      "read_seconds": 431.5,
+      "first_read_seconds": 431.28199999999924,
+      "reads": [
+        {
+          "path": "/api/sensor-files/142424/content",
+          "http_status": 200,
+          "bytes": 144554,
+          "sha256": "51fe14c13dc4f2ab0f7f59b6634b98925b767939b3417a9db617bd3c178c9bb4",
+          "wall_seconds": 431.28199999999924
+        },
+        {
+          "path": "/api/sensor-files/142642/content",
+          "http_status": 200,
+          "bytes": 145308,
+          "sha256": "3ffae8abed7fc7e703cad8f10f92535c5f55314433660f11b1ed6ef02ebd41bf",
+          "wall_seconds": 0.030999999999039574
+        },
+        {
+          "path": "/api/sensor-files/142237/content",
+          "http_status": 200,
+          "bytes": 164772,
+          "sha256": "ab220a717b467d4fbed66b1a8a923dc522cc3aaaafa041613bcbfca3dd34ad9b",
+          "wall_seconds": 0.014999999999417923
+        },
+        {
+          "path": "/api/sensor-files/141748/content",
+          "http_status": 200,
+          "bytes": 131197,
+          "sha256": "b7b7d466207462cf46742297a36afdd65315c05ae33126d5d36412aae70a0b62",
+          "wall_seconds": 0.01600000000325963
+        },
+        {
+          "path": "/api/sensor-files/142878/content",
+          "http_status": 200,
+          "bytes": 142268,
+          "sha256": "2c8c49149411fa88cd36f9076d19e064be963deaf4e7c0dde4a7c691e83e1e5a",
+          "wall_seconds": 0.030999999999039574
+        },
+        {
+          "path": "/api/sensor-files/141969/content",
+          "http_status": 200,
+          "bytes": 141131,
+          "sha256": "005ce4aff67c8df56233457218363687132fe7f40de758cf030aace578f55497",
+          "wall_seconds": 0.01599999999962165
+        },
+        {
+          "path": "/api/sensor-files/141339/content",
+          "http_status": 200,
+          "bytes": 693760,
+          "sha256": "5f8f9b1b199ceff7d41cd319021a7a7b02dcd44d41f622a9e65a6a4a6be3cbdb",
+          "wall_seconds": 0.01599999999962165
+        },
+        {
+          "path": "/api/sensor-files/140863/content",
+          "http_status": 200,
+          "bytes": 9471,
+          "sha256": "f430eb83ec0661e5d23174ee923dbea77f333d3f5f18bfd500efcf247e9d492a",
+          "wall_seconds": 0.014999999999417923
+        },
+        {
+          "path": "/api/sensor-files/141187/content",
+          "http_status": 200,
+          "bytes": 9471,
+          "sha256": "4ed995e2f786a711eea6c16bef1b655b10afe7f48279d70c4f949f00723618fc",
+          "wall_seconds": 0.01599999999962165
+        },
+        {
+          "path": "/api/sensor-files/140127/content",
+          "http_status": 200,
+          "bytes": 9471,
+          "sha256": "b52cf717c748b3fa91827ac7dc162e1a32c08f1e100f3ede5d054332e5f8fdb4",
+          "wall_seconds": 0.014999999999417923
+        },
+        {
+          "path": "/api/sensor-files/140360/content",
+          "http_status": 200,
+          "bytes": 9342,
+          "sha256": "dbc94c7a2ddae70bf967ccd4fa824cbdb09e28a339279071015d9031a9a0ab15",
+          "wall_seconds": 0.01600000000325963
+        },
+        {
+          "path": "/api/sensor-files/140639/content",
+          "http_status": 200,
+          "bytes": 8611,
+          "sha256": "bc71af68e489e313f1af3fb7e9b133fef46edc3aac0f619f986c820258405f0c",
+          "wall_seconds": 0.01599999999962165
+        },
+        {
+          "path": "/api/maps/72/content",
+          "http_status": 200,
+          "bytes": 1060975,
+          "sha256": "bbbd05286eea0835844548922834781309e0542a75a12f38bf247b04a04c85f3",
+          "wall_seconds": 0.014999999999417923
+        }
+      ],
+      "audit": {
+        "archive_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+        "archive_bytes": 4168148189,
+        "files": 31225,
+        "expanded_bytes": 5374922749,
+        "metadata_sha256": {
+          "calibrated_sensor.json": "13d35eeb08bfbc4d0c9eaede7824ff65efe16f8bf345aa7ba9fd75f9866a8d0f",
+          "scene.json": "cc4dfeac83ac4f5d3e7fc899f90156891a21fa08bc0f8a1ac0e0a27cc1a0bfa6",
+          "visibility.json": "87088bf2c78d070e1e215ff108f9c5c0958d124a14cce8f72bfb5d9651295749",
+          "instance.json": "38bbfcf53fb78469ec2c5b07fdafc9a44e9fbf9ab858d35a007dd8347428a14a",
+          "sample.json": "3c47794e2e6c09af4be7907b83f50750351180008d059899f42a9d405ed68586",
+          "attribute.json": "dc01438363e29188f25785884bb2431a7aa27ba0debbc359cb21cf1f00652210",
+          "category.json": "30f64fb175e5bd7db99892d90f9034481bca491f26600c5c0d1a56106b198dfe",
+          "sensor.json": "4d5c96570e2d8b09b88ce4c605e40ee43c4909f97bea5741185f18f92eb491ae",
+          "ego_pose.json": "62817fd8b1633ed7925db46a29ec4c70f77116b866f248f0dc1bac4774459d70",
+          "map.json": "6b1d504987d0630e7e32affb7ae0d99fe9b427c757a315ec2f56fb09ebd1bfce",
+          "log.json": "d543b6fd127a6496ab9fa8de5c96a0887e0996e56f7a6c606de6d8b34827df58",
+          "sample_annotation.json": "49703705e98ddea281ca321aae3b7352a8b6495840fe654cf0717c5b7b721080",
+          "sample_data.json": "db18a189bd73648013d3e77ce6f5236d7c5997c0bdbf71166ddd8a6cb5c2c288"
+        }
+      },
+      "files_match_warm": true,
+      "archive_matches_original": true,
+      "inventory_matches_warm": true
+    }
+  ],
+  "status": "completed",
+  "stats_after": {
+    "scenes": 10,
+    "samples": 404,
+    "sensorFiles": 31206,
+    "keyframeFiles": 4848,
+    "gtBoxes": 18538,
+    "maps": 4
+  },
+  "maintenance_after": {
+    "maintenance": false,
+    "activeWrites": 0,
+    "runningLabels": 0,
+    "runningRecordings": 0
+  },
+  "finished_at": "2026-11-17T16:32:07.178132+00:00"
+}

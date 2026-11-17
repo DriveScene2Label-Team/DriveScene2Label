@@ -1,0 +1,22 @@
+{
+  "host": {
+    "discovered": 44,
+    "passed": 42,
+    "skipped": 2,
+    "failed": 0,
+    "reason_for_skip": "Docker gateway tests reserved for CI; GPU remains stopped"
+  },
+  "runtime_array_guards": {
+    "passed": 2,
+    "failed": 0
+  },
+  "python_syntax": "passed",
+  "earlier_java_integration": {
+    "passed": 21,
+    "source": "20261117T1524Z-java/summary.json"
+  },
+  "earlier_processor_tests": 6,
+  "earlier_wrapper_tests": 3,
+  "new_query_cli": "prepared, actual RDS experiment not executed; compile covered by final remote CI",
+  "ci": "See GitHub Actions for pushed commit; do not treat this local summary as CI success"
+}

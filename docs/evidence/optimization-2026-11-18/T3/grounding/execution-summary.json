@@ -1,0 +1,16 @@
+{
+  "started_at": "2026-11-17T17:15:53.752013+00:00",
+  "directory": "$REPO\\.local\\hybrid\\measurements\\20261117T171553Z",
+  "command": [
+    "python",
+    "scripts/hybrid/run_thread_cases.py",
+    "--directory",
+    "$REPO\\.local\\hybrid\\measurements\\20261117T171553Z",
+    "--dataset-key",
+    "f00cc327-dc93-4e82-a8aa-ef9d18dcc550"
+  ],
+  "exit_code": 0,
+  "command_wall_seconds": 443.0470000000023,
+  "finished_at": "2026-11-17T17:23:16.788207+00:00",
+  "final_collect_exit_code": 0
+}

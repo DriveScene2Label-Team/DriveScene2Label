@@ -1,0 +1,29 @@
+{
+  "scope": "static real-model compatibility probe; not full pipeline deployment",
+  "packages": [
+    "numpy==1.26.4",
+    "onnx==1.23.2",
+    "onnxscript==0.7.2",
+    "onnxruntime-gpu==1.32.0"
+  ],
+  "dependencies_directory": "/results/experiments/20261117T181435Z-runtime/dependencies",
+  "baseline_versions": "torch 2.14.1+cu130, transformers 4.49.0, numpy 1.26.4",
+  "limits": {
+    "export_seconds": 600,
+    "ort_seconds": 300,
+    "trt_build_and_run_seconds": 900,
+    "trt_workspace_bytes": 2147483648
+  },
+  "production_pip_environment_modified": false,
+  "exporters": [
+    "legacy_bool_or"
+  ],
+  "cases": [
+    {
+      "phase": "export",
+      "exporter": "legacy_bool_or",
+      "exit_code": 1,
+      "remote_directory": "/results/experiments/20261117T181435Z-runtime/legacy_bool_or"
+    }
+  ]
+}

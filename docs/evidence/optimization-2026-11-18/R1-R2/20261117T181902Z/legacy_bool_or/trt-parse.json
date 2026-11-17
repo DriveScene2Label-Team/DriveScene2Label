@@ -1,0 +1,10 @@
+{
+  "version": "11.4.0.106",
+  "parsed": true,
+  "errors": [],
+  "seconds": 13.383506271999067,
+  "layers": 72903,
+  "inputs": 5,
+  "outputs": 2,
+  "scope": "real exported model parser compatibility; not engine execution or performance"
+}

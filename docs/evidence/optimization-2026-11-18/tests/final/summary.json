@@ -1,0 +1,41 @@
+[
+  {
+    "name": "host-tests",
+    "command": [
+      "C:\\Users\\User\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "scripts/hybrid/tests",
+      "-v"
+    ],
+    "started_at": "2026-11-17T18:33:04.183472+00:00",
+    "exit_code": 0,
+    "finished_at": "2026-11-17T18:33:05.336088+00:00"
+  },
+  {
+    "name": "runtime-comparison-tests",
+    "command": [
+      "C:\\Users\\User\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "ai-server/tests/test_runtime_probe.py"
+    ],
+    "started_at": "2026-11-17T18:33:05.336088+00:00",
+    "exit_code": 0,
+    "finished_at": "2026-11-17T18:33:07.786392+00:00"
+  },
+  {
+    "name": "syntax",
+    "command": [
+      "C:\\Users\\User\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "-m",
+      "compileall",
+      "-q",
+      "scripts/hybrid",
+      "ai-server/tools"
+    ],
+    "started_at": "2026-11-17T18:33:07.786392+00:00",
+    "exit_code": 0,
+    "finished_at": "2026-11-17T18:33:08.714267+00:00"
+  }
+]

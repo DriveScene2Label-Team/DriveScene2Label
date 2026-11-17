@@ -1,0 +1,47 @@
+{
+  "account": {
+    "exit_code": 0,
+    "result": "189750306426",
+    "error": null
+  },
+  "rds": {
+    "exit_code": 0,
+    "result": {
+      "id": "ds2l-hybrid-database",
+      "status": "available",
+      "engine": "postgres",
+      "class": "db.t4g.small",
+      "restart": null
+    },
+    "error": null
+  },
+  "ec2": {
+    "exit_code": 0,
+    "result": [],
+    "error": null
+  },
+  "eks": {
+    "exit_code": 0,
+    "result": {
+      "clusters": []
+    },
+    "error": null
+  },
+  "ecs": {
+    "exit_code": 0,
+    "result": {
+      "clusters": [
+        {
+          "name": "ds2l-ecs",
+          "running": 0,
+          "pending": 0,
+          "services": 0,
+          "instances": 0
+        }
+      ],
+      "failures": []
+    },
+    "error": null
+  },
+  "at": "2026-11-17T16:17:38.851850+00:00"
+}

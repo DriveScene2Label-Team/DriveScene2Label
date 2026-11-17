@@ -1,0 +1,31 @@
+{
+  "started_at": "2026-11-17T15:46:45.536741+00:00",
+  "origin": "http://127.0.0.1:8080",
+  "client": "Python HTTP client, normal resumable upload API; not a browser",
+  "archive_name": "clip-index-two-scenes.tgz",
+  "archive_bytes": 109696439,
+  "concurrent_agent_work": "Only log/status collection; no VESPA, builds, or AWS deployment",
+  "status": "completed",
+  "upload_id": "f1698cde-7ee9-453b-b0b5-ba19e9811f63",
+  "upload_created_at": "2026-11-17T15:46:45.719669+00:00",
+  "sent_bytes": 109696439,
+  "transfer_elapsed_seconds": 4.828,
+  "transfer_completed_at": "2026-11-17T15:46:50.384679+00:00",
+  "transfer_seconds": 4.844,
+  "submitted_at": "2026-11-17T15:46:50.432541+00:00",
+  "dataset_id": 15,
+  "scene_count": 2,
+  "import_completed_at": "2026-11-17T15:47:00.463475+00:00",
+  "elapsed_to_import_seconds": 14.922,
+  "index_status": {
+    "datasetId": 15,
+    "status": "COMPLETED",
+    "indexedImages": 474,
+    "totalImages": 474,
+    "errorMessage": null,
+    "workerEnabled": true
+  },
+  "last_observed_at": "2026-11-17T15:47:50.854067+00:00",
+  "completed_at": "2026-11-17T15:47:50.855609+00:00",
+  "total_seconds": 65.313
+}

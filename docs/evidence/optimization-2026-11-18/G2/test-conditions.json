@@ -1,0 +1,15 @@
+{
+  "seed": 42,
+  "modeOrder": [
+    "baseline",
+    "reuse"
+  ],
+  "adoption": "pending complete 2D/3D and GT regression",
+  "experiment": "G2 complete scene baseline/reuse",
+  "scene": "scene-0061",
+  "threads": 1,
+  "dataset": 7,
+  "conditions": "Fresh intermediate output caches; same model data cache; no other assistant inference/build/upload; source editing and 30-second resource collection only",
+  "otherUserWork": "not independently verified",
+  "inputKey": "4e5b8e11-a0dc-47b0-81ee-c8c389090844"
+}

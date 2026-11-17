@@ -14,6 +14,7 @@ import re
 import subprocess
 import time
 from uuid import UUID
+from evidence_io import save_json
 
 REPO = Path(__file__).resolve().parents[2]
 ROOT = REPO / '.local/hybrid/measurements'
@@ -22,6 +23,7 @@ TAGS = 'HTTP|UPLOAD_CLIENT|UPLOAD_TRANSFER|UPLOAD_STAGE|UPLOAD|DB_IMPORT|SEARCH|
 TAG = re.compile(r'\[(' + TAGS + r')\]')
 PAIR = re.compile(r'([A-Za-z_]+)=([^\s,]+)')
 FIELDS = set('request method route status stage event upload dataset job run scene recording image table rows batches bytes offset received source outcome transfer_ms processing_ms total_ms sent_bytes resumed_bytes receive_ms db_lock_ms file_ms db_update_ms transaction_ms status_ms jdbc_ms wall_ms stage_wall_ms total_wall_ms ai_ms storage_ms db_mapping_ms lock_wait_ms decode_ms preprocess_ms gpu_ms handler_ms cache wall_seconds cpu_seconds ai_seconds storage_seconds total_seconds prepare_seconds executor_seconds frames images count boxes samples scenes topK aggregation remote format'.split())
+FIELDS.update(('source_ms', 'cache_ms', 'exists_ms'))
 
 
 def now():
@@ -32,7 +34,7 @@ def parse_line(line):
     if 'DS2L_STAGE ' in line:
         try:
             raw = json.loads(line.split('DS2L_STAGE ', 1)[1])
-            keys = ('at', 'job_id', 'run_id', 'scene', 'stage', 'event', 'call', 'wall_seconds', 'cpu_seconds', 'error_type')
+            keys = ('at', 'job_id', 'run_id', 'scene', 'stage', 'event', 'call', 'wall_seconds', 'cpu_seconds', 'error_type', 'mode', 'seed')
             return {'tag': 'DS2L_STAGE', **{key: raw[key] for key in keys if key in raw}}
         except (ValueError, TypeError):
             return None
@@ -105,9 +107,7 @@ def directory(value):
 
 
 def save(path, data):
-    temporary = path.with_suffix(path.suffix + '.tmp')
-    temporary.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding='utf-8')
-    temporary.replace(path)
+    save_json(path,data)
 
 
 def timed_rows(output, since):

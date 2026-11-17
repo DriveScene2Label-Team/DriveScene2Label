@@ -4,14 +4,24 @@ from datetime import datetime, timezone
 import unittest
 import json
 import tempfile
+import sys
 from unittest.mock import patch
 
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 spec = importlib.util.spec_from_file_location('measurement', Path(__file__).resolve().parents[1] / 'measurement.py')
 measurement = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(measurement)
 
 
 class MeasurementTests(unittest.TestCase):
+    def test_runner_configuration_is_allowlisted_without_credentials(self):
+        row=measurement.parse_line('DS2L_STAGE '+json.dumps({'stage':'grounding_preprocessing','event':'configured',
+            'mode':'reuse','seed':42,'token':'must-not-appear','environment':{'DB_PASSWORD':'must-not-appear'}}))
+        self.assertEqual(row['mode'],'reuse')
+        self.assertEqual(row['seed'],42)
+        self.assertNotIn('token',row)
+        self.assertNotIn('environment',row)
+
     def test_runner_file_and_container_event_are_counted_once(self):
         run_id = '0d04cd72-b00e-4d14-af2f-41aa702a2836'
         event = {'at': '2026-11-12T01:00:00Z', 'run_id': run_id, 'stage': 'model', 'event': 'completed', 'call': 1, 'wall_seconds': 2}
@@ -64,8 +74,9 @@ class MeasurementTests(unittest.TestCase):
         row = measurement.parse_line('2026-11-12T01:00:00Z INFO Dataset upload id=abc stage=STORING_ORIGINAL event=completed wall_ms=358100')
         self.assertEqual(row['upload'], 'abc')
         self.assertEqual(row['wall_ms'], '358100')
-        row = measurement.parse_line('time [CLIP] dataset=5 image=8 ai_ms=100 storage_ms=20 total_ms=120')
+        row = measurement.parse_line('time [CLIP] dataset=5 image=8 source_ms=4 cache_ms=1 exists_ms=5 ai_ms=100 storage_ms=20 total_ms=130')
         self.assertEqual(row['storage_ms'], '20')
+        self.assertEqual((row['source_ms'], row['cache_ms'], row['exists_ms']), ('4', '1', '5'))
         row = measurement.parse_line('time [CLIP_STAGE] stage=image_embed lock_wait_ms=0.1 decode_ms=9.8 preprocess_ms=4.2 gpu_ms=21.5 handler_ms=36.0')
         self.assertEqual((row['tag'], row['stage'], row['decode_ms'], row['gpu_ms'], row['handler_ms']), ('CLIP_STAGE', 'image_embed', '9.8', '21.5', '36.0'))
         row = measurement.parse_line('time [RERUN_STAGE] recording=5 stage=ai_export wall_ms=3000')

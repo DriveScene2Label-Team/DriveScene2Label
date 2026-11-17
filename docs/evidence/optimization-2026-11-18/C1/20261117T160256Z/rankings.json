@@ -1,0 +1,902 @@
+[
+  {
+    "parameters": {
+      "q": "a red car",
+      "aggregation": "MAX",
+      "k": 10,
+      "imageTopK": 3
+    },
+    "response": {
+      "query": "a red car",
+      "modelName": "ViT-L-14-quickgelu/openai",
+      "preprocess": "lr-square-crop-mean",
+      "aggregation": "MAX",
+      "imageTopK": 3,
+      "keyframesOnly": true,
+      "scenes": [
+        {
+          "sceneId": 69,
+          "datasetId": 20,
+          "sceneToken": "fcbccedd61424f1b85dcbf8f897f9754",
+          "sceneName": "scene-0103",
+          "description": "Many peds right, wait for turning car, long bike rack left, cyclist",
+          "score": 0.21136933104626454,
+          "distance": 0.7886306689537355,
+          "matchedImages": 240,
+          "contributingImages": 1,
+          "bestImageId": 140012,
+          "bestSampleToken": "281b92269fd648d4b52d06ac06ca6d65",
+          "bestImagePath": "samples/CAM_BACK_RIGHT/n008-2018-08-01-15-16-36-0400__CAM_BACK_RIGHT__1533151622928113.jpg",
+          "contentUrl": "/api/sensor-files/140012/content",
+          "matchScore": 58
+        },
+        {
+          "sceneId": 68,
+          "datasetId": 20,
+          "sceneToken": "cc8c0bf57f984915a77078b10eb33198",
+          "sceneName": "scene-0061",
+          "description": "Parked truck, construction, intersection, turn left, following a van",
+          "score": 0.19614767386289667,
+          "distance": 0.8038523261371033,
+          "matchedImages": 234,
+          "contributingImages": 1,
+          "bestImageId": 139454,
+          "bestSampleToken": "1e3d79dae62742a0ad64c91679863358",
+          "bestImagePath": "samples/CAM_FRONT_RIGHT/n015-2018-07-24-11-22-45+0800__CAM_FRONT_RIGHT__1532402934120339.jpg",
+          "contentUrl": "/api/sensor-files/139454/content",
+          "matchScore": 32
+        }
+      ]
+    }
+  },
+  {
+    "parameters": {
+      "q": "a red car",
+      "aggregation": "AVERAGE",
+      "k": 10,
+      "imageTopK": 3
+    },
+    "response": {
+      "query": "a red car",
+      "modelName": "ViT-L-14-quickgelu/openai",
+      "preprocess": "lr-square-crop-mean",
+      "aggregation": "AVERAGE",
+      "imageTopK": 3,
+      "keyframesOnly": true,
+      "scenes": [
+        {
+          "sceneId": 69,
+          "datasetId": 20,
+          "sceneToken": "fcbccedd61424f1b85dcbf8f897f9754",
+          "sceneName": "scene-0103",
+          "description": "Many peds right, wait for turning car, long bike rack left, cyclist",
+          "score": 0.16169463208136256,
+          "distance": 0.8383053679186374,
+          "matchedImages": 240,
+          "contributingImages": 240,
+          "bestImageId": 140012,
+          "bestSampleToken": "281b92269fd648d4b52d06ac06ca6d65",
+          "bestImagePath": "samples/CAM_BACK_RIGHT/n008-2018-08-01-15-16-36-0400__CAM_BACK_RIGHT__1533151622928113.jpg",
+          "contentUrl": "/api/sensor-files/140012/content",
+          "matchScore": 58
+        },
+        {
+          "sceneId": 68,
+          "datasetId": 20,
+          "sceneToken": "cc8c0bf57f984915a77078b10eb33198",
+          "sceneName": "scene-0061",
+          "description": "Parked truck, construction, intersection, turn left, following a van",
+          "score": 0.15682913334003176,
+          "distance": 0.8431708666599682,
+          "matchedImages": 234,
+          "contributingImages": 234,
+          "bestImageId": 139454,
+          "bestSampleToken": "1e3d79dae62742a0ad64c91679863358",
+          "bestImagePath": "samples/CAM_FRONT_RIGHT/n015-2018-07-24-11-22-45+0800__CAM_FRONT_RIGHT__1532402934120339.jpg",
+          "contentUrl": "/api/sensor-files/139454/content",
+          "matchScore": 48
+        }
+      ]
+    }
+  },
+  {
+    "parameters": {
+      "q": "a red car",
+      "aggregation": "TOP_K_AVERAGE",
+      "k": 10,
+      "imageTopK": 3
+    },
+    "response": {
+      "query": "a red car",
+      "modelName": "ViT-L-14-quickgelu/openai",
+      "preprocess": "lr-square-crop-mean",
+      "aggregation": "TOP_K_AVERAGE",
+      "imageTopK": 3,
+      "keyframesOnly": true,
+      "scenes": [
+        {
+          "sceneId": 69,
+          "datasetId": 20,
+          "sceneToken": "fcbccedd61424f1b85dcbf8f897f9754",
+          "sceneName": "scene-0103",
+          "description": "Many peds right, wait for turning car, long bike rack left, cyclist",
+          "score": 0.20241635366913444,
+          "distance": 0.7975836463308655,
+          "matchedImages": 240,
+          "contributingImages": 3,
+          "bestImageId": 140012,
+          "bestSampleToken": "281b92269fd648d4b52d06ac06ca6d65",
+          "bestImagePath": "samples/CAM_BACK_RIGHT/n008-2018-08-01-15-16-36-0400__CAM_BACK_RIGHT__1533151622928113.jpg",
+          "contentUrl": "/api/sensor-files/140012/content",
+          "matchScore": 50
+        },
+        {
+          "sceneId": 68,
+          "datasetId": 20,
+          "sceneToken": "cc8c0bf57f984915a77078b10eb33198",
+          "sceneName": "scene-0061",
+          "description": "Parked truck, construction, intersection, turn left, following a van",
+          "score": 0.1941738050425684,
+          "distance": 0.8058261949574316,
+          "matchedImages": 234,
+          "contributingImages": 3,
+          "bestImageId": 139454,
+          "bestSampleToken": "1e3d79dae62742a0ad64c91679863358",
+          "bestImagePath": "samples/CAM_FRONT_RIGHT/n015-2018-07-24-11-22-45+0800__CAM_FRONT_RIGHT__1532402934120339.jpg",
+          "contentUrl": "/api/sensor-files/139454/content",
+          "matchScore": 36
+        }
+      ]
+    }
+  },
+  {
+    "parameters": {
+      "q": "pedestrians crossing the street",
+      "aggregation": "MAX",
+      "k": 10,
+      "imageTopK": 3
+    },
+    "response": {
+      "query": "pedestrians crossing the street",
+      "modelName": "ViT-L-14-quickgelu/openai",
+      "preprocess": "lr-square-crop-mean",
+      "aggregation": "MAX",
+      "imageTopK": 3,
+      "keyframesOnly": true,
+      "scenes": [
+        {
+          "sceneId": 68,
+          "datasetId": 20,
+          "sceneToken": "cc8c0bf57f984915a77078b10eb33198",
+          "sceneName": "scene-0061",
+          "description": "Parked truck, construction, intersection, turn left, following a van",
+          "score": 0.25337853312896597,
+          "distance": 0.746621466871034,
+          "matchedImages": 234,
+          "contributingImages": 1,
+          "bestImageId": 139466,
+          "bestSampleToken": "88449a5cb1644a199c1c11f6ac034867",
+          "bestImagePath": "samples/CAM_FRONT_RIGHT/n015-2018-07-24-11-22-45+0800__CAM_FRONT_RIGHT__1532402935670339.jpg",
+          "contentUrl": "/api/sensor-files/139466/content",
+          "matchScore": 100
+        },
+        {
+          "sceneId": 69,
+          "datasetId": 20,
+          "sceneToken": "fcbccedd61424f1b85dcbf8f897f9754",
+          "sceneName": "scene-0103",
+          "description": "Many peds right, wait for turning car, long bike rack left, cyclist",
+          "score": 0.22607997448443995,
+          "distance": 0.77392002551556,
+          "matchedImages": 240,
+          "contributingImages": 1,
+          "bestImageId": 140096,
+          "bestSampleToken": "6832e717621341568c759151b5974512",
+          "bestImagePath": "samples/CAM_FRONT_LEFT/n008-2018-08-01-15-16-36-0400__CAM_FRONT_LEFT__1533151606504799.jpg",
+          "contentUrl": "/api/sensor-files/140096/content",
+          "matchScore": 83
+        }
+      ]
+    }
+  },
+  {
+    "parameters": {
+      "q": "pedestrians crossing the street",
+      "aggregation": "AVERAGE",
+      "k": 10,
+      "imageTopK": 3
+    },
+    "response": {
+      "query": "pedestrians crossing the street",
+      "modelName": "ViT-L-14-quickgelu/openai",
+      "preprocess": "lr-square-crop-mean",
+      "aggregation": "AVERAGE",
+      "imageTopK": 3,
+      "keyframesOnly": true,
+      "scenes": [
+        {
+          "sceneId": 68,
+          "datasetId": 20,
+          "sceneToken": "cc8c0bf57f984915a77078b10eb33198",
+          "sceneName": "scene-0061",
+          "description": "Parked truck, construction, intersection, turn left, following a van",
+          "score": 0.1820634664680274,
+          "distance": 0.8179365335319726,
+          "matchedImages": 234,
+          "contributingImages": 234,
+          "bestImageId": 139466,
+          "bestSampleToken": "88449a5cb1644a199c1c11f6ac034867",
+          "bestImagePath": "samples/CAM_FRONT_RIGHT/n015-2018-07-24-11-22-45+0800__CAM_FRONT_RIGHT__1532402935670339.jpg",
+          "contentUrl": "/api/sensor-files/139466/content",
+          "matchScore": 100
+        },
+        {
+          "sceneId": 69,
+          "datasetId": 20,
+          "sceneToken": "fcbccedd61424f1b85dcbf8f897f9754",
+          "sceneName": "scene-0103",
+          "description": "Many peds right, wait for turning car, long bike rack left, cyclist",
+          "score": 0.17738779886107225,
+          "distance": 0.8226122011389277,
+          "matchedImages": 240,
+          "contributingImages": 240,
+          "bestImageId": 140096,
+          "bestSampleToken": "6832e717621341568c759151b5974512",
+          "bestImagePath": "samples/CAM_FRONT_LEFT/n008-2018-08-01-15-16-36-0400__CAM_FRONT_LEFT__1533151606504799.jpg",
+          "contentUrl": "/api/sensor-files/140096/content",
+          "matchScore": 90
+        }
+      ]
+    }
+  },
+  {
+    "parameters": {
+      "q": "pedestrians crossing the street",
+      "aggregation": "TOP_K_AVERAGE",
+      "k": 10,
+      "imageTopK": 3
+    },
+    "response": {
+      "query": "pedestrians crossing the street",
+      "modelName": "ViT-L-14-quickgelu/openai",
+      "preprocess": "lr-square-crop-mean",
+      "aggregation": "TOP_K_AVERAGE",
+      "imageTopK": 3,
+      "keyframesOnly": true,
+      "scenes": [
+        {
+          "sceneId": 68,
+          "datasetId": 20,
+          "sceneToken": "cc8c0bf57f984915a77078b10eb33198",
+          "sceneName": "scene-0061",
+          "description": "Parked truck, construction, intersection, turn left, following a van",
+          "score": 0.24485057101596383,
+          "distance": 0.7551494289840361,
+          "matchedImages": 234,
+          "contributingImages": 3,
+          "bestImageId": 139466,
+          "bestSampleToken": "88449a5cb1644a199c1c11f6ac034867",
+          "bestImagePath": "samples/CAM_FRONT_RIGHT/n015-2018-07-24-11-22-45+0800__CAM_FRONT_RIGHT__1532402935670339.jpg",
+          "contentUrl": "/api/sensor-files/139466/content",
+          "matchScore": 100
+        },
+        {
+          "sceneId": 69,
+          "datasetId": 20,
+          "sceneToken": "fcbccedd61424f1b85dcbf8f897f9754",
+          "sceneName": "scene-0103",
+          "description": "Many peds right, wait for turning car, long bike rack left, cyclist",
+          "score": 0.22398895003644448,
+          "distance": 0.7760110499635555,
+          "matchedImages": 240,
+          "contributingImages": 3,
+          "bestImageId": 140096,
+          "bestSampleToken": "6832e717621341568c759151b5974512",
+          "bestImagePath": "samples/CAM_FRONT_LEFT/n008-2018-08-01-15-16-36-0400__CAM_FRONT_LEFT__1533151606504799.jpg",
+          "contentUrl": "/api/sensor-files/140096/content",
+          "matchScore": 86
+        }
+      ]
+    }
+  },
+  {
+    "parameters": {
+      "q": "a bus at an intersection",
+      "aggregation": "MAX",
+      "k": 10,
+      "imageTopK": 3
+    },
+    "response": {
+      "query": "a bus at an intersection",
+      "modelName": "ViT-L-14-quickgelu/openai",
+      "preprocess": "lr-square-crop-mean",
+      "aggregation": "MAX",
+      "imageTopK": 3,
+      "keyframesOnly": true,
+      "scenes": [
+        {
+          "sceneId": 68,
+          "datasetId": 20,
+          "sceneToken": "cc8c0bf57f984915a77078b10eb33198",
+          "sceneName": "scene-0061",
+          "description": "Parked truck, construction, intersection, turn left, following a van",
+          "score": 0.21954202470433892,
+          "distance": 0.7804579752956611,
+          "matchedImages": 234,
+          "contributingImages": 1,
+          "bestImageId": 139416,
+          "bestSampleToken": "4f545737bf3347fbbc9af60b0be9a963",
+          "bestImagePath": "samples/CAM_FRONT/n015-2018-07-24-11-22-45+0800__CAM_FRONT__1532402930612460.jpg",
+          "contentUrl": "/api/sensor-files/139416/content",
+          "matchScore": 72
+        },
+        {
+          "sceneId": 69,
+          "datasetId": 20,
+          "sceneToken": "fcbccedd61424f1b85dcbf8f897f9754",
+          "sceneName": "scene-0103",
+          "description": "Many peds right, wait for turning car, long bike rack left, cyclist",
+          "score": 0.2014277159316713,
+          "distance": 0.7985722840683287,
+          "matchedImages": 240,
+          "contributingImages": 1,
+          "bestImageId": 140023,
+          "bestSampleToken": "796b1988dd254f74bf2fb19ba9c5b8c6",
+          "bestImagePath": "samples/CAM_BACK/n008-2018-08-01-15-16-36-0400__CAM_BACK__1533151609037558.jpg",
+          "contentUrl": "/api/sensor-files/140023/content",
+          "matchScore": 41
+        }
+      ]
+    }
+  },
+  {
+    "parameters": {
+      "q": "a bus at an intersection",
+      "aggregation": "AVERAGE",
+      "k": 10,
+      "imageTopK": 3
+    },
+    "response": {
+      "query": "a bus at an intersection",
+      "modelName": "ViT-L-14-quickgelu/openai",
+      "preprocess": "lr-square-crop-mean",
+      "aggregation": "AVERAGE",
+      "imageTopK": 3,
+      "keyframesOnly": true,
+      "scenes": [
+        {
+          "sceneId": 68,
+          "datasetId": 20,
+          "sceneToken": "cc8c0bf57f984915a77078b10eb33198",
+          "sceneName": "scene-0061",
+          "description": "Parked truck, construction, intersection, turn left, following a van",
+          "score": 0.17396652276534372,
+          "distance": 0.8260334772346563,
+          "matchedImages": 234,
+          "contributingImages": 234,
+          "bestImageId": 139416,
+          "bestSampleToken": "4f545737bf3347fbbc9af60b0be9a963",
+          "bestImagePath": "samples/CAM_FRONT/n015-2018-07-24-11-22-45+0800__CAM_FRONT__1532402930612460.jpg",
+          "contentUrl": "/api/sensor-files/139416/content",
+          "matchScore": 83
+        },
+        {
+          "sceneId": 69,
+          "datasetId": 20,
+          "sceneToken": "fcbccedd61424f1b85dcbf8f897f9754",
+          "sceneName": "scene-0103",
+          "description": "Many peds right, wait for turning car, long bike rack left, cyclist",
+          "score": 0.1634374407221946,
+          "distance": 0.8365625592778054,
+          "matchedImages": 240,
+          "contributingImages": 240,
+          "bestImageId": 140023,
+          "bestSampleToken": "796b1988dd254f74bf2fb19ba9c5b8c6",
+          "bestImagePath": "samples/CAM_BACK/n008-2018-08-01-15-16-36-0400__CAM_BACK__1533151609037558.jpg",
+          "contentUrl": "/api/sensor-files/140023/content",
+          "matchScore": 61
+        }
+      ]
+    }
+  },
+  {
+    "parameters": {
+      "q": "a bus at an intersection",
+      "aggregation": "TOP_K_AVERAGE",
+      "k": 10,
+      "imageTopK": 3
+    },
+    "response": {
+      "query": "a bus at an intersection",
+      "modelName": "ViT-L-14-quickgelu/openai",
+      "preprocess": "lr-square-crop-mean",
+      "aggregation": "TOP_K_AVERAGE",
+      "imageTopK": 3,
+      "keyframesOnly": true,
+      "scenes": [
+        {
+          "sceneId": 68,
+          "datasetId": 20,
+          "sceneToken": "cc8c0bf57f984915a77078b10eb33198",
+          "sceneName": "scene-0061",
+          "description": "Parked truck, construction, intersection, turn left, following a van",
+          "score": 0.21790573933804094,
+          "distance": 0.7820942606619591,
+          "matchedImages": 234,
+          "contributingImages": 3,
+          "bestImageId": 139416,
+          "bestSampleToken": "4f545737bf3347fbbc9af60b0be9a963",
+          "bestImagePath": "samples/CAM_FRONT/n015-2018-07-24-11-22-45+0800__CAM_FRONT__1532402930612460.jpg",
+          "contentUrl": "/api/sensor-files/139416/content",
+          "matchScore": 76
+        },
+        {
+          "sceneId": 69,
+          "datasetId": 20,
+          "sceneToken": "fcbccedd61424f1b85dcbf8f897f9754",
+          "sceneName": "scene-0103",
+          "description": "Many peds right, wait for turning car, long bike rack left, cyclist",
+          "score": 0.19755195168797227,
+          "distance": 0.8024480483120278,
+          "matchedImages": 240,
+          "contributingImages": 3,
+          "bestImageId": 140023,
+          "bestSampleToken": "796b1988dd254f74bf2fb19ba9c5b8c6",
+          "bestImagePath": "samples/CAM_BACK/n008-2018-08-01-15-16-36-0400__CAM_BACK__1533151609037558.jpg",
+          "contentUrl": "/api/sensor-files/140023/content",
+          "matchScore": 42
+        }
+      ]
+    }
+  },
+  {
+    "parameters": {
+      "q": "a bicycle",
+      "aggregation": "MAX",
+      "k": 10,
+      "imageTopK": 3
+    },
+    "response": {
+      "query": "a bicycle",
+      "modelName": "ViT-L-14-quickgelu/openai",
+      "preprocess": "lr-square-crop-mean",
+      "aggregation": "MAX",
+      "imageTopK": 3,
+      "keyframesOnly": true,
+      "scenes": [
+        {
+          "sceneId": 69,
+          "datasetId": 20,
+          "sceneToken": "fcbccedd61424f1b85dcbf8f897f9754",
+          "sceneName": "scene-0103",
+          "description": "Many peds right, wait for turning car, long bike rack left, cyclist",
+          "score": 0.19712241581447176,
+          "distance": 0.8028775841855282,
+          "matchedImages": 240,
+          "contributingImages": 1,
+          "bestImageId": 140089,
+          "bestSampleToken": "1c9a906c40f6417bbe1cea06d6e55501",
+          "bestImagePath": "samples/CAM_BACK_LEFT/n008-2018-08-01-15-16-36-0400__CAM_BACK_LEFT__1533151620447405.jpg",
+          "contentUrl": "/api/sensor-files/140089/content",
+          "matchScore": 34
+        },
+        {
+          "sceneId": 68,
+          "datasetId": 20,
+          "sceneToken": "cc8c0bf57f984915a77078b10eb33198",
+          "sceneName": "scene-0061",
+          "description": "Parked truck, construction, intersection, turn left, following a van",
+          "score": 0.1827462911605835,
+          "distance": 0.8172537088394165,
+          "matchedImages": 234,
+          "contributingImages": 1,
+          "bestImageId": 139419,
+          "bestSampleToken": "be99ffc878b24aca8956bbb4e0f97d0c",
+          "bestImagePath": "samples/CAM_FRONT/n015-2018-07-24-11-22-45+0800__CAM_FRONT__1532402931662460.jpg",
+          "contentUrl": "/api/sensor-files/139419/content",
+          "matchScore": 10
+        }
+      ]
+    }
+  },
+  {
+    "parameters": {
+      "q": "a bicycle",
+      "aggregation": "AVERAGE",
+      "k": 10,
+      "imageTopK": 3
+    },
+    "response": {
+      "query": "a bicycle",
+      "modelName": "ViT-L-14-quickgelu/openai",
+      "preprocess": "lr-square-crop-mean",
+      "aggregation": "AVERAGE",
+      "imageTopK": 3,
+      "keyframesOnly": true,
+      "scenes": [
+        {
+          "sceneId": 69,
+          "datasetId": 20,
+          "sceneToken": "fcbccedd61424f1b85dcbf8f897f9754",
+          "sceneName": "scene-0103",
+          "description": "Many peds right, wait for turning car, long bike rack left, cyclist",
+          "score": 0.15886024933337967,
+          "distance": 0.8411397506666203,
+          "matchedImages": 240,
+          "contributingImages": 240,
+          "bestImageId": 140089,
+          "bestSampleToken": "1c9a906c40f6417bbe1cea06d6e55501",
+          "bestImagePath": "samples/CAM_BACK_LEFT/n008-2018-08-01-15-16-36-0400__CAM_BACK_LEFT__1533151620447405.jpg",
+          "contentUrl": "/api/sensor-files/140089/content",
+          "matchScore": 52
+        },
+        {
+          "sceneId": 68,
+          "datasetId": 20,
+          "sceneToken": "cc8c0bf57f984915a77078b10eb33198",
+          "sceneName": "scene-0061",
+          "description": "Parked truck, construction, intersection, turn left, following a van",
+          "score": 0.15724399588204924,
+          "distance": 0.8427560041179507,
+          "matchedImages": 234,
+          "contributingImages": 234,
+          "bestImageId": 139419,
+          "bestSampleToken": "be99ffc878b24aca8956bbb4e0f97d0c",
+          "bestImagePath": "samples/CAM_FRONT/n015-2018-07-24-11-22-45+0800__CAM_FRONT__1532402931662460.jpg",
+          "contentUrl": "/api/sensor-files/139419/content",
+          "matchScore": 48
+        }
+      ]
+    }
+  },
+  {
+    "parameters": {
+      "q": "a bicycle",
+      "aggregation": "TOP_K_AVERAGE",
+      "k": 10,
+      "imageTopK": 3
+    },
+    "response": {
+      "query": "a bicycle",
+      "modelName": "ViT-L-14-quickgelu/openai",
+      "preprocess": "lr-square-crop-mean",
+      "aggregation": "TOP_K_AVERAGE",
+      "imageTopK": 3,
+      "keyframesOnly": true,
+      "scenes": [
+        {
+          "sceneId": 69,
+          "datasetId": 20,
+          "sceneToken": "fcbccedd61424f1b85dcbf8f897f9754",
+          "sceneName": "scene-0103",
+          "description": "Many peds right, wait for turning car, long bike rack left, cyclist",
+          "score": 0.19294130239605364,
+          "distance": 0.8070586976039463,
+          "matchedImages": 240,
+          "contributingImages": 3,
+          "bestImageId": 140089,
+          "bestSampleToken": "1c9a906c40f6417bbe1cea06d6e55501",
+          "bestImagePath": "samples/CAM_BACK_LEFT/n008-2018-08-01-15-16-36-0400__CAM_BACK_LEFT__1533151620447405.jpg",
+          "contentUrl": "/api/sensor-files/140089/content",
+          "matchScore": 34
+        },
+        {
+          "sceneId": 68,
+          "datasetId": 20,
+          "sceneToken": "cc8c0bf57f984915a77078b10eb33198",
+          "sceneName": "scene-0061",
+          "description": "Parked truck, construction, intersection, turn left, following a van",
+          "score": 0.1815589702261956,
+          "distance": 0.8184410297738044,
+          "matchedImages": 234,
+          "contributingImages": 3,
+          "bestImageId": 139419,
+          "bestSampleToken": "be99ffc878b24aca8956bbb4e0f97d0c",
+          "bestImagePath": "samples/CAM_FRONT/n015-2018-07-24-11-22-45+0800__CAM_FRONT__1532402931662460.jpg",
+          "contentUrl": "/api/sensor-files/139419/content",
+          "matchScore": 15
+        }
+      ]
+    }
+  },
+  {
+    "parameters": {
+      "q": "traffic cones",
+      "aggregation": "MAX",
+      "k": 10,
+      "imageTopK": 3
+    },
+    "response": {
+      "query": "traffic cones",
+      "modelName": "ViT-L-14-quickgelu/openai",
+      "preprocess": "lr-square-crop-mean",
+      "aggregation": "MAX",
+      "imageTopK": 3,
+      "keyframesOnly": true,
+      "scenes": [
+        {
+          "sceneId": 68,
+          "datasetId": 20,
+          "sceneToken": "cc8c0bf57f984915a77078b10eb33198",
+          "sceneName": "scene-0061",
+          "description": "Parked truck, construction, intersection, turn left, following a van",
+          "score": 0.2427232252460525,
+          "distance": 0.7572767747539475,
+          "matchedImages": 234,
+          "contributingImages": 1,
+          "bestImageId": 139497,
+          "bestSampleToken": "023c4df2d451409881d8e6ea82f14704",
+          "bestImagePath": "samples/CAM_BACK_RIGHT/n015-2018-07-24-11-22-45+0800__CAM_BACK_RIGHT__1532402932627893.jpg",
+          "contentUrl": "/api/sensor-files/139497/content",
+          "matchScore": 100
+        },
+        {
+          "sceneId": 69,
+          "datasetId": 20,
+          "sceneToken": "fcbccedd61424f1b85dcbf8f897f9754",
+          "sceneName": "scene-0103",
+          "description": "Many peds right, wait for turning car, long bike rack left, cyclist",
+          "score": 0.19083558591710492,
+          "distance": 0.8091644140828951,
+          "matchedImages": 240,
+          "contributingImages": 1,
+          "bestImageId": 139939,
+          "bestSampleToken": "9ee4020153674b9e9943d395ff8cfdf3",
+          "bestImagePath": "samples/CAM_FRONT_RIGHT/n008-2018-08-01-15-16-36-0400__CAM_FRONT_RIGHT__1533151612870482.jpg",
+          "contentUrl": "/api/sensor-files/139939/content",
+          "matchScore": 23
+        }
+      ]
+    }
+  },
+  {
+    "parameters": {
+      "q": "traffic cones",
+      "aggregation": "AVERAGE",
+      "k": 10,
+      "imageTopK": 3
+    },
+    "response": {
+      "query": "traffic cones",
+      "modelName": "ViT-L-14-quickgelu/openai",
+      "preprocess": "lr-square-crop-mean",
+      "aggregation": "AVERAGE",
+      "imageTopK": 3,
+      "keyframesOnly": true,
+      "scenes": [
+        {
+          "sceneId": 68,
+          "datasetId": 20,
+          "sceneToken": "cc8c0bf57f984915a77078b10eb33198",
+          "sceneName": "scene-0061",
+          "description": "Parked truck, construction, intersection, turn left, following a van",
+          "score": 0.17974154112657828,
+          "distance": 0.8202584588734217,
+          "matchedImages": 234,
+          "contributingImages": 234,
+          "bestImageId": 139497,
+          "bestSampleToken": "023c4df2d451409881d8e6ea82f14704",
+          "bestImagePath": "samples/CAM_BACK_RIGHT/n015-2018-07-24-11-22-45+0800__CAM_BACK_RIGHT__1532402932627893.jpg",
+          "contentUrl": "/api/sensor-files/139497/content",
+          "matchScore": 95
+        },
+        {
+          "sceneId": 69,
+          "datasetId": 20,
+          "sceneToken": "fcbccedd61424f1b85dcbf8f897f9754",
+          "sceneName": "scene-0103",
+          "description": "Many peds right, wait for turning car, long bike rack left, cyclist",
+          "score": 0.15857339267281576,
+          "distance": 0.8414266073271842,
+          "matchedImages": 240,
+          "contributingImages": 240,
+          "bestImageId": 139939,
+          "bestSampleToken": "9ee4020153674b9e9943d395ff8cfdf3",
+          "bestImagePath": "samples/CAM_FRONT_RIGHT/n008-2018-08-01-15-16-36-0400__CAM_FRONT_RIGHT__1533151612870482.jpg",
+          "contentUrl": "/api/sensor-files/139939/content",
+          "matchScore": 51
+        }
+      ]
+    }
+  },
+  {
+    "parameters": {
+      "q": "traffic cones",
+      "aggregation": "TOP_K_AVERAGE",
+      "k": 10,
+      "imageTopK": 3
+    },
+    "response": {
+      "query": "traffic cones",
+      "modelName": "ViT-L-14-quickgelu/openai",
+      "preprocess": "lr-square-crop-mean",
+      "aggregation": "TOP_K_AVERAGE",
+      "imageTopK": 3,
+      "keyframesOnly": true,
+      "scenes": [
+        {
+          "sceneId": 68,
+          "datasetId": 20,
+          "sceneToken": "cc8c0bf57f984915a77078b10eb33198",
+          "sceneName": "scene-0061",
+          "description": "Parked truck, construction, intersection, turn left, following a van",
+          "score": 0.23669456831217697,
+          "distance": 0.763305431687823,
+          "matchedImages": 234,
+          "contributingImages": 3,
+          "bestImageId": 139497,
+          "bestSampleToken": "023c4df2d451409881d8e6ea82f14704",
+          "bestImagePath": "samples/CAM_BACK_RIGHT/n015-2018-07-24-11-22-45+0800__CAM_BACK_RIGHT__1532402932627893.jpg",
+          "contentUrl": "/api/sensor-files/139497/content",
+          "matchScore": 100
+        },
+        {
+          "sceneId": 69,
+          "datasetId": 20,
+          "sceneToken": "fcbccedd61424f1b85dcbf8f897f9754",
+          "sceneName": "scene-0103",
+          "description": "Many peds right, wait for turning car, long bike rack left, cyclist",
+          "score": 0.18730776074481845,
+          "distance": 0.8126922392551815,
+          "matchedImages": 240,
+          "contributingImages": 3,
+          "bestImageId": 139939,
+          "bestSampleToken": "9ee4020153674b9e9943d395ff8cfdf3",
+          "bestImagePath": "samples/CAM_FRONT_RIGHT/n008-2018-08-01-15-16-36-0400__CAM_FRONT_RIGHT__1533151612870482.jpg",
+          "contentUrl": "/api/sensor-files/139939/content",
+          "matchScore": 24
+        }
+      ]
+    }
+  },
+  {
+    "parameters": {
+      "q": "night driving",
+      "aggregation": "MAX",
+      "k": 10,
+      "imageTopK": 3
+    },
+    "response": {
+      "query": "night driving",
+      "modelName": "ViT-L-14-quickgelu/openai",
+      "preprocess": "lr-square-crop-mean",
+      "aggregation": "MAX",
+      "imageTopK": 3,
+      "keyframesOnly": true,
+      "scenes": [
+        {
+          "sceneId": 69,
+          "datasetId": 20,
+          "sceneToken": "fcbccedd61424f1b85dcbf8f897f9754",
+          "sceneName": "scene-0103",
+          "description": "Many peds right, wait for turning car, long bike rack left, cyclist",
+          "score": 0.1655448475804837,
+          "distance": 0.8344551524195163,
+          "matchedImages": 240,
+          "contributingImages": 1,
+          "bestImageId": 140009,
+          "bestSampleToken": "747aa46b9a4641fe90db05d97db2acea",
+          "bestImagePath": "samples/CAM_BACK/n008-2018-08-01-15-16-36-0400__CAM_BACK__1533151605537558.jpg",
+          "contentUrl": "/api/sensor-files/140009/content",
+          "matchScore": 0
+        },
+        {
+          "sceneId": 68,
+          "datasetId": 20,
+          "sceneToken": "cc8c0bf57f984915a77078b10eb33198",
+          "sceneName": "scene-0061",
+          "description": "Parked truck, construction, intersection, turn left, following a van",
+          "score": 0.15944095906263378,
+          "distance": 0.8405590409373662,
+          "matchedImages": 234,
+          "contributingImages": 1,
+          "bestImageId": 139436,
+          "bestSampleToken": "4711bcd34644420da8bc77163431888e",
+          "bestImagePath": "samples/CAM_FRONT/n015-2018-07-24-11-22-45+0800__CAM_FRONT__1532402939112460.jpg",
+          "contentUrl": "/api/sensor-files/139436/content",
+          "matchScore": 0
+        }
+      ]
+    }
+  },
+  {
+    "parameters": {
+      "q": "night driving",
+      "aggregation": "AVERAGE",
+      "k": 10,
+      "imageTopK": 3
+    },
+    "response": {
+      "query": "night driving",
+      "modelName": "ViT-L-14-quickgelu/openai",
+      "preprocess": "lr-square-crop-mean",
+      "aggregation": "AVERAGE",
+      "imageTopK": 3,
+      "keyframesOnly": true,
+      "scenes": [
+        {
+          "sceneId": 68,
+          "datasetId": 20,
+          "sceneToken": "cc8c0bf57f984915a77078b10eb33198",
+          "sceneName": "scene-0061",
+          "description": "Parked truck, construction, intersection, turn left, following a van",
+          "score": 0.13218210963090887,
+          "distance": 0.8678178903690912,
+          "matchedImages": 234,
+          "contributingImages": 234,
+          "bestImageId": 139436,
+          "bestSampleToken": "4711bcd34644420da8bc77163431888e",
+          "bestImagePath": "samples/CAM_FRONT/n015-2018-07-24-11-22-45+0800__CAM_FRONT__1532402939112460.jpg",
+          "contentUrl": "/api/sensor-files/139436/content",
+          "matchScore": 0
+        },
+        {
+          "sceneId": 69,
+          "datasetId": 20,
+          "sceneToken": "fcbccedd61424f1b85dcbf8f897f9754",
+          "sceneName": "scene-0103",
+          "description": "Many peds right, wait for turning car, long bike rack left, cyclist",
+          "score": 0.11847789039087503,
+          "distance": 0.881522109609125,
+          "matchedImages": 240,
+          "contributingImages": 240,
+          "bestImageId": 140009,
+          "bestSampleToken": "747aa46b9a4641fe90db05d97db2acea",
+          "bestImagePath": "samples/CAM_BACK/n008-2018-08-01-15-16-36-0400__CAM_BACK__1533151605537558.jpg",
+          "contentUrl": "/api/sensor-files/140009/content",
+          "matchScore": 0
+        }
+      ]
+    }
+  },
+  {
+    "parameters": {
+      "q": "night driving",
+      "aggregation": "TOP_K_AVERAGE",
+      "k": 10,
+      "imageTopK": 3
+    },
+    "response": {
+      "query": "night driving",
+      "modelName": "ViT-L-14-quickgelu/openai",
+      "preprocess": "lr-square-crop-mean",
+      "aggregation": "TOP_K_AVERAGE",
+      "imageTopK": 3,
+      "keyframesOnly": true,
+      "scenes": [
+        {
+          "sceneId": 69,
+          "datasetId": 20,
+          "sceneToken": "fcbccedd61424f1b85dcbf8f897f9754",
+          "sceneName": "scene-0103",
+          "description": "Many peds right, wait for turning car, long bike rack left, cyclist",
+          "score": 0.16363294752292049,
+          "distance": 0.8363670524770795,
+          "matchedImages": 240,
+          "contributingImages": 3,
+          "bestImageId": 140009,
+          "bestSampleToken": "747aa46b9a4641fe90db05d97db2acea",
+          "bestImagePath": "samples/CAM_BACK/n008-2018-08-01-15-16-36-0400__CAM_BACK__1533151605537558.jpg",
+          "contentUrl": "/api/sensor-files/140009/content",
+          "matchScore": 0
+        },
+        {
+          "sceneId": 68,
+          "datasetId": 20,
+          "sceneToken": "cc8c0bf57f984915a77078b10eb33198",
+          "sceneName": "scene-0061",
+          "description": "Parked truck, construction, intersection, turn left, following a van",
+          "score": 0.15702304491080765,
+          "distance": 0.8429769550891923,
+          "matchedImages": 234,
+          "contributingImages": 3,
+          "bestImageId": 139436,
+          "bestSampleToken": "4711bcd34644420da8bc77163431888e",
+          "bestImagePath": "samples/CAM_FRONT/n015-2018-07-24-11-22-45+0800__CAM_FRONT__1532402939112460.jpg",
+          "contentUrl": "/api/sensor-files/139436/content",
+          "matchScore": 0
+        }
+      ]
+    }
+  }
+]

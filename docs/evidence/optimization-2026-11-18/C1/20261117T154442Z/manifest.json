@@ -1,0 +1,10 @@
+{
+  "started_at": "2026-11-17T15:44:42.635154+00:00",
+  "git_revision": "878297b02f6d3b323662acd97c69835e6fd9b647",
+  "dirty": true,
+  "cache_condition": "Not automatically inferred; record cold/warm and dataset when testing.",
+  "cursors": {
+    "backend": "2026-11-17T15:46:16.012689+00:00",
+    "ai": "2026-11-17T15:46:16.012689+00:00"
+  }
+}

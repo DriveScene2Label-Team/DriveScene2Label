@@ -1,0 +1,60 @@
+{
+  "started_at": "2026-11-17T14:09:29.953799+00:00",
+  "scene": "scene-0061",
+  "seed": 42,
+  "data_root": "/uploads/datasets/4e5b8e11-a0dc-47b0-81ee-c8c389090844",
+  "version": "v1.0-mini",
+  "scope": "complete VESPA rigid pipeline, fresh per-mode intermediate caches; no API/DB/S3",
+  "modes": [
+    "baseline",
+    "reuse"
+  ],
+  "threads": 1,
+  "dtype_change": false,
+  "detector_trace": true,
+  "quality_gate": "same 39 sample tokens; same classes, counts and tracks; exact 2D/3D outputs expected. Investigate any difference before adoption.",
+  "config_sha256": "bdb76615c9db9ed9e170caad5fdee682b7ae70e65b200f27b230f9563aed3bb6",
+  "model": "IDEA-Research/grounding-dino-base",
+  "threshold": 0.3,
+  "labels": [
+    "car",
+    "truck",
+    "bus",
+    "trailer",
+    "excavator",
+    "pedestrian",
+    "motorcycle",
+    "bicycle",
+    "barrier",
+    "traffic cone"
+  ],
+  "torch": "2.14.1+cu130",
+  "transformers": "4.49.0",
+  "numpy": "1.26.4",
+  "cuda": "13.0",
+  "gpu": "NVIDIA GeForce RTX 5060 Ti",
+  "arch_list": [
+    "sm_75",
+    "sm_80",
+    "sm_86",
+    "sm_90",
+    "sm_100",
+    "sm_120"
+  ],
+  "matmul_tf32": false,
+  "cudnn_tf32": true,
+  "sources": {
+    "vespa_runner.py": "774e6463090ee68309f1c679c506a71e587b63f18a911288373ee73c05387907",
+    "grounding_probe.py": "e7fdce4adc0737269166b33b6c1b318216585af192aa338ef8ccd6042438e0b1",
+    "grounding_runtime.py": "eb02c9d038c89e86f5bddb4622a6b3ed54209221ac41954163c47c8981ab0543",
+    "stage_timing.py": "0f15671d2f913d5d167e3974dd392bf722bcaef939f559e22d7b341187d0b303",
+    "rigid_cache.py": "78ba3562dd834e6c04d44060d7fd499c75206f393d013169eff4994a0bfa4383",
+    "benchmark_scene.py": "d93765f89816c5338bc29ce37de080b0e4023ccbd2fdc2c4120ade716946b1e9"
+  },
+  "metadata_sha256": {
+    "scene": "cc4dfeac83ac4f5d3e7fc899f90156891a21fa08bc0f8a1ac0e0a27cc1a0bfa6",
+    "sample": "3c47794e2e6c09af4be7907b83f50750351180008d059899f42a9d405ed68586",
+    "sample_data": "db18a189bd73648013d3e77ce6f5236d7c5997c0bdbf71166ddd8a6cb5c2c288",
+    "sample_annotation": "49703705e98ddea281ca321aae3b7352a8b6495840fe654cf0717c5b7b721080"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "kind": "label",
+  "events": 2335,
+  "capture_errors": [],
+  "failed_events": 0,
+  "cycle": {
+    "at": "2026-11-17T17:13:58.578548+00:00",
+    "dataset": 21,
+    "job": 13,
+    "recording": 13,
+    "keyframes": 39,
+    "boxes": 1308,
+    "scope": "normal APIs through local backend to existing RDS; GPU inference and recording generation on local GPU host",
+    "recording_binary_downloaded_and_range_checked": true,
+    "browser_render_visual_check": false
+  },
+  "quality": {
+    "regression": {
+      "exact": true,
+      "within_tolerance": true,
+      "tolerance": 1e-09,
+      "max_numeric_absolute_difference": 0.0,
+      "difference_count": 0,
+      "first_differences": []
+    },
+    "indices_valid": true,
+    "checksum_matches": true,
+    "geometry_valid": true,
+    "unchanged_edits": true,
+    "semantics_match": true,
+    "keyframes": 39,
+    "boxes": 1308,
+    "passed": true
+  },
+  "recording": {
+    "bytes": 17202643,
+    "sha256": "f7eca2ecb5e9f67aa80d96f865e6885f483977216a9e58b4f8e4bb6d0ecb332b",
+    "first_12_bytes_hex": "525246320026010001020000",
+    "wall_seconds": 0.21900000000096043,
+    "size_matches": true,
+    "url": "/api/recordings/13/content",
+    "range_request_passed": true
+  },
+  "passed": true
+}

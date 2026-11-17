@@ -1,0 +1,16 @@
+{
+  "started_at": "2026-11-17T16:05:26.439913+00:00",
+  "directory": "$REPO\\.local\\hybrid\\measurements\\20261117T160526Z",
+  "command": [
+    "python",
+    "scripts/hybrid/benchmark_clip.py",
+    "--directory",
+    "$REPO\\.local\\hybrid\\measurements\\20261117T160526Z",
+    "--archive",
+    "C:/Users/User/Downloads/v1.0-mini.tgz"
+  ],
+  "exit_code": 0,
+  "command_wall_seconds": 851.0,
+  "finished_at": "2026-11-17T16:19:37.429337+00:00",
+  "final_collect_exit_code": 0
+}

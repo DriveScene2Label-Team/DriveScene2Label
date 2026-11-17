@@ -1,0 +1,10 @@
+{
+  "at": "2026-11-17T15:54:16.8376668Z",
+  "decision": "Exclude interrupted client run from controlled pair; retain evidence; resume with fresh dataset and container",
+  "server": "474 of 474 images completed; stage log and collector retained",
+  "client": "PermissionError WinError 5 replacing client-report.json after index completion",
+  "measurement": "20261117T154840Z",
+  "cause": "Transient Windows destination-file access; exact locking process not identified",
+  "originalCompletedPairs": "repeat0 baseline14/prefetch15 retained",
+  "dataset": 16
+}

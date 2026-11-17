@@ -1,0 +1,1011 @@
+{
+  "scope": "six camera detector microbenchmark, three repetitions, fresh process and warmup for each condition; no SAM or 3D evaluation",
+  "orders": [
+    [
+      1,
+      2,
+      4
+    ],
+    [
+      4,
+      1,
+      2
+    ],
+    [
+      2,
+      4,
+      1
+    ]
+  ],
+  "cases": [
+    {
+      "repeat": 0,
+      "threads": 1,
+      "directory": "$REPO\\.local\\hybrid\\measurements\\20261117T171553Z\\r0-t1",
+      "manifest": {
+        "started_at": "2026-11-17T17:16:00.505701+00:00",
+        "scope": "detector only; no SAM/3D/RDS/S3",
+        "scene": "scene-0061",
+        "frames": 1,
+        "images": 6,
+        "repeats": 1,
+        "mode": "reuse",
+        "diagnostic": false,
+        "threads": 1,
+        "seed": 42,
+        "torch_threads": 1,
+        "torch_interop_threads": 8,
+        "cpu_affinity_count": 8,
+        "source_sha256": {
+          "benchmark_grounding.py": "9a7c255b349b3240ce1b9b98ba961042a0eb9b890e305a747e45438a2b5d5fa2",
+          "grounding_probe.py": "e7fdce4adc0737269166b33b6c1b318216585af192aa338ef8ccd6042438e0b1"
+        },
+        "model": "IDEA-Research/grounding-dino-base",
+        "threshold": 0.3,
+        "labels": [
+          "car.",
+          "truck.",
+          "bus.",
+          "trailer.",
+          "excavator.",
+          "pedestrian.",
+          "motorcycle.",
+          "bicycle.",
+          "barrier.",
+          "traffic cone."
+        ],
+        "config_sha256": "bdb76615c9db9ed9e170caad5fdee682b7ae70e65b200f27b230f9563aed3bb6",
+        "torch": "2.14.1+cu130",
+        "transformers": "4.49.0",
+        "cuda": "13.0",
+        "cudnn": 92400,
+        "gpu": "NVIDIA GeForce RTX 5060 Ti",
+        "arch_list": [
+          "sm_75",
+          "sm_80",
+          "sm_86",
+          "sm_90",
+          "sm_100",
+          "sm_120"
+        ],
+        "matmul_tf32": false,
+        "cudnn_tf32": true,
+        "cudnn_benchmark": false,
+        "inputs": [
+          {
+            "token": "fe5422747a7d4268a4b07fc396707b23",
+            "path": "samples/CAM_FRONT_LEFT/n015-2018-07-24-11-22-45+0800__CAM_FRONT_LEFT__1532402927604844.jpg",
+            "sha256": "2c8c49149411fa88cd36f9076d19e064be963deaf4e7c0dde4a7c691e83e1e5a"
+          },
+          {
+            "token": "e3d495d4ac534d54b321f50006683844",
+            "path": "samples/CAM_FRONT/n015-2018-07-24-11-22-45+0800__CAM_FRONT__1532402927612460.jpg",
+            "sha256": "b7b7d466207462cf46742297a36afdd65315c05ae33126d5d36412aae70a0b62"
+          },
+          {
+            "token": "aac7867ebf4f446395d29fbd60b63b3b",
+            "path": "samples/CAM_FRONT_RIGHT/n015-2018-07-24-11-22-45+0800__CAM_FRONT_RIGHT__1532402927620339.jpg",
+            "sha256": "005ce4aff67c8df56233457218363687132fe7f40de758cf030aace578f55497"
+          },
+          {
+            "token": "79dbb4460a6b40f49f9c150cb118247e",
+            "path": "samples/CAM_BACK_RIGHT/n015-2018-07-24-11-22-45+0800__CAM_BACK_RIGHT__1532402927627893.jpg",
+            "sha256": "ab220a717b467d4fbed66b1a8a923dc522cc3aaaafa041613bcbfca3dd34ad9b"
+          },
+          {
+            "token": "03bea5763f0f4722933508d5999c5fd8",
+            "path": "samples/CAM_BACK/n015-2018-07-24-11-22-45+0800__CAM_BACK__1532402927637525.jpg",
+            "sha256": "51fe14c13dc4f2ab0f7f59b6634b98925b767939b3417a9db617bd3c178c9bb4"
+          },
+          {
+            "token": "43893a033f9c46d4a51b5e08a67a1eb7",
+            "path": "samples/CAM_BACK_LEFT/n015-2018-07-24-11-22-45+0800__CAM_BACK_LEFT__1532402927647423.jpg",
+            "sha256": "3ffae8abed7fc7e703cad8f10f92535c5f55314433660f11b1ed6ef02ebd41bf"
+          }
+        ],
+        "cache": "existing model/data files; OS page cache uncontrolled; same first image warmup for each mode",
+        "dtype": "torch.float32",
+        "model_commit": "12bdfa3120f3e7ec7b434d90674b3396eccf88eb",
+        "pipeline_batch_size": null
+      },
+      "wall_seconds": 29.355217075994005,
+      "command_wall_seconds": 51.0779999999977,
+      "model_load_seconds": 7.869235291000223,
+      "cpu_seconds": 29.355865060999992,
+      "voluntary_context_switches": 586,
+      "involuntary_context_switches": 64,
+      "max_allocated_bytes": 2314435584,
+      "forward_calls": 60,
+      "processor_calls": 6
+    },
+    {
+      "repeat": 0,
+      "threads": 2,
+      "directory": "$REPO\\.local\\hybrid\\measurements\\20261117T171553Z\\r0-t2",
+      "manifest": {
+        "started_at": "2026-11-17T17:16:50.013162+00:00",
+        "scope": "detector only; no SAM/3D/RDS/S3",
+        "scene": "scene-0061",
+        "frames": 1,
+        "images": 6,
+        "repeats": 1,
+        "mode": "reuse",
+        "diagnostic": false,
+        "threads": 2,
+        "seed": 42,
+        "torch_threads": 2,
+        "torch_interop_threads": 8,
+        "cpu_affinity_count": 8,
+        "source_sha256": {
+          "benchmark_grounding.py": "9a7c255b349b3240ce1b9b98ba961042a0eb9b890e305a747e45438a2b5d5fa2",
+          "grounding_probe.py": "e7fdce4adc0737269166b33b6c1b318216585af192aa338ef8ccd6042438e0b1"
+        },
+        "model": "IDEA-Research/grounding-dino-base",
+        "threshold": 0.3,
+        "labels": [
+          "car.",
+          "truck.",
+          "bus.",
+          "trailer.",
+          "excavator.",
+          "pedestrian.",
+          "motorcycle.",
+          "bicycle.",
+          "barrier.",
+          "traffic cone."
+        ],
+        "config_sha256": "bdb76615c9db9ed9e170caad5fdee682b7ae70e65b200f27b230f9563aed3bb6",
+        "torch": "2.14.1+cu130",
+        "transformers": "4.49.0",
+        "cuda": "13.0",
+        "cudnn": 92400,
+        "gpu": "NVIDIA GeForce RTX 5060 Ti",
+        "arch_list": [
+          "sm_75",
+          "sm_80",
+          "sm_86",
+          "sm_90",
+          "sm_100",
+          "sm_120"
+        ],
+        "matmul_tf32": false,
+        "cudnn_tf32": true,
+        "cudnn_benchmark": false,
+        "inputs": [
+          {
+            "token": "fe5422747a7d4268a4b07fc396707b23",
+            "path": "samples/CAM_FRONT_LEFT/n015-2018-07-24-11-22-45+0800__CAM_FRONT_LEFT__1532402927604844.jpg",
+            "sha256": "2c8c49149411fa88cd36f9076d19e064be963deaf4e7c0dde4a7c691e83e1e5a"
+          },
+          {
+            "token": "e3d495d4ac534d54b321f50006683844",
+            "path": "samples/CAM_FRONT/n015-2018-07-24-11-22-45+0800__CAM_FRONT__1532402927612460.jpg",
+            "sha256": "b7b7d466207462cf46742297a36afdd65315c05ae33126d5d36412aae70a0b62"
+          },
+          {
+            "token": "aac7867ebf4f446395d29fbd60b63b3b",
+            "path": "samples/CAM_FRONT_RIGHT/n015-2018-07-24-11-22-45+0800__CAM_FRONT_RIGHT__1532402927620339.jpg",
+            "sha256": "005ce4aff67c8df56233457218363687132fe7f40de758cf030aace578f55497"
+          },
+          {
+            "token": "79dbb4460a6b40f49f9c150cb118247e",
+            "path": "samples/CAM_BACK_RIGHT/n015-2018-07-24-11-22-45+0800__CAM_BACK_RIGHT__1532402927627893.jpg",
+            "sha256": "ab220a717b467d4fbed66b1a8a923dc522cc3aaaafa041613bcbfca3dd34ad9b"
+          },
+          {
+            "token": "03bea5763f0f4722933508d5999c5fd8",
+            "path": "samples/CAM_BACK/n015-2018-07-24-11-22-45+0800__CAM_BACK__1532402927637525.jpg",
+            "sha256": "51fe14c13dc4f2ab0f7f59b6634b98925b767939b3417a9db617bd3c178c9bb4"
+          },
+          {
+            "token": "43893a033f9c46d4a51b5e08a67a1eb7",
+            "path": "samples/CAM_BACK_LEFT/n015-2018-07-24-11-22-45+0800__CAM_BACK_LEFT__1532402927647423.jpg",
+            "sha256": "3ffae8abed7fc7e703cad8f10f92535c5f55314433660f11b1ed6ef02ebd41bf"
+          }
+        ],
+        "cache": "existing model/data files; OS page cache uncontrolled; same first image warmup for each mode",
+        "dtype": "torch.float32",
+        "model_commit": "12bdfa3120f3e7ec7b434d90674b3396eccf88eb",
+        "pipeline_batch_size": null
+      },
+      "wall_seconds": 28.726818233000813,
+      "command_wall_seconds": 49.34400000000096,
+      "model_load_seconds": 8.757962219002366,
+      "cpu_seconds": 28.769176580999996,
+      "voluntary_context_switches": 578,
+      "involuntary_context_switches": 57,
+      "max_allocated_bytes": 2314435584,
+      "forward_calls": 60,
+      "processor_calls": 6
+    },
+    {
+      "repeat": 0,
+      "threads": 4,
+      "directory": "$REPO\\.local\\hybrid\\measurements\\20261117T171553Z\\r0-t4",
+      "manifest": {
+        "started_at": "2026-11-17T17:17:39.292097+00:00",
+        "scope": "detector only; no SAM/3D/RDS/S3",
+        "scene": "scene-0061",
+        "frames": 1,
+        "images": 6,
+        "repeats": 1,
+        "mode": "reuse",
+        "diagnostic": false,
+        "threads": 4,
+        "seed": 42,
+        "torch_threads": 4,
+        "torch_interop_threads": 8,
+        "cpu_affinity_count": 8,
+        "source_sha256": {
+          "benchmark_grounding.py": "9a7c255b349b3240ce1b9b98ba961042a0eb9b890e305a747e45438a2b5d5fa2",
+          "grounding_probe.py": "e7fdce4adc0737269166b33b6c1b318216585af192aa338ef8ccd6042438e0b1"
+        },
+        "model": "IDEA-Research/grounding-dino-base",
+        "threshold": 0.3,
+        "labels": [
+          "car.",
+          "truck.",
+          "bus.",
+          "trailer.",
+          "excavator.",
+          "pedestrian.",
+          "motorcycle.",
+          "bicycle.",
+          "barrier.",
+          "traffic cone."
+        ],
+        "config_sha256": "bdb76615c9db9ed9e170caad5fdee682b7ae70e65b200f27b230f9563aed3bb6",
+        "torch": "2.14.1+cu130",
+        "transformers": "4.49.0",
+        "cuda": "13.0",
+        "cudnn": 92400,
+        "gpu": "NVIDIA GeForce RTX 5060 Ti",
+        "arch_list": [
+          "sm_75",
+          "sm_80",
+          "sm_86",
+          "sm_90",
+          "sm_100",
+          "sm_120"
+        ],
+        "matmul_tf32": false,
+        "cudnn_tf32": true,
+        "cudnn_benchmark": false,
+        "inputs": [
+          {
+            "token": "fe5422747a7d4268a4b07fc396707b23",
+            "path": "samples/CAM_FRONT_LEFT/n015-2018-07-24-11-22-45+0800__CAM_FRONT_LEFT__1532402927604844.jpg",
+            "sha256": "2c8c49149411fa88cd36f9076d19e064be963deaf4e7c0dde4a7c691e83e1e5a"
+          },
+          {
+            "token": "e3d495d4ac534d54b321f50006683844",
+            "path": "samples/CAM_FRONT/n015-2018-07-24-11-22-45+0800__CAM_FRONT__1532402927612460.jpg",
+            "sha256": "b7b7d466207462cf46742297a36afdd65315c05ae33126d5d36412aae70a0b62"
+          },
+          {
+            "token": "aac7867ebf4f446395d29fbd60b63b3b",
+            "path": "samples/CAM_FRONT_RIGHT/n015-2018-07-24-11-22-45+0800__CAM_FRONT_RIGHT__1532402927620339.jpg",
+            "sha256": "005ce4aff67c8df56233457218363687132fe7f40de758cf030aace578f55497"
+          },
+          {
+            "token": "79dbb4460a6b40f49f9c150cb118247e",
+            "path": "samples/CAM_BACK_RIGHT/n015-2018-07-24-11-22-45+0800__CAM_BACK_RIGHT__1532402927627893.jpg",
+            "sha256": "ab220a717b467d4fbed66b1a8a923dc522cc3aaaafa041613bcbfca3dd34ad9b"
+          },
+          {
+            "token": "03bea5763f0f4722933508d5999c5fd8",
+            "path": "samples/CAM_BACK/n015-2018-07-24-11-22-45+0800__CAM_BACK__1532402927637525.jpg",
+            "sha256": "51fe14c13dc4f2ab0f7f59b6634b98925b767939b3417a9db617bd3c178c9bb4"
+          },
+          {
+            "token": "43893a033f9c46d4a51b5e08a67a1eb7",
+            "path": "samples/CAM_BACK_LEFT/n015-2018-07-24-11-22-45+0800__CAM_BACK_LEFT__1532402927647423.jpg",
+            "sha256": "3ffae8abed7fc7e703cad8f10f92535c5f55314433660f11b1ed6ef02ebd41bf"
+          }
+        ],
+        "cache": "existing model/data files; OS page cache uncontrolled; same first image warmup for each mode",
+        "dtype": "torch.float32",
+        "model_commit": "12bdfa3120f3e7ec7b434d90674b3396eccf88eb",
+        "pipeline_batch_size": null
+      },
+      "wall_seconds": 29.579049144002056,
+      "command_wall_seconds": 47.06299999999828,
+      "model_load_seconds": 6.310910800999409,
+      "cpu_seconds": 29.77828310800001,
+      "voluntary_context_switches": 602,
+      "involuntary_context_switches": 73,
+      "max_allocated_bytes": 2314435584,
+      "forward_calls": 60,
+      "processor_calls": 6
+    },
+    {
+      "repeat": 1,
+      "threads": 4,
+      "directory": "$REPO\\.local\\hybrid\\measurements\\20261117T171553Z\\r1-t4",
+      "manifest": {
+        "started_at": "2026-11-17T17:18:27.683563+00:00",
+        "scope": "detector only; no SAM/3D/RDS/S3",
+        "scene": "scene-0061",
+        "frames": 1,
+        "images": 6,
+        "repeats": 1,
+        "mode": "reuse",
+        "diagnostic": false,
+        "threads": 4,
+        "seed": 42,
+        "torch_threads": 4,
+        "torch_interop_threads": 8,
+        "cpu_affinity_count": 8,
+        "source_sha256": {
+          "benchmark_grounding.py": "9a7c255b349b3240ce1b9b98ba961042a0eb9b890e305a747e45438a2b5d5fa2",
+          "grounding_probe.py": "e7fdce4adc0737269166b33b6c1b318216585af192aa338ef8ccd6042438e0b1"
+        },
+        "model": "IDEA-Research/grounding-dino-base",
+        "threshold": 0.3,
+        "labels": [
+          "car.",
+          "truck.",
+          "bus.",
+          "trailer.",
+          "excavator.",
+          "pedestrian.",
+          "motorcycle.",
+          "bicycle.",
+          "barrier.",
+          "traffic cone."
+        ],
+        "config_sha256": "bdb76615c9db9ed9e170caad5fdee682b7ae70e65b200f27b230f9563aed3bb6",
+        "torch": "2.14.1+cu130",
+        "transformers": "4.49.0",
+        "cuda": "13.0",
+        "cudnn": 92400,
+        "gpu": "NVIDIA GeForce RTX 5060 Ti",
+        "arch_list": [
+          "sm_75",
+          "sm_80",
+          "sm_86",
+          "sm_90",
+          "sm_100",
+          "sm_120"
+        ],
+        "matmul_tf32": false,
+        "cudnn_tf32": true,
+        "cudnn_benchmark": false,
+        "inputs": [
+          {
+            "token": "fe5422747a7d4268a4b07fc396707b23",
+            "path": "samples/CAM_FRONT_LEFT/n015-2018-07-24-11-22-45+0800__CAM_FRONT_LEFT__1532402927604844.jpg",
+            "sha256": "2c8c49149411fa88cd36f9076d19e064be963deaf4e7c0dde4a7c691e83e1e5a"
+          },
+          {
+            "token": "e3d495d4ac534d54b321f50006683844",
+            "path": "samples/CAM_FRONT/n015-2018-07-24-11-22-45+0800__CAM_FRONT__1532402927612460.jpg",
+            "sha256": "b7b7d466207462cf46742297a36afdd65315c05ae33126d5d36412aae70a0b62"
+          },
+          {
+            "token": "aac7867ebf4f446395d29fbd60b63b3b",
+            "path": "samples/CAM_FRONT_RIGHT/n015-2018-07-24-11-22-45+0800__CAM_FRONT_RIGHT__1532402927620339.jpg",
+            "sha256": "005ce4aff67c8df56233457218363687132fe7f40de758cf030aace578f55497"
+          },
+          {
+            "token": "79dbb4460a6b40f49f9c150cb118247e",
+            "path": "samples/CAM_BACK_RIGHT/n015-2018-07-24-11-22-45+0800__CAM_BACK_RIGHT__1532402927627893.jpg",
+            "sha256": "ab220a717b467d4fbed66b1a8a923dc522cc3aaaafa041613bcbfca3dd34ad9b"
+          },
+          {
+            "token": "03bea5763f0f4722933508d5999c5fd8",
+            "path": "samples/CAM_BACK/n015-2018-07-24-11-22-45+0800__CAM_BACK__1532402927637525.jpg",
+            "sha256": "51fe14c13dc4f2ab0f7f59b6634b98925b767939b3417a9db617bd3c178c9bb4"
+          },
+          {
+            "token": "43893a033f9c46d4a51b5e08a67a1eb7",
+            "path": "samples/CAM_BACK_LEFT/n015-2018-07-24-11-22-45+0800__CAM_BACK_LEFT__1532402927647423.jpg",
+            "sha256": "3ffae8abed7fc7e703cad8f10f92535c5f55314433660f11b1ed6ef02ebd41bf"
+          }
+        ],
+        "cache": "existing model/data files; OS page cache uncontrolled; same first image warmup for each mode",
+        "dtype": "torch.float32",
+        "model_commit": "12bdfa3120f3e7ec7b434d90674b3396eccf88eb",
+        "pipeline_batch_size": null
+      },
+      "wall_seconds": 28.93771867900068,
+      "command_wall_seconds": 47.56199999999808,
+      "model_load_seconds": 7.088182789000712,
+      "cpu_seconds": 29.065769494,
+      "voluntary_context_switches": 596,
+      "involuntary_context_switches": 57,
+      "max_allocated_bytes": 2314435584,
+      "forward_calls": 60,
+      "processor_calls": 6
+    },
+    {
+      "repeat": 1,
+      "threads": 1,
+      "directory": "$REPO\\.local\\hybrid\\measurements\\20261117T171553Z\\r1-t1",
+      "manifest": {
+        "started_at": "2026-11-17T17:19:14.984542+00:00",
+        "scope": "detector only; no SAM/3D/RDS/S3",
+        "scene": "scene-0061",
+        "frames": 1,
+        "images": 6,
+        "repeats": 1,
+        "mode": "reuse",
+        "diagnostic": false,
+        "threads": 1,
+        "seed": 42,
+        "torch_threads": 1,
+        "torch_interop_threads": 8,
+        "cpu_affinity_count": 8,
+        "source_sha256": {
+          "benchmark_grounding.py": "9a7c255b349b3240ce1b9b98ba961042a0eb9b890e305a747e45438a2b5d5fa2",
+          "grounding_probe.py": "e7fdce4adc0737269166b33b6c1b318216585af192aa338ef8ccd6042438e0b1"
+        },
+        "model": "IDEA-Research/grounding-dino-base",
+        "threshold": 0.3,
+        "labels": [
+          "car.",
+          "truck.",
+          "bus.",
+          "trailer.",
+          "excavator.",
+          "pedestrian.",
+          "motorcycle.",
+          "bicycle.",
+          "barrier.",
+          "traffic cone."
+        ],
+        "config_sha256": "bdb76615c9db9ed9e170caad5fdee682b7ae70e65b200f27b230f9563aed3bb6",
+        "torch": "2.14.1+cu130",
+        "transformers": "4.49.0",
+        "cuda": "13.0",
+        "cudnn": 92400,
+        "gpu": "NVIDIA GeForce RTX 5060 Ti",
+        "arch_list": [
+          "sm_75",
+          "sm_80",
+          "sm_86",
+          "sm_90",
+          "sm_100",
+          "sm_120"
+        ],
+        "matmul_tf32": false,
+        "cudnn_tf32": true,
+        "cudnn_benchmark": false,
+        "inputs": [
+          {
+            "token": "fe5422747a7d4268a4b07fc396707b23",
+            "path": "samples/CAM_FRONT_LEFT/n015-2018-07-24-11-22-45+0800__CAM_FRONT_LEFT__1532402927604844.jpg",
+            "sha256": "2c8c49149411fa88cd36f9076d19e064be963deaf4e7c0dde4a7c691e83e1e5a"
+          },
+          {
+            "token": "e3d495d4ac534d54b321f50006683844",
+            "path": "samples/CAM_FRONT/n015-2018-07-24-11-22-45+0800__CAM_FRONT__1532402927612460.jpg",
+            "sha256": "b7b7d466207462cf46742297a36afdd65315c05ae33126d5d36412aae70a0b62"
+          },
+          {
+            "token": "aac7867ebf4f446395d29fbd60b63b3b",
+            "path": "samples/CAM_FRONT_RIGHT/n015-2018-07-24-11-22-45+0800__CAM_FRONT_RIGHT__1532402927620339.jpg",
+            "sha256": "005ce4aff67c8df56233457218363687132fe7f40de758cf030aace578f55497"
+          },
+          {
+            "token": "79dbb4460a6b40f49f9c150cb118247e",
+            "path": "samples/CAM_BACK_RIGHT/n015-2018-07-24-11-22-45+0800__CAM_BACK_RIGHT__1532402927627893.jpg",
+            "sha256": "ab220a717b467d4fbed66b1a8a923dc522cc3aaaafa041613bcbfca3dd34ad9b"
+          },
+          {
+            "token": "03bea5763f0f4722933508d5999c5fd8",
+            "path": "samples/CAM_BACK/n015-2018-07-24-11-22-45+0800__CAM_BACK__1532402927637525.jpg",
+            "sha256": "51fe14c13dc4f2ab0f7f59b6634b98925b767939b3417a9db617bd3c178c9bb4"
+          },
+          {
+            "token": "43893a033f9c46d4a51b5e08a67a1eb7",
+            "path": "samples/CAM_BACK_LEFT/n015-2018-07-24-11-22-45+0800__CAM_BACK_LEFT__1532402927647423.jpg",
+            "sha256": "3ffae8abed7fc7e703cad8f10f92535c5f55314433660f11b1ed6ef02ebd41bf"
+          }
+        ],
+        "cache": "existing model/data files; OS page cache uncontrolled; same first image warmup for each mode",
+        "dtype": "torch.float32",
+        "model_commit": "12bdfa3120f3e7ec7b434d90674b3396eccf88eb",
+        "pipeline_batch_size": null
+      },
+      "wall_seconds": 30.183296270995925,
+      "command_wall_seconds": 47.68799999999828,
+      "model_load_seconds": 6.169536468998558,
+      "cpu_seconds": 30.202103213,
+      "voluntary_context_switches": 604,
+      "involuntary_context_switches": 57,
+      "max_allocated_bytes": 2314435584,
+      "forward_calls": 60,
+      "processor_calls": 6
+    },
+    {
+      "repeat": 1,
+      "threads": 2,
+      "directory": "$REPO\\.local\\hybrid\\measurements\\20261117T171553Z\\r1-t2",
+      "manifest": {
+        "started_at": "2026-11-17T17:20:03.687809+00:00",
+        "scope": "detector only; no SAM/3D/RDS/S3",
+        "scene": "scene-0061",
+        "frames": 1,
+        "images": 6,
+        "repeats": 1,
+        "mode": "reuse",
+        "diagnostic": false,
+        "threads": 2,
+        "seed": 42,
+        "torch_threads": 2,
+        "torch_interop_threads": 8,
+        "cpu_affinity_count": 8,
+        "source_sha256": {
+          "benchmark_grounding.py": "9a7c255b349b3240ce1b9b98ba961042a0eb9b890e305a747e45438a2b5d5fa2",
+          "grounding_probe.py": "e7fdce4adc0737269166b33b6c1b318216585af192aa338ef8ccd6042438e0b1"
+        },
+        "model": "IDEA-Research/grounding-dino-base",
+        "threshold": 0.3,
+        "labels": [
+          "car.",
+          "truck.",
+          "bus.",
+          "trailer.",
+          "excavator.",
+          "pedestrian.",
+          "motorcycle.",
+          "bicycle.",
+          "barrier.",
+          "traffic cone."
+        ],
+        "config_sha256": "bdb76615c9db9ed9e170caad5fdee682b7ae70e65b200f27b230f9563aed3bb6",
+        "torch": "2.14.1+cu130",
+        "transformers": "4.49.0",
+        "cuda": "13.0",
+        "cudnn": 92400,
+        "gpu": "NVIDIA GeForce RTX 5060 Ti",
+        "arch_list": [
+          "sm_75",
+          "sm_80",
+          "sm_86",
+          "sm_90",
+          "sm_100",
+          "sm_120"
+        ],
+        "matmul_tf32": false,
+        "cudnn_tf32": true,
+        "cudnn_benchmark": false,
+        "inputs": [
+          {
+            "token": "fe5422747a7d4268a4b07fc396707b23",
+            "path": "samples/CAM_FRONT_LEFT/n015-2018-07-24-11-22-45+0800__CAM_FRONT_LEFT__1532402927604844.jpg",
+            "sha256": "2c8c49149411fa88cd36f9076d19e064be963deaf4e7c0dde4a7c691e83e1e5a"
+          },
+          {
+            "token": "e3d495d4ac534d54b321f50006683844",
+            "path": "samples/CAM_FRONT/n015-2018-07-24-11-22-45+0800__CAM_FRONT__1532402927612460.jpg",
+            "sha256": "b7b7d466207462cf46742297a36afdd65315c05ae33126d5d36412aae70a0b62"
+          },
+          {
+            "token": "aac7867ebf4f446395d29fbd60b63b3b",
+            "path": "samples/CAM_FRONT_RIGHT/n015-2018-07-24-11-22-45+0800__CAM_FRONT_RIGHT__1532402927620339.jpg",
+            "sha256": "005ce4aff67c8df56233457218363687132fe7f40de758cf030aace578f55497"
+          },
+          {
+            "token": "79dbb4460a6b40f49f9c150cb118247e",
+            "path": "samples/CAM_BACK_RIGHT/n015-2018-07-24-11-22-45+0800__CAM_BACK_RIGHT__1532402927627893.jpg",
+            "sha256": "ab220a717b467d4fbed66b1a8a923dc522cc3aaaafa041613bcbfca3dd34ad9b"
+          },
+          {
+            "token": "03bea5763f0f4722933508d5999c5fd8",
+            "path": "samples/CAM_BACK/n015-2018-07-24-11-22-45+0800__CAM_BACK__1532402927637525.jpg",
+            "sha256": "51fe14c13dc4f2ab0f7f59b6634b98925b767939b3417a9db617bd3c178c9bb4"
+          },
+          {
+            "token": "43893a033f9c46d4a51b5e08a67a1eb7",
+            "path": "samples/CAM_BACK_LEFT/n015-2018-07-24-11-22-45+0800__CAM_BACK_LEFT__1532402927647423.jpg",
+            "sha256": "3ffae8abed7fc7e703cad8f10f92535c5f55314433660f11b1ed6ef02ebd41bf"
+          }
+        ],
+        "cache": "existing model/data files; OS page cache uncontrolled; same first image warmup for each mode",
+        "dtype": "torch.float32",
+        "model_commit": "12bdfa3120f3e7ec7b434d90674b3396eccf88eb",
+        "pipeline_batch_size": null
+      },
+      "wall_seconds": 29.936029756001517,
+      "command_wall_seconds": 48.43800000000192,
+      "model_load_seconds": 6.594550159999926,
+      "cpu_seconds": 29.979355633999994,
+      "voluntary_context_switches": 600,
+      "involuntary_context_switches": 58,
+      "max_allocated_bytes": 2314435584,
+      "forward_calls": 60,
+      "processor_calls": 6
+    },
+    {
+      "repeat": 2,
+      "threads": 2,
+      "directory": "$REPO\\.local\\hybrid\\measurements\\20261117T171553Z\\r2-t2",
+      "manifest": {
+        "started_at": "2026-11-17T17:20:52.877127+00:00",
+        "scope": "detector only; no SAM/3D/RDS/S3",
+        "scene": "scene-0061",
+        "frames": 1,
+        "images": 6,
+        "repeats": 1,
+        "mode": "reuse",
+        "diagnostic": false,
+        "threads": 2,
+        "seed": 42,
+        "torch_threads": 2,
+        "torch_interop_threads": 8,
+        "cpu_affinity_count": 8,
+        "source_sha256": {
+          "benchmark_grounding.py": "9a7c255b349b3240ce1b9b98ba961042a0eb9b890e305a747e45438a2b5d5fa2",
+          "grounding_probe.py": "e7fdce4adc0737269166b33b6c1b318216585af192aa338ef8ccd6042438e0b1"
+        },
+        "model": "IDEA-Research/grounding-dino-base",
+        "threshold": 0.3,
+        "labels": [
+          "car.",
+          "truck.",
+          "bus.",
+          "trailer.",
+          "excavator.",
+          "pedestrian.",
+          "motorcycle.",
+          "bicycle.",
+          "barrier.",
+          "traffic cone."
+        ],
+        "config_sha256": "bdb76615c9db9ed9e170caad5fdee682b7ae70e65b200f27b230f9563aed3bb6",
+        "torch": "2.14.1+cu130",
+        "transformers": "4.49.0",
+        "cuda": "13.0",
+        "cudnn": 92400,
+        "gpu": "NVIDIA GeForce RTX 5060 Ti",
+        "arch_list": [
+          "sm_75",
+          "sm_80",
+          "sm_86",
+          "sm_90",
+          "sm_100",
+          "sm_120"
+        ],
+        "matmul_tf32": false,
+        "cudnn_tf32": true,
+        "cudnn_benchmark": false,
+        "inputs": [
+          {
+            "token": "fe5422747a7d4268a4b07fc396707b23",
+            "path": "samples/CAM_FRONT_LEFT/n015-2018-07-24-11-22-45+0800__CAM_FRONT_LEFT__1532402927604844.jpg",
+            "sha256": "2c8c49149411fa88cd36f9076d19e064be963deaf4e7c0dde4a7c691e83e1e5a"
+          },
+          {
+            "token": "e3d495d4ac534d54b321f50006683844",
+            "path": "samples/CAM_FRONT/n015-2018-07-24-11-22-45+0800__CAM_FRONT__1532402927612460.jpg",
+            "sha256": "b7b7d466207462cf46742297a36afdd65315c05ae33126d5d36412aae70a0b62"
+          },
+          {
+            "token": "aac7867ebf4f446395d29fbd60b63b3b",
+            "path": "samples/CAM_FRONT_RIGHT/n015-2018-07-24-11-22-45+0800__CAM_FRONT_RIGHT__1532402927620339.jpg",
+            "sha256": "005ce4aff67c8df56233457218363687132fe7f40de758cf030aace578f55497"
+          },
+          {
+            "token": "79dbb4460a6b40f49f9c150cb118247e",
+            "path": "samples/CAM_BACK_RIGHT/n015-2018-07-24-11-22-45+0800__CAM_BACK_RIGHT__1532402927627893.jpg",
+            "sha256": "ab220a717b467d4fbed66b1a8a923dc522cc3aaaafa041613bcbfca3dd34ad9b"
+          },
+          {
+            "token": "03bea5763f0f4722933508d5999c5fd8",
+            "path": "samples/CAM_BACK/n015-2018-07-24-11-22-45+0800__CAM_BACK__1532402927637525.jpg",
+            "sha256": "51fe14c13dc4f2ab0f7f59b6634b98925b767939b3417a9db617bd3c178c9bb4"
+          },
+          {
+            "token": "43893a033f9c46d4a51b5e08a67a1eb7",
+            "path": "samples/CAM_BACK_LEFT/n015-2018-07-24-11-22-45+0800__CAM_BACK_LEFT__1532402927647423.jpg",
+            "sha256": "3ffae8abed7fc7e703cad8f10f92535c5f55314433660f11b1ed6ef02ebd41bf"
+          }
+        ],
+        "cache": "existing model/data files; OS page cache uncontrolled; same first image warmup for each mode",
+        "dtype": "torch.float32",
+        "model_commit": "12bdfa3120f3e7ec7b434d90674b3396eccf88eb",
+        "pipeline_batch_size": null
+      },
+      "wall_seconds": 29.406262817003153,
+      "command_wall_seconds": 51.17199999999866,
+      "model_load_seconds": 8.880623207998724,
+      "cpu_seconds": 29.44177797999999,
+      "voluntary_context_switches": 587,
+      "involuntary_context_switches": 77,
+      "max_allocated_bytes": 2314435584,
+      "forward_calls": 60,
+      "processor_calls": 6
+    },
+    {
+      "repeat": 2,
+      "threads": 4,
+      "directory": "$REPO\\.local\\hybrid\\measurements\\20261117T171553Z\\r2-t4",
+      "manifest": {
+        "started_at": "2026-11-17T17:21:44.386129+00:00",
+        "scope": "detector only; no SAM/3D/RDS/S3",
+        "scene": "scene-0061",
+        "frames": 1,
+        "images": 6,
+        "repeats": 1,
+        "mode": "reuse",
+        "diagnostic": false,
+        "threads": 4,
+        "seed": 42,
+        "torch_threads": 4,
+        "torch_interop_threads": 8,
+        "cpu_affinity_count": 8,
+        "source_sha256": {
+          "benchmark_grounding.py": "9a7c255b349b3240ce1b9b98ba961042a0eb9b890e305a747e45438a2b5d5fa2",
+          "grounding_probe.py": "e7fdce4adc0737269166b33b6c1b318216585af192aa338ef8ccd6042438e0b1"
+        },
+        "model": "IDEA-Research/grounding-dino-base",
+        "threshold": 0.3,
+        "labels": [
+          "car.",
+          "truck.",
+          "bus.",
+          "trailer.",
+          "excavator.",
+          "pedestrian.",
+          "motorcycle.",
+          "bicycle.",
+          "barrier.",
+          "traffic cone."
+        ],
+        "config_sha256": "bdb76615c9db9ed9e170caad5fdee682b7ae70e65b200f27b230f9563aed3bb6",
+        "torch": "2.14.1+cu130",
+        "transformers": "4.49.0",
+        "cuda": "13.0",
+        "cudnn": 92400,
+        "gpu": "NVIDIA GeForce RTX 5060 Ti",
+        "arch_list": [
+          "sm_75",
+          "sm_80",
+          "sm_86",
+          "sm_90",
+          "sm_100",
+          "sm_120"
+        ],
+        "matmul_tf32": false,
+        "cudnn_tf32": true,
+        "cudnn_benchmark": false,
+        "inputs": [
+          {
+            "token": "fe5422747a7d4268a4b07fc396707b23",
+            "path": "samples/CAM_FRONT_LEFT/n015-2018-07-24-11-22-45+0800__CAM_FRONT_LEFT__1532402927604844.jpg",
+            "sha256": "2c8c49149411fa88cd36f9076d19e064be963deaf4e7c0dde4a7c691e83e1e5a"
+          },
+          {
+            "token": "e3d495d4ac534d54b321f50006683844",
+            "path": "samples/CAM_FRONT/n015-2018-07-24-11-22-45+0800__CAM_FRONT__1532402927612460.jpg",
+            "sha256": "b7b7d466207462cf46742297a36afdd65315c05ae33126d5d36412aae70a0b62"
+          },
+          {
+            "token": "aac7867ebf4f446395d29fbd60b63b3b",
+            "path": "samples/CAM_FRONT_RIGHT/n015-2018-07-24-11-22-45+0800__CAM_FRONT_RIGHT__1532402927620339.jpg",
+            "sha256": "005ce4aff67c8df56233457218363687132fe7f40de758cf030aace578f55497"
+          },
+          {
+            "token": "79dbb4460a6b40f49f9c150cb118247e",
+            "path": "samples/CAM_BACK_RIGHT/n015-2018-07-24-11-22-45+0800__CAM_BACK_RIGHT__1532402927627893.jpg",
+            "sha256": "ab220a717b467d4fbed66b1a8a923dc522cc3aaaafa041613bcbfca3dd34ad9b"
+          },
+          {
+            "token": "03bea5763f0f4722933508d5999c5fd8",
+            "path": "samples/CAM_BACK/n015-2018-07-24-11-22-45+0800__CAM_BACK__1532402927637525.jpg",
+            "sha256": "51fe14c13dc4f2ab0f7f59b6634b98925b767939b3417a9db617bd3c178c9bb4"
+          },
+          {
+            "token": "43893a033f9c46d4a51b5e08a67a1eb7",
+            "path": "samples/CAM_BACK_LEFT/n015-2018-07-24-11-22-45+0800__CAM_BACK_LEFT__1532402927647423.jpg",
+            "sha256": "3ffae8abed7fc7e703cad8f10f92535c5f55314433660f11b1ed6ef02ebd41bf"
+          }
+        ],
+        "cache": "existing model/data files; OS page cache uncontrolled; same first image warmup for each mode",
+        "dtype": "torch.float32",
+        "model_commit": "12bdfa3120f3e7ec7b434d90674b3396eccf88eb",
+        "pipeline_batch_size": null
+      },
+      "wall_seconds": 28.950249855999573,
+      "command_wall_seconds": 46.84299999999712,
+      "model_load_seconds": 5.9635556299981545,
+      "cpu_seconds": 29.002690705,
+      "voluntary_context_switches": 581,
+      "involuntary_context_switches": 99,
+      "max_allocated_bytes": 2314435584,
+      "forward_calls": 60,
+      "processor_calls": 6
+    },
+    {
+      "repeat": 2,
+      "threads": 1,
+      "directory": "$REPO\\.local\\hybrid\\measurements\\20261117T171553Z\\r2-t1",
+      "manifest": {
+        "started_at": "2026-11-17T17:22:31.207283+00:00",
+        "scope": "detector only; no SAM/3D/RDS/S3",
+        "scene": "scene-0061",
+        "frames": 1,
+        "images": 6,
+        "repeats": 1,
+        "mode": "reuse",
+        "diagnostic": false,
+        "threads": 1,
+        "seed": 42,
+        "torch_threads": 1,
+        "torch_interop_threads": 8,
+        "cpu_affinity_count": 8,
+        "source_sha256": {
+          "benchmark_grounding.py": "9a7c255b349b3240ce1b9b98ba961042a0eb9b890e305a747e45438a2b5d5fa2",
+          "grounding_probe.py": "e7fdce4adc0737269166b33b6c1b318216585af192aa338ef8ccd6042438e0b1"
+        },
+        "model": "IDEA-Research/grounding-dino-base",
+        "threshold": 0.3,
+        "labels": [
+          "car.",
+          "truck.",
+          "bus.",
+          "trailer.",
+          "excavator.",
+          "pedestrian.",
+          "motorcycle.",
+          "bicycle.",
+          "barrier.",
+          "traffic cone."
+        ],
+        "config_sha256": "bdb76615c9db9ed9e170caad5fdee682b7ae70e65b200f27b230f9563aed3bb6",
+        "torch": "2.14.1+cu130",
+        "transformers": "4.49.0",
+        "cuda": "13.0",
+        "cudnn": 92400,
+        "gpu": "NVIDIA GeForce RTX 5060 Ti",
+        "arch_list": [
+          "sm_75",
+          "sm_80",
+          "sm_86",
+          "sm_90",
+          "sm_100",
+          "sm_120"
+        ],
+        "matmul_tf32": false,
+        "cudnn_tf32": true,
+        "cudnn_benchmark": false,
+        "inputs": [
+          {
+            "token": "fe5422747a7d4268a4b07fc396707b23",
+            "path": "samples/CAM_FRONT_LEFT/n015-2018-07-24-11-22-45+0800__CAM_FRONT_LEFT__1532402927604844.jpg",
+            "sha256": "2c8c49149411fa88cd36f9076d19e064be963deaf4e7c0dde4a7c691e83e1e5a"
+          },
+          {
+            "token": "e3d495d4ac534d54b321f50006683844",
+            "path": "samples/CAM_FRONT/n015-2018-07-24-11-22-45+0800__CAM_FRONT__1532402927612460.jpg",
+            "sha256": "b7b7d466207462cf46742297a36afdd65315c05ae33126d5d36412aae70a0b62"
+          },
+          {
+            "token": "aac7867ebf4f446395d29fbd60b63b3b",
+            "path": "samples/CAM_FRONT_RIGHT/n015-2018-07-24-11-22-45+0800__CAM_FRONT_RIGHT__1532402927620339.jpg",
+            "sha256": "005ce4aff67c8df56233457218363687132fe7f40de758cf030aace578f55497"
+          },
+          {
+            "token": "79dbb4460a6b40f49f9c150cb118247e",
+            "path": "samples/CAM_BACK_RIGHT/n015-2018-07-24-11-22-45+0800__CAM_BACK_RIGHT__1532402927627893.jpg",
+            "sha256": "ab220a717b467d4fbed66b1a8a923dc522cc3aaaafa041613bcbfca3dd34ad9b"
+          },
+          {
+            "token": "03bea5763f0f4722933508d5999c5fd8",
+            "path": "samples/CAM_BACK/n015-2018-07-24-11-22-45+0800__CAM_BACK__1532402927637525.jpg",
+            "sha256": "51fe14c13dc4f2ab0f7f59b6634b98925b767939b3417a9db617bd3c178c9bb4"
+          },
+          {
+            "token": "43893a033f9c46d4a51b5e08a67a1eb7",
+            "path": "samples/CAM_BACK_LEFT/n015-2018-07-24-11-22-45+0800__CAM_BACK_LEFT__1532402927647423.jpg",
+            "sha256": "3ffae8abed7fc7e703cad8f10f92535c5f55314433660f11b1ed6ef02ebd41bf"
+          }
+        ],
+        "cache": "existing model/data files; OS page cache uncontrolled; same first image warmup for each mode",
+        "dtype": "torch.float32",
+        "model_commit": "12bdfa3120f3e7ec7b434d90674b3396eccf88eb",
+        "pipeline_batch_size": null
+      },
+      "wall_seconds": 29.08968086398818,
+      "command_wall_seconds": 47.875,
+      "model_load_seconds": 6.150720371002535,
+      "cpu_seconds": 29.08590437299999,
+      "voluntary_context_switches": 580,
+      "involuntary_context_switches": 69,
+      "max_allocated_bytes": 2314435584,
+      "forward_calls": 60,
+      "processor_calls": 6
+    }
+  ],
+  "quality_checks": [
+    {
+      "repeat": 0,
+      "threads": 2,
+      "outputs": {
+        "exact": true,
+        "within_tolerance": true,
+        "tolerance": 1e-06,
+        "max_numeric_absolute_difference": 0.0,
+        "difference_count": 0,
+        "first_differences": []
+      },
+      "inputs_equal": true
+    },
+    {
+      "repeat": 0,
+      "threads": 4,
+      "outputs": {
+        "exact": true,
+        "within_tolerance": true,
+        "tolerance": 1e-06,
+        "max_numeric_absolute_difference": 0.0,
+        "difference_count": 0,
+        "first_differences": []
+      },
+      "inputs_equal": true
+    },
+    {
+      "repeat": 1,
+      "threads": 2,
+      "outputs": {
+        "exact": true,
+        "within_tolerance": true,
+        "tolerance": 1e-06,
+        "max_numeric_absolute_difference": 0.0,
+        "difference_count": 0,
+        "first_differences": []
+      },
+      "inputs_equal": true
+    },
+    {
+      "repeat": 1,
+      "threads": 4,
+      "outputs": {
+        "exact": true,
+        "within_tolerance": true,
+        "tolerance": 1e-06,
+        "max_numeric_absolute_difference": 0.0,
+        "difference_count": 0,
+        "first_differences": []
+      },
+      "inputs_equal": true
+    },
+    {
+      "repeat": 2,
+      "threads": 2,
+      "outputs": {
+        "exact": true,
+        "within_tolerance": true,
+        "tolerance": 1e-06,
+        "max_numeric_absolute_difference": 0.0,
+        "difference_count": 0,
+        "first_differences": []
+      },
+      "inputs_equal": true
+    },
+    {
+      "repeat": 2,
+      "threads": 4,
+      "outputs": {
+        "exact": true,
+        "within_tolerance": true,
+        "tolerance": 1e-06,
+        "max_numeric_absolute_difference": 0.0,
+        "difference_count": 0,
+        "first_differences": []
+      },
+      "inputs_equal": true
+    }
+  ],
+  "quality_passed": true,
+  "median_seconds": {
+    "1": 29.355217075994005,
+    "2": 29.406262817003153,
+    "4": 28.950249855999573
+  },
+  "best_observed_threads": "4",
+  "decision": "microbenchmark only; keep production threads=1 until full-scene quality and wall validation",
+  "limitation": "Context switches alone do not prove thrashing; inspect CPU-time/wall ratio, memory pressure and elapsed time together."
+}

@@ -1,0 +1,19 @@
+{
+  "reason": "User requested GPU stop and publication of today work",
+  "not_executed": [
+    "S2 actual S3 transfer comparison",
+    "Q2 actual RDS query comparison",
+    "ORT threshold/CPU diagnostic",
+    "new cache/auth/metadata candidates"
+  ],
+  "trt": "ONNX parse passed; engine build interrupted by user; no finished engine timing",
+  "production_adopted": [
+    "G2 preprocessing reuse",
+    "C1 source prefetch"
+  ],
+  "production_held": [
+    "native threads2/4",
+    "AMP FP16/BF16/TF32",
+    "attention/engine replacement"
+  ]
+}

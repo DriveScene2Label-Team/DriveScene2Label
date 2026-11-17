@@ -1,0 +1,2 @@
+{"at": "2026-11-17T18:03:27.130157+00:00", "event": "model_loaded", "seconds": 6.816268783000851}
+{"at": "2026-11-17T18:03:28.957924+00:00", "event": "run_failed", "error_type": "RuntimeError"}

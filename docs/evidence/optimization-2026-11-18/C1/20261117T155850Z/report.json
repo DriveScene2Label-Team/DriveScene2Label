@@ -1,0 +1,474 @@
+{
+  "collected_at": "2026-11-17T16:00:26.753717+00:00",
+  "started_at": "2026-11-17T15:58:50.879836+00:00",
+  "capture_errors": [],
+  "events": 1055,
+  "timings": [
+    {
+      "boundary": "CLIP / boundary / 18 / observed / ai_ms",
+      "count": 474,
+      "sum_ms": 36200.0,
+      "p50_ms": 72.0,
+      "p95_ms": 93.0,
+      "max_ms": 303.0
+    },
+    {
+      "boundary": "CLIP / boundary / 18 / observed / cache_ms",
+      "count": 474,
+      "sum_ms": 0.0,
+      "p50_ms": 0.0,
+      "p95_ms": 0.0,
+      "max_ms": 0.0
+    },
+    {
+      "boundary": "CLIP / boundary / 18 / observed / exists_ms",
+      "count": 474,
+      "sum_ms": 3743.0,
+      "p50_ms": 7.0,
+      "p95_ms": 11.0,
+      "max_ms": 38.0
+    },
+    {
+      "boundary": "CLIP / boundary / 18 / observed / source_ms",
+      "count": 474,
+      "sum_ms": 3832.0,
+      "p50_ms": 8.0,
+      "p95_ms": 11.0,
+      "max_ms": 25.0
+    },
+    {
+      "boundary": "CLIP / boundary / 18 / observed / storage_ms",
+      "count": 474,
+      "sum_ms": 5156.0,
+      "p50_ms": 10.0,
+      "p95_ms": 15.0,
+      "max_ms": 30.0
+    },
+    {
+      "boundary": "CLIP / boundary / 18 / observed / total_ms",
+      "count": 474,
+      "sum_ms": 49739.0,
+      "p50_ms": 100.0,
+      "p95_ms": 125.0,
+      "max_ms": 349.0
+    },
+    {
+      "boundary": "CLIP_INDEX / batch_loaded / 18 / batch_loaded / jdbc_ms",
+      "count": 9,
+      "sum_ms": 356.0,
+      "p50_ms": 33.0,
+      "p95_ms": 67.0,
+      "max_ms": 67.0
+    },
+    {
+      "boundary": "CLIP_INDEX / completed / 18 / completed / wall_ms",
+      "count": 1,
+      "sum_ms": 50598.0,
+      "p50_ms": 50598.0,
+      "p95_ms": 50598.0,
+      "max_ms": 50598.0
+    },
+    {
+      "boundary": "CLIP_STAGE / image_embed / all / observed / decode_ms",
+      "count": 474,
+      "sum_ms": 2135.1,
+      "p50_ms": 4.3,
+      "p95_ms": 5.9,
+      "max_ms": 11.4
+    },
+    {
+      "boundary": "CLIP_STAGE / image_embed / all / observed / gpu_ms",
+      "count": 474,
+      "sum_ms": 20007.7,
+      "p50_ms": 41.2,
+      "p95_ms": 47.0,
+      "max_ms": 52.2
+    },
+    {
+      "boundary": "CLIP_STAGE / image_embed / all / observed / handler_ms",
+      "count": 474,
+      "sum_ms": 31955.1,
+      "p50_ms": 66.0,
+      "p95_ms": 79.2,
+      "max_ms": 94.3
+    },
+    {
+      "boundary": "CLIP_STAGE / image_embed / all / observed / lock_wait_ms",
+      "count": 474,
+      "sum_ms": 61.2,
+      "p50_ms": 0.1,
+      "p95_ms": 0.2,
+      "max_ms": 1.0
+    },
+    {
+      "boundary": "CLIP_STAGE / image_embed / all / observed / preprocess_ms",
+      "count": 474,
+      "sum_ms": 9499.5,
+      "p50_ms": 18.6,
+      "p95_ms": 30.9,
+      "max_ms": 44.2
+    },
+    {
+      "boundary": "DB_IMPORT / advisory_lock / 4111d978-1b91-4b8d-bff5-dd3986276035 / observed / wall_ms",
+      "count": 1,
+      "sum_ms": 9.0,
+      "p50_ms": 9.0,
+      "p95_ms": 9.0,
+      "max_ms": 9.0
+    },
+    {
+      "boundary": "DB_IMPORT / attribute / 18 / observed / jdbc_ms",
+      "count": 1,
+      "sum_ms": 7.0,
+      "p50_ms": 7.0,
+      "p95_ms": 7.0,
+      "max_ms": 7.0
+    },
+    {
+      "boundary": "DB_IMPORT / attribute / 18 / observed / wall_ms",
+      "count": 1,
+      "sum_ms": 7.0,
+      "p50_ms": 7.0,
+      "p95_ms": 7.0,
+      "max_ms": 7.0
+    },
+    {
+      "boundary": "DB_IMPORT / calibrated_sensor / 18 / observed / jdbc_ms",
+      "count": 1,
+      "sum_ms": 14.0,
+      "p50_ms": 14.0,
+      "p95_ms": 14.0,
+      "max_ms": 14.0
+    },
+    {
+      "boundary": "DB_IMPORT / calibrated_sensor / 18 / observed / wall_ms",
+      "count": 1,
+      "sum_ms": 20.0,
+      "p50_ms": 20.0,
+      "p95_ms": 20.0,
+      "max_ms": 20.0
+    },
+    {
+      "boundary": "DB_IMPORT / capture_log / 18 / observed / jdbc_ms",
+      "count": 1,
+      "sum_ms": 14.0,
+      "p50_ms": 14.0,
+      "p95_ms": 14.0,
+      "max_ms": 14.0
+    },
+    {
+      "boundary": "DB_IMPORT / capture_log / 18 / observed / wall_ms",
+      "count": 1,
+      "sum_ms": 23.0,
+      "p50_ms": 23.0,
+      "p95_ms": 23.0,
+      "max_ms": 23.0
+    },
+    {
+      "boundary": "DB_IMPORT / category / 18 / observed / jdbc_ms",
+      "count": 1,
+      "sum_ms": 10.0,
+      "p50_ms": 10.0,
+      "p95_ms": 10.0,
+      "max_ms": 10.0
+    },
+    {
+      "boundary": "DB_IMPORT / category / 18 / observed / wall_ms",
+      "count": 1,
+      "sum_ms": 11.0,
+      "p50_ms": 11.0,
+      "p95_ms": 11.0,
+      "max_ms": 11.0
+    },
+    {
+      "boundary": "DB_IMPORT / ego_pose / 18 / observed / jdbc_ms",
+      "count": 1,
+      "sum_ms": 83.0,
+      "p50_ms": 83.0,
+      "p95_ms": 83.0,
+      "max_ms": 83.0
+    },
+    {
+      "boundary": "DB_IMPORT / ego_pose / 18 / observed / wall_ms",
+      "count": 1,
+      "sum_ms": 125.0,
+      "p50_ms": 125.0,
+      "p95_ms": 125.0,
+      "max_ms": 125.0
+    },
+    {
+      "boundary": "DB_IMPORT / gt_annotation / 18 / observed / jdbc_ms",
+      "count": 1,
+      "sum_ms": 856.0,
+      "p50_ms": 856.0,
+      "p95_ms": 856.0,
+      "max_ms": 856.0
+    },
+    {
+      "boundary": "DB_IMPORT / gt_annotation / 18 / observed / wall_ms",
+      "count": 1,
+      "sum_ms": 913.0,
+      "p50_ms": 913.0,
+      "p95_ms": 913.0,
+      "max_ms": 913.0
+    },
+    {
+      "boundary": "DB_IMPORT / map_asset / 18 / observed / jdbc_ms",
+      "count": 1,
+      "sum_ms": 8.0,
+      "p50_ms": 8.0,
+      "p95_ms": 8.0,
+      "max_ms": 8.0
+    },
+    {
+      "boundary": "DB_IMPORT / map_asset / 18 / observed / wall_ms",
+      "count": 1,
+      "sum_ms": 9.0,
+      "p50_ms": 9.0,
+      "p95_ms": 9.0,
+      "max_ms": 9.0
+    },
+    {
+      "boundary": "DB_IMPORT / object_instance / 18 / observed / jdbc_ms",
+      "count": 1,
+      "sum_ms": 30.0,
+      "p50_ms": 30.0,
+      "p95_ms": 30.0,
+      "max_ms": 30.0
+    },
+    {
+      "boundary": "DB_IMPORT / object_instance / 18 / observed / wall_ms",
+      "count": 1,
+      "sum_ms": 33.0,
+      "p50_ms": 33.0,
+      "p95_ms": 33.0,
+      "max_ms": 33.0
+    },
+    {
+      "boundary": "DB_IMPORT / sample / 18 / observed / jdbc_ms",
+      "count": 1,
+      "sum_ms": 20.0,
+      "p50_ms": 20.0,
+      "p95_ms": 20.0,
+      "max_ms": 20.0
+    },
+    {
+      "boundary": "DB_IMPORT / sample / 18 / observed / wall_ms",
+      "count": 1,
+      "sum_ms": 25.0,
+      "p50_ms": 25.0,
+      "p95_ms": 25.0,
+      "max_ms": 25.0
+    },
+    {
+      "boundary": "DB_IMPORT / sample_data / 18 / observed / jdbc_ms",
+      "count": 1,
+      "sum_ms": 126.0,
+      "p50_ms": 126.0,
+      "p95_ms": 126.0,
+      "max_ms": 126.0
+    },
+    {
+      "boundary": "DB_IMPORT / sample_data / 18 / observed / wall_ms",
+      "count": 1,
+      "sum_ms": 137.0,
+      "p50_ms": 137.0,
+      "p95_ms": 137.0,
+      "max_ms": 137.0
+    },
+    {
+      "boundary": "DB_IMPORT / scene / 18 / observed / jdbc_ms",
+      "count": 1,
+      "sum_ms": 8.0,
+      "p50_ms": 8.0,
+      "p95_ms": 8.0,
+      "max_ms": 8.0
+    },
+    {
+      "boundary": "DB_IMPORT / scene / 18 / observed / wall_ms",
+      "count": 1,
+      "sum_ms": 8.0,
+      "p50_ms": 8.0,
+      "p95_ms": 8.0,
+      "max_ms": 8.0
+    },
+    {
+      "boundary": "DB_IMPORT / sensor / 18 / observed / jdbc_ms",
+      "count": 1,
+      "sum_ms": 9.0,
+      "p50_ms": 9.0,
+      "p95_ms": 9.0,
+      "max_ms": 9.0
+    },
+    {
+      "boundary": "DB_IMPORT / sensor / 18 / observed / wall_ms",
+      "count": 1,
+      "sum_ms": 11.0,
+      "p50_ms": 11.0,
+      "p95_ms": 11.0,
+      "max_ms": 11.0
+    },
+    {
+      "boundary": "DB_IMPORT / visibility / 18 / observed / jdbc_ms",
+      "count": 1,
+      "sum_ms": 8.0,
+      "p50_ms": 8.0,
+      "p95_ms": 8.0,
+      "max_ms": 8.0
+    },
+    {
+      "boundary": "DB_IMPORT / visibility / 18 / observed / wall_ms",
+      "count": 1,
+      "sum_ms": 8.0,
+      "p50_ms": 8.0,
+      "p95_ms": 8.0,
+      "max_ms": 8.0
+    },
+    {
+      "boundary": "HTTP / /api/dataset-uploads/sessions / all / observed / wall_ms",
+      "count": 1,
+      "sum_ms": 193.0,
+      "p50_ms": 193.0,
+      "p95_ms": 193.0,
+      "max_ms": 193.0
+    },
+    {
+      "boundary": "HTTP / /api/dataset-uploads/sessions/{id} / all / observed / wall_ms",
+      "count": 1,
+      "sum_ms": 28.0,
+      "p50_ms": 28.0,
+      "p95_ms": 28.0,
+      "max_ms": 28.0
+    },
+    {
+      "boundary": "HTTP / /api/dataset-uploads/sessions/{id}/complete / all / observed / wall_ms",
+      "count": 1,
+      "sum_ms": 45.0,
+      "p50_ms": 45.0,
+      "p95_ms": 45.0,
+      "max_ms": 45.0
+    },
+    {
+      "boundary": "HTTP / /api/dataset-uploads/sessions/{id}/parts / all / observed / wall_ms",
+      "count": 28,
+      "sum_ms": 3537.0,
+      "p50_ms": 110.0,
+      "p95_ms": 280.0,
+      "max_ms": 359.0
+    },
+    {
+      "boundary": "HTTP / /api/datasets / all / observed / wall_ms",
+      "count": 4,
+      "sum_ms": 92.0,
+      "p50_ms": 20.0,
+      "p95_ms": 35.0,
+      "max_ms": 35.0
+    },
+    {
+      "boundary": "HTTP / /api/datasets/{id}/search-index / all / observed / wall_ms",
+      "count": 6,
+      "sum_ms": 381.0,
+      "p50_ms": 58.0,
+      "p95_ms": 81.0,
+      "max_ms": 81.0
+    },
+    {
+      "boundary": "UPLOAD_STAGE / COPYING / 4111d978-1b91-4b8d-bff5-dd3986276035 / completed / wall_ms",
+      "count": 1,
+      "sum_ms": 182.0,
+      "p50_ms": 182.0,
+      "p95_ms": 182.0,
+      "max_ms": 182.0
+    },
+    {
+      "boundary": "UPLOAD_STAGE / EXTRACTING / 4111d978-1b91-4b8d-bff5-dd3986276035 / completed / wall_ms",
+      "count": 1,
+      "sum_ms": 1851.0,
+      "p50_ms": 1851.0,
+      "p95_ms": 1851.0,
+      "max_ms": 1851.0
+    },
+    {
+      "boundary": "UPLOAD_STAGE / IMPORTING_METADATA / 4111d978-1b91-4b8d-bff5-dd3986276035 / completed / wall_ms",
+      "count": 1,
+      "sum_ms": 1861.0,
+      "p50_ms": 1861.0,
+      "p95_ms": 1861.0,
+      "max_ms": 1861.0
+    },
+    {
+      "boundary": "UPLOAD_STAGE / STORING_ORIGINAL / 4111d978-1b91-4b8d-bff5-dd3986276035 / completed / wall_ms",
+      "count": 1,
+      "sum_ms": 3548.0,
+      "p50_ms": 3548.0,
+      "p95_ms": 3548.0,
+      "max_ms": 3548.0
+    },
+    {
+      "boundary": "UPLOAD_STAGE / TOTAL / 4111d978-1b91-4b8d-bff5-dd3986276035 / completed / wall_ms",
+      "count": 1,
+      "sum_ms": 7446.0,
+      "p50_ms": 7446.0,
+      "p95_ms": 7446.0,
+      "max_ms": 7446.0
+    },
+    {
+      "boundary": "UPLOAD_TRANSFER / part / 4111d978-1b91-4b8d-bff5-dd3986276035 / part / db_lock_ms",
+      "count": 28,
+      "sum_ms": 249.0,
+      "p50_ms": 9.0,
+      "p95_ms": 11.0,
+      "max_ms": 12.0
+    },
+    {
+      "boundary": "UPLOAD_TRANSFER / part / 4111d978-1b91-4b8d-bff5-dd3986276035 / part / db_update_ms",
+      "count": 28,
+      "sum_ms": 244.0,
+      "p50_ms": 8.0,
+      "p95_ms": 12.0,
+      "max_ms": 16.0
+    },
+    {
+      "boundary": "UPLOAD_TRANSFER / part / 4111d978-1b91-4b8d-bff5-dd3986276035 / part / file_ms",
+      "count": 28,
+      "sum_ms": 307.0,
+      "p50_ms": 9.0,
+      "p95_ms": 28.0,
+      "max_ms": 44.0
+    },
+    {
+      "boundary": "UPLOAD_TRANSFER / part / 4111d978-1b91-4b8d-bff5-dd3986276035 / part / receive_ms",
+      "count": 28,
+      "sum_ms": 1771.0,
+      "p50_ms": 53.0,
+      "p95_ms": 192.0,
+      "max_ms": 208.0
+    },
+    {
+      "boundary": "UPLOAD_TRANSFER / part / 4111d978-1b91-4b8d-bff5-dd3986276035 / part / status_ms",
+      "count": 28,
+      "sum_ms": 232.0,
+      "p50_ms": 8.0,
+      "p95_ms": 10.0,
+      "max_ms": 10.0
+    },
+    {
+      "boundary": "UPLOAD_TRANSFER / part / 4111d978-1b91-4b8d-bff5-dd3986276035 / part / total_ms",
+      "count": 28,
+      "sum_ms": 3129.0,
+      "p50_ms": 99.0,
+      "p95_ms": 262.0,
+      "max_ms": 314.0
+    },
+    {
+      "boundary": "UPLOAD_TRANSFER / part / 4111d978-1b91-4b8d-bff5-dd3986276035 / part / transaction_ms",
+      "count": 28,
+      "sum_ms": 1101.0,
+      "p50_ms": 36.0,
+      "p95_ms": 59.0,
+      "max_ms": 95.0
+    }
+  ],
+  "failures": [],
+  "limitation": "Inclusive/nested spans overlap; do not sum rows. Missing stages are unmeasured. Browser metrics are self-reported. CPU time is not CUDA kernel time."
+}

@@ -1,0 +1,18 @@
+{
+  "started_at": "2026-11-17T16:20:24.183918+00:00",
+  "directory": "$REPO\\.local\\hybrid\\measurements\\20261117T162023Z",
+  "command": [
+    "python",
+    "scripts/hybrid/benchmark_index_quality.py",
+    "--directory",
+    "$REPO\\.local\\hybrid\\measurements\\20261117T162023Z",
+    "--baseline-dataset-id",
+    "7",
+    "--candidate-dataset-id",
+    "21"
+  ],
+  "exit_code": 0,
+  "command_wall_seconds": 24.01599999999962,
+  "finished_at": "2026-11-17T16:20:48.194664+00:00",
+  "final_collect_exit_code": 0
+}

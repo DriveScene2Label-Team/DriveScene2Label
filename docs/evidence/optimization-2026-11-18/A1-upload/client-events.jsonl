@@ -1,0 +1,43 @@
+{"at": "2026-11-17T16:05:26.926276+00:00", "event": "upload_created", "upload": "f00cc327-dc93-4e82-a8aa-ef9d18dcc550"}
+{"at": "2026-11-17T16:05:27.105519+00:00", "event": "transfer", "percent": 0.1, "elapsed_seconds": 0.25}
+{"at": "2026-11-17T16:05:41.033900+00:00", "event": "transfer", "percent": 10.1, "elapsed_seconds": 14.172}
+{"at": "2026-11-17T16:05:53.837491+00:00", "event": "transfer", "percent": 20.1, "elapsed_seconds": 26.984}
+{"at": "2026-11-17T16:06:07.364778+00:00", "event": "transfer", "percent": 30.0, "elapsed_seconds": 40.5}
+{"at": "2026-11-17T16:06:18.978151+00:00", "event": "transfer", "percent": 40.0, "elapsed_seconds": 52.125}
+{"at": "2026-11-17T16:06:31.106025+00:00", "event": "transfer", "percent": 50.1, "elapsed_seconds": 64.25}
+{"at": "2026-11-17T16:06:43.145252+00:00", "event": "transfer", "percent": 60.1, "elapsed_seconds": 76.281}
+{"at": "2026-11-17T16:06:54.913964+00:00", "event": "transfer", "percent": 70.1, "elapsed_seconds": 88.047}
+{"at": "2026-11-17T16:07:08.894879+00:00", "event": "transfer", "percent": 80.0, "elapsed_seconds": 102.031}
+{"at": "2026-11-17T16:07:21.252836+00:00", "event": "transfer", "percent": 90.0, "elapsed_seconds": 114.39}
+{"at": "2026-11-17T16:07:34.797094+00:00", "event": "transfer", "percent": 100.0, "elapsed_seconds": 127.937}
+{"at": "2026-11-17T16:07:34.844145+00:00", "event": "submitted", "transfer_seconds": 127.937}
+{"at": "2026-11-17T16:07:34.844818+00:00", "event": "upload_status", "status": "QUEUED"}
+{"at": "2026-11-17T16:07:44.859938+00:00", "event": "upload_status", "status": "PROCESSING"}
+{"at": "2026-11-17T16:15:25.812520+00:00", "event": "import_completed", "dataset": 21, "scenes": 10}
+{"at": "2026-11-17T16:15:25.883140+00:00", "event": "index", "datasetId": 21, "status": "RUNNING", "indexedImages": 75, "totalImages": 2424, "errorMessage": null, "workerEnabled": true}
+{"at": "2026-11-17T16:15:35.947774+00:00", "event": "index", "datasetId": 21, "status": "RUNNING", "indexedImages": 178, "totalImages": 2424, "errorMessage": null, "workerEnabled": true}
+{"at": "2026-11-17T16:15:46.031440+00:00", "event": "index", "datasetId": 21, "status": "RUNNING", "indexedImages": 271, "totalImages": 2424, "errorMessage": null, "workerEnabled": true}
+{"at": "2026-11-17T16:15:56.140209+00:00", "event": "index", "datasetId": 21, "status": "RUNNING", "indexedImages": 349, "totalImages": 2424, "errorMessage": null, "workerEnabled": true}
+{"at": "2026-11-17T16:16:06.252238+00:00", "event": "index", "datasetId": 21, "status": "RUNNING", "indexedImages": 419, "totalImages": 2424, "errorMessage": null, "workerEnabled": true}
+{"at": "2026-11-17T16:16:16.379721+00:00", "event": "index", "datasetId": 21, "status": "RUNNING", "indexedImages": 522, "totalImages": 2424, "errorMessage": null, "workerEnabled": true}
+{"at": "2026-11-17T16:16:26.522625+00:00", "event": "index", "datasetId": 21, "status": "RUNNING", "indexedImages": 626, "totalImages": 2424, "errorMessage": null, "workerEnabled": true}
+{"at": "2026-11-17T16:16:36.559595+00:00", "event": "index", "datasetId": 21, "status": "RUNNING", "indexedImages": 737, "totalImages": 2424, "errorMessage": null, "workerEnabled": true}
+{"at": "2026-11-17T16:16:46.599921+00:00", "event": "index", "datasetId": 21, "status": "RUNNING", "indexedImages": 842, "totalImages": 2424, "errorMessage": null, "workerEnabled": true}
+{"at": "2026-11-17T16:16:56.636918+00:00", "event": "index", "datasetId": 21, "status": "RUNNING", "indexedImages": 926, "totalImages": 2424, "errorMessage": null, "workerEnabled": true}
+{"at": "2026-11-17T16:17:06.729668+00:00", "event": "index", "datasetId": 21, "status": "RUNNING", "indexedImages": 1013, "totalImages": 2424, "errorMessage": null, "workerEnabled": true}
+{"at": "2026-11-17T16:17:16.777417+00:00", "event": "index", "datasetId": 21, "status": "RUNNING", "indexedImages": 1097, "totalImages": 2424, "errorMessage": null, "workerEnabled": true}
+{"at": "2026-11-17T16:17:26.834949+00:00", "event": "index", "datasetId": 21, "status": "RUNNING", "indexedImages": 1190, "totalImages": 2424, "errorMessage": null, "workerEnabled": true}
+{"at": "2026-11-17T16:17:36.873847+00:00", "event": "index", "datasetId": 21, "status": "RUNNING", "indexedImages": 1283, "totalImages": 2424, "errorMessage": null, "workerEnabled": true}
+{"at": "2026-11-17T16:17:46.915919+00:00", "event": "index", "datasetId": 21, "status": "RUNNING", "indexedImages": 1379, "totalImages": 2424, "errorMessage": null, "workerEnabled": true}
+{"at": "2026-11-17T16:17:56.970463+00:00", "event": "index", "datasetId": 21, "status": "RUNNING", "indexedImages": 1479, "totalImages": 2424, "errorMessage": null, "workerEnabled": true}
+{"at": "2026-11-17T16:18:07.021478+00:00", "event": "index", "datasetId": 21, "status": "RUNNING", "indexedImages": 1586, "totalImages": 2424, "errorMessage": null, "workerEnabled": true}
+{"at": "2026-11-17T16:18:17.074740+00:00", "event": "index", "datasetId": 21, "status": "RUNNING", "indexedImages": 1683, "totalImages": 2424, "errorMessage": null, "workerEnabled": true}
+{"at": "2026-11-17T16:18:27.112009+00:00", "event": "index", "datasetId": 21, "status": "RUNNING", "indexedImages": 1784, "totalImages": 2424, "errorMessage": null, "workerEnabled": true}
+{"at": "2026-11-17T16:18:37.152445+00:00", "event": "index", "datasetId": 21, "status": "RUNNING", "indexedImages": 1887, "totalImages": 2424, "errorMessage": null, "workerEnabled": true}
+{"at": "2026-11-17T16:18:47.199308+00:00", "event": "index", "datasetId": 21, "status": "RUNNING", "indexedImages": 1984, "totalImages": 2424, "errorMessage": null, "workerEnabled": true}
+{"at": "2026-11-17T16:18:57.236519+00:00", "event": "index", "datasetId": 21, "status": "RUNNING", "indexedImages": 2083, "totalImages": 2424, "errorMessage": null, "workerEnabled": true}
+{"at": "2026-11-17T16:19:07.275659+00:00", "event": "index", "datasetId": 21, "status": "RUNNING", "indexedImages": 2182, "totalImages": 2424, "errorMessage": null, "workerEnabled": true}
+{"at": "2026-11-17T16:19:17.322013+00:00", "event": "index", "datasetId": 21, "status": "RUNNING", "indexedImages": 2285, "totalImages": 2424, "errorMessage": null, "workerEnabled": true}
+{"at": "2026-11-17T16:19:27.359788+00:00", "event": "index", "datasetId": 21, "status": "RUNNING", "indexedImages": 2383, "totalImages": 2424, "errorMessage": null, "workerEnabled": true}
+{"at": "2026-11-17T16:19:37.401094+00:00", "event": "index", "datasetId": 21, "status": "COMPLETED", "indexedImages": 2424, "totalImages": 2424, "errorMessage": null, "workerEnabled": true}
+{"at": "2026-11-17T16:19:37.403168+00:00", "event": "completed", "dataset": 21, "images": 2424, "total_seconds": 850.547}

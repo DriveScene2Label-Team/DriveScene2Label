@@ -1,0 +1,7 @@
+{
+  "at": "2026-11-17T16:25:36.251364+00:00",
+  "url": "https://drivescene2label.vercel.app",
+  "status": 503,
+  "vercel_error": "DEPLOYMENT_PAUSED",
+  "body_excerpt": "The deployment is currently unavailable\n\nDEPLOYMENT_PAUSED\n\nicn1::k6fpj-1794932736200-1e91b54d4c4e\n"
+}

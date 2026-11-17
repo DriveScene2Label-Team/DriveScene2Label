@@ -1,0 +1,18 @@
+{
+  "started_at": "2026-11-17T18:16:32.947315+00:00",
+  "directory": "$REPO\\.local\\hybrid\\measurements\\20261117T181632Z",
+  "command": [
+    "python",
+    "scripts/hybrid/run_runtime_probe.py",
+    "--directory",
+    "$REPO\\.local\\hybrid\\measurements\\20261117T181632Z",
+    "--dataset-key",
+    "f00cc327-dc93-4e82-a8aa-ef9d18dcc550",
+    "--exporters",
+    "legacy_bool_or"
+  ],
+  "exit_code": 0,
+  "command_wall_seconds": 63.32800000000134,
+  "finished_at": "2026-11-17T18:17:36.285028+00:00",
+  "final_collect_exit_code": 0
+}

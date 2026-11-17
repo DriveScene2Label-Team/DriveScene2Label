@@ -1,0 +1,27 @@
+[
+  {
+    "container": "drivescene-hybrid-backend-1",
+    "id": "5b57a21756b403d6078c575de1fc696a57c03fe0336225d9de2181659ab74d01",
+    "image": "sha256:9d8f86137c96ad22d5c6bd33ba56c5a8b62f2c36a7b08767589d0b8d03b0f984",
+    "started_at": "2026-11-17T16:02:43.757732898Z",
+    "health": "healthy",
+    "settings": {
+      "RECORDING_WORKER_ENABLED": "true",
+      "UPLOAD_WORKER_ENABLED": "true",
+      "AUTO_LABEL_WORKER_ENABLED": "true",
+      "EMBEDDING_INDEX_WORKER_ENABLED": "true",
+      "EMBEDDING_INDEX_PREFETCH_ENABLED": "true"
+    }
+  },
+  {
+    "container": "drivescene-hybrid-ai-server-1",
+    "id": "eb4390ee4e2fc4c4bc7d5f38af447125420b8ea57219324ea1f15e56059c8782",
+    "image": "sha256:f3cfadad0f5a625dc9cac4c017d97abef9ff243c11429fe354d5f9c06681d8c4",
+    "started_at": "2026-11-17T15:29:33.034321374Z",
+    "health": "healthy",
+    "settings": {
+      "VESPA_NUM_THREADS": "1",
+      "VESPA_GROUNDING_PREPROCESS": "reuse"
+    }
+  }
+]

@@ -1,0 +1,7 @@
+{
+  "operator": "aten::__ior_",
+  "onnx_operator": "Or",
+  "guards": "both operands bool and identical static shape",
+  "scope": "export process only; production source and weights unchanged",
+  "reason": "original legacy exporter failed at boolean special-token mask OR"
+}

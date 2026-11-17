@@ -1,6 +1,7 @@
 """External adapter executed in VESPA's environment. Does not edit upstream files."""
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 from types import SimpleNamespace
@@ -16,6 +17,10 @@ def main():
     p.add_argument("--source-run", type=Path)
     p.add_argument("--references", type=Path)
     p.add_argument("--job-id", type=int)
+    p.add_argument("--grounding-preprocess", choices=("baseline", "reuse"),
+                   default=os.environ.get("VESPA_GROUNDING_PREPROCESS", "baseline"))
+    p.add_argument("--experiment-seed", type=int)
+    p.add_argument("--detector-trace", action="store_true")
     a = p.parse_args()
     timer = StageTimer(a.output_root, a.scene, a.job_id)
     sys.path.insert(0, str(Path(a.repo).resolve()))
@@ -35,6 +40,19 @@ def main():
     timer.instrument(main_pseudo_vlm, VESPA_STAGES)
     import src.image.grounding_sam as grounding_sam
     import torch
+    if a.experiment_seed is not None:
+        import random
+        random.seed(a.experiment_seed)
+        np.random.seed(a.experiment_seed)
+        torch.manual_seed(a.experiment_seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed_all(a.experiment_seed)
+        timer.emit("experiment_seed", "configured", seed=a.experiment_seed)
+    if a.grounding_preprocess != "baseline" or a.detector_trace:
+        from grounding_runtime import configure_detection
+        configure_detection(grounding_sam, a.grounding_preprocess,
+                            Path(a.output_root)/"detector-results.jsonl" if a.detector_trace else None)
+    timer.emit("grounding_preprocessing", "configured", mode=a.grounding_preprocess)
     # SAM is only used for inference. Upstream calls its model directly with autograd enabled.
     # Keep the change scoped to this child process; preserve weights, precision and mask operations.
     grounding_sam._sam_segmentation = torch.inference_mode()(grounding_sam._sam_segmentation)

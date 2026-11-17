@@ -1,0 +1,5 @@
+{"at": "2026-11-17T14:09:30.636440+00:00", "event": "started", "mode": "baseline"}
+{"at": "2026-11-17T14:46:52.338904+00:00", "event": "completed", "mode": "baseline", "exit_code": 0, "wall_seconds": 2242.2925537710007, "finished_at": "2026-11-17T14:46:52.338215+00:00"}
+{"at": "2026-11-17T14:46:52.339573+00:00", "event": "started", "mode": "reuse"}
+{"at": "2026-11-17T15:23:04.790707+00:00", "event": "completed", "mode": "reuse", "exit_code": 0, "wall_seconds": 2173.2038209389993, "finished_at": "2026-11-17T15:23:04.789782+00:00"}
+{"at": "2026-11-17T15:23:04.790812+00:00", "event": "pair_completed"}

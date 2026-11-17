@@ -1,0 +1,8 @@
+[
+  "python",
+  "scripts/hybrid/benchmark_label_cycle.py",
+  "--directory",
+  "$REPO\\.local\\hybrid\\measurements\\20261117T163238Z",
+  "--dataset-id",
+  "21"
+]

@@ -1,0 +1,8 @@
+[
+  "C:\\Users\\User\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+  "scripts/hybrid/benchmark_clip.py",
+  "--directory",
+  "$REPO\\.local\\hybrid\\measurements\\20261117T155850Z",
+  "--archive",
+  ".local\\hybrid\\fixtures\\20261117T1527Z-index\\clip-index-two-scenes.tgz"
+]

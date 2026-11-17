@@ -1,0 +1,38 @@
+[
+  {
+    "repeat": 0,
+    "mode": "baseline",
+    "directory": "$REPO\\.local\\hybrid\\measurements\\20261117T154442Z",
+    "dataset": 14
+  },
+  {
+    "repeat": 0,
+    "mode": "prefetch",
+    "directory": "$REPO\\.local\\hybrid\\measurements\\20261117T154642Z",
+    "dataset": 15
+  },
+  {
+    "repeat": 1,
+    "mode": "prefetch",
+    "directory": "$REPO\\.local\\hybrid\\measurements\\20261117T155651Z",
+    "dataset": 17
+  },
+  {
+    "repeat": 1,
+    "mode": "baseline",
+    "directory": "$REPO\\.local\\hybrid\\measurements\\20261117T155850Z",
+    "dataset": 18
+  },
+  {
+    "repeat": 2,
+    "mode": "baseline",
+    "directory": "$REPO\\.local\\hybrid\\measurements\\20261117T160059Z",
+    "dataset": 19
+  },
+  {
+    "repeat": 2,
+    "mode": "prefetch",
+    "directory": "$REPO\\.local\\hybrid\\measurements\\20261117T160256Z",
+    "dataset": 20
+  }
+]

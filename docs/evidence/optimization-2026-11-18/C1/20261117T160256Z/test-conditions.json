@@ -1,0 +1,11 @@
+{
+  "experiment": "CLIP DB prefetch",
+  "mode": "prefetch",
+  "repeat": 2,
+  "expected_images": 474,
+  "archive_sha256": "4e3e8959c49ce9f6ba4fb0817a443d2af9763d85e6a15f00290189834a4ce9c5",
+  "upload_origin": "http://127.0.0.1:8080",
+  "cache": "new dataset cache, persistent already-loaded CLIP; backend recreated for every condition",
+  "concurrency": "resource/log collection only; no other assistant model/build/upload job",
+  "other_user_work": "not independently verified"
+}

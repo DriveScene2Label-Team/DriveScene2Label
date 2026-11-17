@@ -1,0 +1,37 @@
+{
+  "scope": "static real-model compatibility probe; not full pipeline deployment",
+  "packages": [
+    "numpy==1.26.4",
+    "onnx==1.23.2",
+    "onnxscript==0.7.2",
+    "onnxruntime-gpu==1.32.0"
+  ],
+  "dependencies_directory": "/results/experiments/20261117T181124Z-runtime/dependencies",
+  "baseline_versions": "torch 2.14.1+cu130, transformers 4.49.0, numpy 1.26.4",
+  "limits": {
+    "export_seconds": 600,
+    "ort_seconds": 300,
+    "trt_build_and_run_seconds": 900,
+    "trt_workspace_bytes": 2147483648
+  },
+  "production_pip_environment_modified": false,
+  "cases": [
+    {
+      "phase": "export",
+      "exporter": "dynamo",
+      "exit_code": 1,
+      "remote_directory": "/results/experiments/20261117T181124Z-runtime/dynamo"
+    },
+    {
+      "phase": "export",
+      "exporter": "legacy",
+      "exit_code": 1,
+      "remote_directory": "/results/experiments/20261117T181124Z-runtime/legacy"
+    },
+    {
+      "phase": "ort_and_trt",
+      "status": "not_executed_no_valid_exported_graph"
+    }
+  ],
+  "decision": "probe only; production engine, dtype and attention unchanged"
+}

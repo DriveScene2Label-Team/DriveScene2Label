@@ -1,0 +1,10 @@
+{
+  "at": "2026-11-17T16:01:00.005015168Z",
+  "dataset": 0,
+  "model": "ViT-L-14-quickgelu/openai",
+  "preprocess": "lr-square-crop-mean",
+  "vectors": [],
+  "count": 0,
+  "export_ms": 0,
+  "pg_stat_statements_unavailable_sqlstate": "42P01"
+}

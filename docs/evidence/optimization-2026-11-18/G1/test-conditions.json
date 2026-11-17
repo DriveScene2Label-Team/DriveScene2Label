@@ -1,0 +1,10 @@
+{
+  "experiment": "G1 image preprocessing reuse only",
+  "git_revision": "878297b02f6d3b323662acd97c69835e6fd9b647",
+  "dirty_sources": "hashes in manifest.json",
+  "input": "C0 dataset7 cache, scene-0061 first two keyframes / 12 cameras",
+  "conditions": "same process/model/dtype/threshold0.3/10 labels/threads1; alternating baseline/reuse order; each mode warmup; 3 repetitions",
+  "concurrency": "resource sampling and source/report editing only; no other assistant GPU job/build/deployment",
+  "user_other_work": "not independently verified",
+  "adoption": "experimental; no production default change"
+}

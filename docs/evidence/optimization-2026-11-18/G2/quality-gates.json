@@ -1,0 +1,9 @@
+{
+  "defined_before_candidate_and_before_final_outputs": true,
+  "preferred": "exact output equality",
+  "floating_roundoff_absolute_tolerance": 1e-06,
+  "discrete_values": "exact sample tokens, classes, count, tracks, frame and box order",
+  "gt_metric_absolute_tolerance": 1e-08,
+  "coverage": "39 keyframes and234 camera detections for scene0061",
+  "decision": "hold on any failed coverage/geometry/regression or no wall-time improvement; investigate before applying"
+}

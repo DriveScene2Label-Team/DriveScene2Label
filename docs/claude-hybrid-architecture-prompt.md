@@ -13,7 +13,6 @@ DriveScene2Label 프로젝트의 **현재 인프라를 설명하는 구조도와
 - `README.md`: 현재 구성·사용 흐름·실측·검증 범위
 - `docs/architecture-and-measurement-2026-11-12.md`: 인증·JPA/JDBC·작업/저장·계측의 코드 근거
 - `docs/upload-measurement-2026-11-12.md`: 이번 사용자 업로드·임베딩 실측, 라벨 작업 개입으로 발생한 대기
-- 발표 자료는 `docs/presentation-prompt-2026-11-12.md`의 10장 구성을 사용해.
 - `docs/hybrid-setup.md`: 현재 Cloudflare 터널과 실행 설정. Microsoft 임시 복구·11월 11일 초기 구성은 이력임
 - `docs/troubleshooting-2026-11-11.md`: 이전 실행의 병목·수정·검증
 - `docs/work-checkpoint-2026-11-12.md`: 배포·백업·초기화 증거
