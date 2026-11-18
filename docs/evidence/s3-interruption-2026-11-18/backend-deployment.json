@@ -1,0 +1,33 @@
+{
+  "started_at": "2026-11-18T09:56:19.194392+00:00",
+  "reset_performed": false,
+  "image": "ds2l-s3-java-experiment:interrupt-fix-20261118",
+  "before": {
+    "maintenance": false,
+    "activeWrites": 0,
+    "runningLabels": 0,
+    "runningRecordings": 0
+  },
+  "image_id": "sha256:2a7480b0eef5f25bba7f5845f2036745b92a1798209eee2e0e121155019a12db",
+  "ai_started_at": "2026-11-18T09:10:38.455200549Z",
+  "quiesced": {
+    "maintenance": true,
+    "activeWrites": 0,
+    "runningLabels": 0,
+    "runningRecordings": 0
+  },
+  "other_work": {
+    "upload": 0,
+    "index": 0
+  },
+  "running_image_id": "sha256:2a7480b0eef5f25bba7f5845f2036745b92a1798209eee2e0e121155019a12db",
+  "ai_started_at_after": "2026-11-18T09:10:38.455200549Z",
+  "pass": true,
+  "resumed": {
+    "maintenance": false,
+    "activeWrites": 0,
+    "runningLabels": 0,
+    "runningRecordings": 0
+  },
+  "finished_at": "2026-11-18T09:56:47.806042+00:00"
+}

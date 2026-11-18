@@ -1,0 +1,23 @@
+{
+  "started_at": "2026-11-18T09:54:38.261181906Z",
+  "requested_mode": "multipart",
+  "mode": "multipart",
+  "fault": "download-cut",
+  "multipart_threshold_bytes": 67108864,
+  "key": "uploads/d569e021-32ff-4683-9494-df22d41fb933.tar.gz",
+  "bytes": 109696439,
+  "java": "21.0.13",
+  "processors": 4,
+  "scope": "Java production UploadArchiveStore + DatasetStorage; no HTTP/browser/RDS/model execution",
+  "source_sha256": "4e3e8959c49ce9f6ba4fb0817a443d2af9763d85e6a15f00290189834a4ce9c5",
+  "upload_s": 7.166740348,
+  "download_failure_clean": true,
+  "download_s": 11.678351512,
+  "download_sha256": "4e3e8959c49ce9f6ba4fb0817a443d2af9763d85e6a15f00290189834a4ce9c5",
+  "pass": true,
+  "process_cpu_s": 19.05,
+  "peak_heap_bytes": 18329296,
+  "peak_rss_bytes": 161382400,
+  "injected_http_503": 0,
+  "finished_at": "2026-11-18T09:54:59.264464483Z"
+}

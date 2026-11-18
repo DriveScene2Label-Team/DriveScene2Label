@@ -1,0 +1,13 @@
+{
+  "failed_commit": "11cde646cac2811b8fc509a24504ff553143dc78",
+  "failed_run": 44277650231,
+  "failed_job": 134709765962,
+  "artifact_sha256": "f27d38b1e056b985468040f714ff2aa3cda7540626b5c3fc755cdd49b27ad683",
+  "failure": "Expected IOException from caller interruption, but error reference was null; upload returned normally.",
+  "analysis": "Completion/interrupt race may return from queue wait with interrupt flag set; completed Future.get need not check it. JVM scheduling order was not traced.",
+  "fix": "Check interruption before part submissions and immediately before Complete; clear flag during cleanup, restore in finally.",
+  "limits": "Not rollback of already committed S3 object; lost Complete response still reconciled. Performance baseline evidence remains unchanged.",
+  "source_sha256": "088132769ab1860b7f3088a746cfc6d0489dbd02779aba57e3387be82b2157cd",
+  "created_at": "2026-11-18T09:49:49.900426+00:00",
+  "test_invocation_note": "Initial local regression selected nonexistent DatasetArchiveValidationTests. 59 S3 and 3 UploadStorage cases passed, but wrapper rejected missing suite. Correct DatasetArchiveTests run separately; original logs retained."
+}

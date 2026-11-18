@@ -1,0 +1,191 @@
+[
+  {
+    "phase": "pilot",
+    "case": "00-single-none",
+    "pass": true,
+    "key": "uploads/7569d15d-4412-48a4-a3b1-57ae564e0f7a.tar.gz",
+    "cleaned": true,
+    "proofs": [
+      {
+        "kind": "uploads",
+        "response": {
+          "RequestCharged": null,
+          "Prefix": "uploads/7569d15d-4412-48a4-a3b1-57ae564e0f7a.tar.gz"
+        },
+        "raw_log": ".local\\hybrid\\experiments\\20261118T072013Z-s3-java\\ci-interruption\\pilot\\00-single-none\\016-final-uploads.stdout.log",
+        "raw_sha256": "02d37855708727a81499e3a83bc07be1f35c6c420de559a297f80dc004cbb79b"
+      },
+      {
+        "kind": "versions",
+        "response": {
+          "RequestCharged": null,
+          "Prefix": "uploads/7569d15d-4412-48a4-a3b1-57ae564e0f7a.tar.gz"
+        },
+        "raw_log": ".local\\hybrid\\experiments\\20261118T072013Z-s3-java\\ci-interruption\\pilot\\00-single-none\\017-final-versions.stdout.log",
+        "raw_sha256": "02d37855708727a81499e3a83bc07be1f35c6c420de559a297f80dc004cbb79b"
+      }
+    ]
+  },
+  {
+    "phase": "pilot",
+    "case": "01-multipart-none",
+    "pass": true,
+    "key": "uploads/8153eaef-5897-4854-87b9-741fd7d3afd7.tar.gz",
+    "cleaned": true,
+    "proofs": [
+      {
+        "kind": "uploads",
+        "response": {
+          "RequestCharged": null,
+          "Prefix": "uploads/8153eaef-5897-4854-87b9-741fd7d3afd7.tar.gz"
+        },
+        "raw_log": ".local\\hybrid\\experiments\\20261118T072013Z-s3-java\\ci-interruption\\pilot\\01-multipart-none\\033-final-uploads.stdout.log",
+        "raw_sha256": "8ea6a9fe34eb5e769115349937ac40619e75043bcfd11187dcf4749f1375d202"
+      },
+      {
+        "kind": "versions",
+        "response": {
+          "RequestCharged": null,
+          "Prefix": "uploads/8153eaef-5897-4854-87b9-741fd7d3afd7.tar.gz"
+        },
+        "raw_log": ".local\\hybrid\\experiments\\20261118T072013Z-s3-java\\ci-interruption\\pilot\\01-multipart-none\\034-final-versions.stdout.log",
+        "raw_sha256": "8ea6a9fe34eb5e769115349937ac40619e75043bcfd11187dcf4749f1375d202"
+      }
+    ]
+  },
+  {
+    "phase": "faults",
+    "case": "00-multipart-transient503",
+    "pass": true,
+    "key": "uploads/cfbf8775-56de-4531-b12a-d3d956d145e1.tar.gz",
+    "cleaned": true,
+    "proofs": [
+      {
+        "kind": "uploads",
+        "response": {
+          "RequestCharged": null,
+          "Prefix": "uploads/cfbf8775-56de-4531-b12a-d3d956d145e1.tar.gz"
+        },
+        "raw_log": ".local\\hybrid\\experiments\\20261118T072013Z-s3-java\\ci-interruption\\faults\\00-multipart-transient503\\016-final-uploads.stdout.log",
+        "raw_sha256": "d369b2e6d24174b00f60128510363c87203b80e345308cbebbd1c556d385c6f6"
+      },
+      {
+        "kind": "versions",
+        "response": {
+          "RequestCharged": null,
+          "Prefix": "uploads/cfbf8775-56de-4531-b12a-d3d956d145e1.tar.gz"
+        },
+        "raw_log": ".local\\hybrid\\experiments\\20261118T072013Z-s3-java\\ci-interruption\\faults\\00-multipart-transient503\\017-final-versions.stdout.log",
+        "raw_sha256": "d369b2e6d24174b00f60128510363c87203b80e345308cbebbd1c556d385c6f6"
+      }
+    ]
+  },
+  {
+    "phase": "faults",
+    "case": "01-multipart-permanent503",
+    "pass": true,
+    "key": "uploads/0f8a7a53-e008-479e-a589-6b7a75b2d729.tar.gz",
+    "cleaned": true,
+    "proofs": [
+      {
+        "kind": "uploads",
+        "response": {
+          "RequestCharged": null,
+          "Prefix": "uploads/0f8a7a53-e008-479e-a589-6b7a75b2d729.tar.gz"
+        },
+        "raw_log": ".local\\hybrid\\experiments\\20261118T072013Z-s3-java\\ci-interruption\\faults\\01-multipart-permanent503\\032-final-uploads.stdout.log",
+        "raw_sha256": "b926251715b24bd6b8784d95d7003a3421568d01b40e049bf0b63a10b7a0e0d2"
+      },
+      {
+        "kind": "versions",
+        "response": {
+          "RequestCharged": null,
+          "Prefix": "uploads/0f8a7a53-e008-479e-a589-6b7a75b2d729.tar.gz"
+        },
+        "raw_log": ".local\\hybrid\\experiments\\20261118T072013Z-s3-java\\ci-interruption\\faults\\01-multipart-permanent503\\033-final-versions.stdout.log",
+        "raw_sha256": "b926251715b24bd6b8784d95d7003a3421568d01b40e049bf0b63a10b7a0e0d2"
+      }
+    ]
+  },
+  {
+    "phase": "faults",
+    "case": "02-multipart-complete-lost",
+    "pass": true,
+    "key": "uploads/1366865e-9c84-4ebd-82e2-0de35f81a505.tar.gz",
+    "cleaned": true,
+    "proofs": [
+      {
+        "kind": "uploads",
+        "response": {
+          "RequestCharged": null,
+          "Prefix": "uploads/1366865e-9c84-4ebd-82e2-0de35f81a505.tar.gz"
+        },
+        "raw_log": ".local\\hybrid\\experiments\\20261118T072013Z-s3-java\\ci-interruption\\faults\\02-multipart-complete-lost\\049-final-uploads.stdout.log",
+        "raw_sha256": "dcca16ed6f9ab7b5cd03a1d8284fc2c9734912105575d4894d2f25deeb7c44bb"
+      },
+      {
+        "kind": "versions",
+        "response": {
+          "RequestCharged": null,
+          "Prefix": "uploads/1366865e-9c84-4ebd-82e2-0de35f81a505.tar.gz"
+        },
+        "raw_log": ".local\\hybrid\\experiments\\20261118T072013Z-s3-java\\ci-interruption\\faults\\02-multipart-complete-lost\\050-final-versions.stdout.log",
+        "raw_sha256": "dcca16ed6f9ab7b5cd03a1d8284fc2c9734912105575d4894d2f25deeb7c44bb"
+      }
+    ]
+  },
+  {
+    "phase": "faults",
+    "case": "03-multipart-download-cut",
+    "pass": true,
+    "key": "uploads/d569e021-32ff-4683-9494-df22d41fb933.tar.gz",
+    "cleaned": true,
+    "proofs": [
+      {
+        "kind": "uploads",
+        "response": {
+          "RequestCharged": null,
+          "Prefix": "uploads/d569e021-32ff-4683-9494-df22d41fb933.tar.gz"
+        },
+        "raw_log": ".local\\hybrid\\experiments\\20261118T072013Z-s3-java\\ci-interruption\\faults\\03-multipart-download-cut\\066-final-uploads.stdout.log",
+        "raw_sha256": "4b6e7089c2156ba2fb8bc54226a95e60cbf3dbc230cf261cab2b7cca03903fca"
+      },
+      {
+        "kind": "versions",
+        "response": {
+          "RequestCharged": null,
+          "Prefix": "uploads/d569e021-32ff-4683-9494-df22d41fb933.tar.gz"
+        },
+        "raw_log": ".local\\hybrid\\experiments\\20261118T072013Z-s3-java\\ci-interruption\\faults\\03-multipart-download-cut\\067-final-versions.stdout.log",
+        "raw_sha256": "4b6e7089c2156ba2fb8bc54226a95e60cbf3dbc230cf261cab2b7cca03903fca"
+      }
+    ]
+  },
+  {
+    "phase": "faults",
+    "case": "04-multipart-crash",
+    "pass": true,
+    "key": "uploads/f1deeb3a-63d9-482f-b1f7-472748743f90.tar.gz",
+    "cleaned": true,
+    "proofs": [
+      {
+        "kind": "uploads",
+        "response": {
+          "RequestCharged": null,
+          "Prefix": "uploads/f1deeb3a-63d9-482f-b1f7-472748743f90.tar.gz"
+        },
+        "raw_log": ".local\\hybrid\\experiments\\20261118T072013Z-s3-java\\ci-interruption\\faults\\04-multipart-crash\\085-final-uploads.stdout.log",
+        "raw_sha256": "a1df8f74d4ae2a04cd5c1435649a409cab78ede4b0efbb47ae5134fabb2cc253"
+      },
+      {
+        "kind": "versions",
+        "response": {
+          "RequestCharged": null,
+          "Prefix": "uploads/f1deeb3a-63d9-482f-b1f7-472748743f90.tar.gz"
+        },
+        "raw_log": ".local\\hybrid\\experiments\\20261118T072013Z-s3-java\\ci-interruption\\faults\\04-multipart-crash\\086-final-versions.stdout.log",
+        "raw_sha256": "a1df8f74d4ae2a04cd5c1435649a409cab78ede4b0efbb47ae5134fabb2cc253"
+      }
+    ]
+  }
+]

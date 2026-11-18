@@ -102,11 +102,15 @@ class S3ArchiveTransferTests {
     .isInstanceOf(IOException.class).satisfies(error->assertThat(error.getCause().getSuppressed()).hasSize(1));
   }
  }
- @Test void callerInterruptionWaitsForPartAndPreservesInterruptAfterCleanup() throws Exception {
+ @RepeatedTest(50) void callerInterruptionWaitsForPartAndPreservesInterruptAfterCleanup() throws Exception {
   CountDownLatch started=new CountDownLatch(1),release=new CountDownLatch(1);
-  AtomicBoolean restored=new AtomicBoolean();AtomicReference<Throwable> error=new AtomicReference<>();
+  AtomicBoolean restored=new AtomicBoolean(),drained=new AtomicBoolean();AtomicReference<Throwable> error=new AtomicReference<>();
   when(client.uploadPart(any(UploadPartRequest.class),any(RequestBody.class))).thenAnswer(call->{
-   started.countDown();assertThat(release.await(5,TimeUnit.SECONDS)).isTrue();return part(1);
+   started.countDown();assertThat(release.await(5,TimeUnit.SECONDS)).isTrue();drained.set(true);return part(1);
+  });
+  when(client.abortMultipartUpload(any(AbortMultipartUploadRequest.class))).thenAnswer(call->{
+   assertThat(drained.get()).isTrue();assertThat(Thread.currentThread().isInterrupted()).isFalse();
+   return AbortMultipartUploadResponse.builder().build();
   });
   Path source=archive(32);
   try(var uploader=new MultipartArchiveUploader(client,1)) {
@@ -114,10 +118,28 @@ class S3ArchiveTransferTests {
     try { uploader.upload(BUCKET,KEY,source,"application/gzip",32,"mine"); }
     catch(Throwable failure) { error.set(failure);restored.set(Thread.currentThread().isInterrupted()); }
    });
-   caller.start();assertThat(started.await(5,TimeUnit.SECONDS)).isTrue();caller.interrupt();release.countDown();caller.join(5000);
-   assertThat(caller.isAlive()).isFalse();assertThat(error.get()).isInstanceOf(IOException.class);assertThat(restored.get()).isTrue();
+   try {
+    caller.start();assertThat(started.await(5,TimeUnit.SECONDS)).isTrue();caller.interrupt();release.countDown();caller.join(5000);
+    assertThat(caller.isAlive()).isFalse();assertThat(error.get()).isInstanceOf(IOException.class);assertThat(restored.get()).isTrue();
+   } finally { release.countDown();caller.join(5000); }
   }
   verify(client).abortMultipartUpload(any(AbortMultipartUploadRequest.class));
+  verify(client,never()).completeMultipartUpload(any(CompleteMultipartUploadRequest.class));
+ }
+ @Test void interruptDuringCreateAbortsWithoutSubmittingPartsAndRestoresFlag() throws Exception {
+  when(client.createMultipartUpload(any(CreateMultipartUploadRequest.class))).thenAnswer(call->{
+   Thread.currentThread().interrupt();return CreateMultipartUploadResponse.builder().uploadId("owned-upload").build();
+  });
+  when(client.abortMultipartUpload(any(AbortMultipartUploadRequest.class))).thenAnswer(call->{
+   assertThat(Thread.currentThread().isInterrupted()).isFalse();return AbortMultipartUploadResponse.builder().build();
+  });
+  Path source=archive(32);
+  try(var uploader=new MultipartArchiveUploader(client,1)) {
+   assertThatThrownBy(()->uploader.upload(BUCKET,KEY,source,"application/gzip",32,"mine")).isInstanceOf(IOException.class);
+   assertThat(Thread.currentThread().isInterrupted()).isTrue();
+  } finally { Thread.interrupted(); }
+  verify(client).abortMultipartUpload(any(AbortMultipartUploadRequest.class));
+  verify(client,never()).uploadPart(any(UploadPartRequest.class),any(RequestBody.class));
   verify(client,never()).completeMultipartUpload(any(CompleteMultipartUploadRequest.class));
  }
  @Test void smallArchivesUseSinglePutAndExistingDownloadTargetIsPreserved() throws Exception {

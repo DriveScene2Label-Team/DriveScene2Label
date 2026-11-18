@@ -40,6 +40,7 @@ final class MultipartArchiveUploader implements AutoCloseable {
   try {
    int count=Math.toIntExact((size+PART_BYTES-1)/PART_BYTES),next=1;
    while(next<=count || !inFlight.isEmpty()) {
+    checkInterrupted();
     while(next<=count && inFlight.size()<concurrency) {
      int number=next++;
      inFlight.add(completion.submit(()->part(bucket,key,uploadId,source,number,Math.min(PART_BYTES,size-(number-1)*PART_BYTES))));
@@ -48,11 +49,17 @@ final class MultipartArchiveUploader implements AutoCloseable {
     inFlight.remove(finished);parts.add(finished.get());
    }
    parts.sort(Comparator.comparingInt(CompletedPart::partNumber));
+   // A completion signal can win the queue wait race and return with the
+   // interrupt flag set. Do not rely on take()/get() alone to cancel a commit.
+   checkInterrupted();
    s3.completeMultipartUpload(CompleteMultipartUploadRequest.builder().bucket(bucket).key(key).uploadId(uploadId)
     .multipartUpload(CompletedMultipartUpload.builder().parts(parts).build())
     .overrideConfiguration(c->c.apiCallTimeout(Duration.ofSeconds(60))).build());
   } catch(Exception failure) {
-   interrupted=failure instanceof InterruptedException || Thread.interrupted();
+   // Always clear the flag while draining/cleaning up, even when failure itself
+   // is InterruptedException. Restore it only after the S3 cleanup calls finish.
+   interrupted=Thread.interrupted();
+   interrupted|=failure instanceof InterruptedException;
    // Future.cancel reports completion before blocking HTTP has stopped. Drain the actual
    // calls before aborting so a late UploadPart cannot recreate stored parts after cleanup.
    for(Future<CompletedPart> future:inFlight) {
@@ -77,6 +84,10 @@ final class MultipartArchiveUploader implements AutoCloseable {
   } finally {
    if(interrupted)Thread.currentThread().interrupt();
   }
+ }
+
+ private static void checkInterrupted() throws InterruptedException {
+  if(Thread.interrupted())throw new InterruptedException("S3 multipart upload interrupted before completion");
  }
 
  private CompletedPart part(String bucket,String key,String uploadId,Path source,int number,long bytes) throws IOException {

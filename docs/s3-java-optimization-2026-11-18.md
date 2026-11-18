@@ -101,6 +101,20 @@ python scripts/hybrid/run_s3_java_experiment.py --directory .local/hybrid/experi
 
 RDS 재개 중 `configuring-enhanced-monitoring`를 시작 실패로 처리하던 운영 스크립트도 수정했다. 실제 상태는 잠시 뒤 `available`로 바뀌었다. 이제 같은 제한 시간 안에서 기다리며 중복 start 요청을 보내지 않는다. 해당 상태 전이 회귀를 기존 시작 테스트에 추가했다. [AWS 인스턴스 상태 정의](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/accessing-monitoring.html).
 
+## 후속 CI에서 발견한 취소 경쟁 조건
+
+문서·증거 exporter 변경 커밋 `11cde64`의 [CI 44277650231](https://github.com/DriveScene2Label-Team/DriveScene2Label/actions/runs/44277650231)에서 S3 중단 테스트가 실패했다. 실행 코드는 앞서 성공한 `132669a`와 같았다. 실패 아티팩트는 `error.get()`이 null, 즉 취소 요청과 파트 완료가 겹쳤는데 업로드가 성공 반환한 경우를 보여준다. 실패 ZIP의 SHA-256은 `f27d38b1e056b985468040f714ff2aa3cda7540626b5c3fc755cdd49b27ad683`이며 원본은 로컬에 보존했다.
+
+대기 중 신호와 interrupt의 경합에서는 반환 경로와 interrupt flag를 함께 고려해야 한다. 완료된 Future의 `get()`만으로 취소 확인을 보장할 수 없다. 이 설명은 CI 결과와 코드에 근거한 원인 분석이며 JVM 내부 실행 순서를 추적한 것은 아니다. [Java 21 Condition 규약](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/locks/Condition.html).
+
+`MultipartArchiveUploader`에 파트 제출 루프와 Complete 직전의 명시적 interrupt 확인을 추가했다. 정리 진입 시에는 예외 종류와 관계없이 flag를 읽고 지워 HEAD/Abort가 이미 설정된 interrupt 때문에 중단되지 않게 하며, 모든 정리 후 원래 flag를 복원한다. Complete 요청을 이미 보낸 뒤에는 취소가 성공을 되돌린다고 보장하지 않고 기존 HEAD의 attempt/size 대조로 모호한 결과를 해결한다.
+
+중단·완료 경합 테스트를 50회 반복하고, Create 직후 취소에서 파트가 제출되지 않으며 Abort 중 flag가 비어 있고 종료 시 복원되는 테스트를 추가했다. 실측 당시 소스·로그는 덮어쓰지 않는다. 이전 4.17GB 성능 수치는 이전 소스의 결과이며 이 안전성 수정의 새 성능 수치로 재분류하지 않는다. multipart 기본값은 계속 false다.
+
+격리 테스트는 S3 59개(경합 50회 포함)·UploadStorage 3개·DatasetArchive 3개, 총 **65개 통과**했다. 첫 실행에서는 아카이브 클래스명을 잘못 지정해 62개만 실행됐고 wrapper가 누락을 감지해 실패했다. 올바른 클래스의 3개를 별도 실행했으며 최초 명령과 실패 로그도 보존한다.
+
+수정 이미지로 109.7MB 실제 S3 단일·병렬 왕복 2개와 동일한 장애 5종도 다시 통과했다. 단일 업로드/다운로드 8.958/12.531초, 병렬 8.028/11.409초는 **안전성 재검증 1쌍**으로만 기록하며 성능 채택 근거를 바꾸지 않는다. 성공한 왕복 5개의 SHA가 일치했고, 실패·강제 종료를 포함한 7개 UUID의 객체 버전·미완료 업로드가 모두 정리됐다. [후속 요청 로그·정리 검증·배포](evidence/s3-interruption-2026-11-18/README.md).
+
 ## 상황별 선택과 다음 후보
 
 | 상황 | 유리한 선택 / 확인할 점 |

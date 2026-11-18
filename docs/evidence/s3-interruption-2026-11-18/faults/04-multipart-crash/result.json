@@ -1,0 +1,7 @@
+{
+  "pass": true,
+  "expected_abrupt_exit": 137,
+  "orphan_uploads_observed": 1,
+  "lifecycle_expiration_observed": false,
+  "recovery": "operator exact upload-ID abort, verified below"
+}

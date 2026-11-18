@@ -1,0 +1,32 @@
+{
+  "passed": 65,
+  "suites": [
+    {
+      "name": "com.example.demo.nuscenes.storage.S3ArchiveTransferTests",
+      "tests": "59",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "2.722"
+    },
+    {
+      "name": "com.example.demo.UploadStorageTests",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "2.333"
+    },
+    {
+      "name": "com.example.demo.DatasetArchiveTests",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.811"
+    }
+  ],
+  "race_repetitions": 50,
+  "initial_missing_suite_detected": true,
+  "corrected_missing_suite": "com.example.demo.DatasetArchiveTests"
+}

@@ -1,0 +1,21 @@
+{
+  "scope": "isolated Linux test workspace + ephemeral pgvector; synthetic AI; no AWS resources",
+  "started_at": "2026-11-18T09:48:15.458482+00:00",
+  "network": "ds2l-opt-test-20261118094815",
+  "containers": [
+    "ds2l-opt-test-20261118094815-db",
+    "ds2l-opt-test-20261118094815-java"
+  ],
+  "exit_code": 0,
+  "suites": [
+    {
+      "name": "com.example.demo.DatasetArchiveTests",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.811"
+    }
+  ],
+  "finished_at": "2026-11-18T09:49:21.802130+00:00"
+}

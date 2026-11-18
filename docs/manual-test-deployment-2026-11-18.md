@@ -6,7 +6,7 @@
 
 ## 적용한 코드와 판단
 
-코드 커밋은 `132669a1f78237c9c87c6c3905d1baa121d1ed4c`다. 문서 후속 커밋은 별도이며 배포한 실행 코드는 이 커밋의 스냅샷으로 확인한다.
+프론트·AI 기준 커밋은 `132669a1f78237c9c87c6c3905d1baa121d1ed4c`다. 이후 CI에서 발견한 S3 취소 경합을 수정해 **18:56 KST 백엔드만 교체**했다. 검증한 이미지와 실행 이미지가 `sha256:2a7480b0eef5f25bba7f5845f2036745b92a1798209eee2e0e121155019a12db`로 일치한다. [후속 코드 스냅샷·65개 회귀·실제 S3 7케이스·배포 증거](evidence/s3-interruption-2026-11-18/README.md). AI 시작 시각은 그대로이고 앱 데이터를 다시 초기화하지 않았다.
 
 | 영역 | 적용 | 보류·이유 |
 |---|---|---|
@@ -43,6 +43,8 @@ backend·AI 이미지를 재빌드하고 인증 컨테이너와 함께 재생성
 
 새 수집기 폴더는 `.local/hybrid/measurements/20261118T091728Z/`이며 `report.md`, `report.json`, `events.jsonl`을 30초마다 갱신한다. 최대 48시간 또는 stop marker까지 동작한다. PC 재부팅으로 종료되면 다시 시작해야 한다. 공개 Vercel 주소/127.0.0.1 중 어느 경로로 올렸는지와 다른 동시 작업 여부도 기록한다. GPU·S3·DB의 중첩 구간을 더해 전체 시간으로 계산하지 않는다.
 
+수집 시작 뒤 백엔드 이미지 변경 시각은 같은 폴더의 `deployment-transitions.jsonl`에 별도 기록했다. 초기 manifest의 git_revision을 덮어쓰지 않았다. 18:56 KST 재시작 구간의 관측은 사용자 업로드 성능 측정과 구분한다.
+
 이번 S3 전후 보고서는 `.local/hybrid/experiments/20261118T072013Z-s3-java/review/report.md`, Git 검토용은 [report.md](evidence/s3-java-2026-11-18/review/report.md)다. 새 사용자 시험 로그와 과거 비교 실험을 섞지 않는다.
 
 최종 해시 검토에서 검토용 원본 manifest와 내보내기 인덱스의 이름 충돌을 발견해 복구했다. 실험 원본은 그대로이며 85개 파일의 원래 export hash가 모두 일치한다. 같은 실수를 예방하는 예약 이름·중복 경로 검사를 추가했고, 로컬 hybrid 테스트는 최종 **49개 중 47개 통과·게이트웨이 통합 2개 제외**다. 제외된 통합은 Linux CI 실행으로 따로 확인한다.
@@ -63,6 +65,8 @@ backend·AI 이미지를 재빌드하고 인증 컨테이너와 함께 재생성
 | 새 사용자 데이터 | backend 목록 `[]`; 사용자 업로드/임베딩/검색/라벨링은 아직 시작하지 않음 |
 
 프로젝트의 `live=false` 필드는 pause 상태 판정에 사용하지 않는다. CLI의 실제 `paused=false`와 공개 HTTP/배포 ID로 확인했다. Git 자동 배포는 false를 유지하며, 다음 Start가 같은 터널에 대해 불필요한 재배포를 하지 않도록 연결 기록을 갱신했다.
+
+위 표는 최초 18:34 배포의 기록이다. 후속 문서 커밋 `11cde64`의 CI에서는 S3 취소 테스트 실패를 발견했고, 소스가 같다는 이유로 무시하지 않고 동시성 경계를 수정했다. 수정 이미지의 정상 2건·장애 5건 및 65개 Java 회귀가 통과한 후, maintenance에서 업로드·임베딩·라벨·recording·활성 쓰기 0을 확인해 백엔드만 교체했다. **18:57 KST** 공개 200/401/302, 내부 인증 프록시의 backend 목록 조회 200·데이터셋 0, maintenance=false를 재확인했다. [HTTP 재검증](evidence/s3-interruption-2026-11-18/public-http-verification.json). 후속 소스의 전체 CI 상태는 [release-version CI](https://github.com/DriveScene2Label-Team/DriveScene2Label/actions/workflows/ci.yml?query=branch%3Arelease-version)에서 커밋별로 확인할 수 있다.
 
 **실제 로그인한 브라우저 화면은 이번에 검증하지 못했다.** Computer Use가 현재 Windows 브라우저 URL을 확인할 수 없다고 자동 조작을 중단했고 이후 브라우저 입력을 하지 않았다. CI의 fixture 브라우저 흐름 성공과 실제 공개 로그인 후 전체 사이클을 구분한다. 사용자가 직접 위 순서로 수행하면 새 수집기 폴더에 로그가 쌓인다.
 

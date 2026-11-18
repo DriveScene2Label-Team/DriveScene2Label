@@ -1,0 +1,38 @@
+{
+  "checked_at": "2026-11-18T09:57:21.922406+00:00",
+  "pass": true,
+  "checks": [
+    {
+      "path": "/",
+      "status": 200,
+      "cache_control": "public, max-age=0, must-revalidate"
+    },
+    {
+      "path": "/uploads",
+      "status": 200,
+      "cache_control": "no-cache"
+    },
+    {
+      "path": "/api/datasets",
+      "status": 401,
+      "cache_control": "private, no-store"
+    },
+    {
+      "path": "/api/system/status",
+      "status": 401,
+      "cache_control": "private, no-store"
+    },
+    {
+      "path": "/oauth2/start",
+      "status": 302,
+      "cache_control": "private, no-store",
+      "redirect_host": "ds2l-189750306426-seoul.auth.ap-northeast-2.amazoncognito.com"
+    },
+    {
+      "path": "internal auth-upstream /api/datasets",
+      "status": 200,
+      "dataset_count": 0
+    }
+  ],
+  "browser_ui_verified": false
+}
