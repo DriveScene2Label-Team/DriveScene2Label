@@ -1,0 +1,76 @@
+{
+  "phase": "faults",
+  "case": "01-multipart-permanent503",
+  "result": {
+    "started_at": "2026-11-18T07:49:22.175172477Z",
+    "mode": "multipart",
+    "fault": "permanent503",
+    "key": "uploads/ab0b54a6-2401-44df-af68-a5313d79d9a0.tar.gz",
+    "bytes": 109696439,
+    "java": "21.0.13",
+    "processors": 4,
+    "scope": "Java production UploadArchiveStore + DatasetStorage; no HTTP/browser/RDS/model execution",
+    "source_sha256": "4e3e8959c49ce9f6ba4fb0817a443d2af9763d85e6a15f00290189834a4ce9c5",
+    "upload_s": 4.883288393,
+    "upload_error": "IOException",
+    "expected_failure": true,
+    "pass": true,
+    "process_cpu_s": 8.78,
+    "peak_heap_bytes": 18083784,
+    "peak_rss_bytes": 157184000,
+    "injected_http_503": 3,
+    "finished_at": "2026-11-18T07:49:28.113820587Z"
+  },
+  "cleaned": true,
+  "http_attempts": [
+    {
+      "operation": "AbortMultipartUploadRequest",
+      "actual_http_status": 204,
+      "count": 1
+    },
+    {
+      "operation": "CreateMultipartUploadRequest",
+      "actual_http_status": 200,
+      "count": 1
+    },
+    {
+      "operation": "HeadObjectRequest",
+      "actual_http_status": 404,
+      "count": 1
+    },
+    {
+      "operation": "ListPartsRequest",
+      "actual_http_status": 404,
+      "count": 1
+    },
+    {
+      "operation": "UploadPartRequest",
+      "actual_http_status": 200,
+      "count": 9
+    }
+  ],
+  "injections": [
+    {
+      "event": "injected_http_response",
+      "status": 503,
+      "part": 2,
+      "attempt": 1,
+      "utc": "2026-11-18T07:49:25.997517905Z"
+    },
+    {
+      "event": "injected_http_response",
+      "status": 503,
+      "part": 2,
+      "attempt": 2,
+      "utc": "2026-11-18T07:49:27.137338723Z"
+    },
+    {
+      "event": "injected_http_response",
+      "status": 503,
+      "part": 2,
+      "attempt": 3,
+      "utc": "2026-11-18T07:49:27.912386586Z"
+    }
+  ],
+  "inventories": {}
+}

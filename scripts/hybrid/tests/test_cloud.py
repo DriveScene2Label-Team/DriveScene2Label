@@ -34,7 +34,7 @@ class CloudTests(unittest.TestCase):
             aws.assert_not_called()
 
     def test_stopped_database_is_started_once_and_waited_for(self):
-        with patch.object(cloud, 'database_state', side_effect=['stopped', 'stopped', 'starting', 'rebooting', 'available']), \
+        with patch.object(cloud, 'database_state', side_effect=['stopped', 'stopped', 'starting', 'rebooting', 'configuring-enhanced-monitoring', 'available']), \
              patch.object(cloud, 'aws') as aws, patch.object(cloud.time, 'sleep'):
             cloud.ensure_database()
             aws.assert_called_once_with('rds', 'start-db-instance', '--db-instance-identifier', cloud.DATABASE)

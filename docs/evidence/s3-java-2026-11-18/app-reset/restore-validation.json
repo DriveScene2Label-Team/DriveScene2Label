@@ -1,0 +1,139 @@
+{
+  "tables": {
+    "system_instance": {
+      "rows": 1,
+      "content_md5": "1896120b1d857672da80b4cf85c8a50f"
+    },
+    "deployment_control": {
+      "rows": 1,
+      "content_md5": "865310afa00ec49fa799cb6128acb7ba"
+    },
+    "auto_label_artifact": {
+      "rows": 2,
+      "content_md5": "a17f2a877e0e1311e1dc0e8d7ae82152"
+    },
+    "scene_recording": {
+      "rows": 6,
+      "content_md5": "9bd917e69962cd7ac15b816eec824e75"
+    },
+    "auto_label_job": {
+      "rows": 7,
+      "content_md5": "88837dd1b9ed2e8f73ab004552cf1619"
+    },
+    "flyway_schema_history": {
+      "rows": 13,
+      "content_md5": "ea96638e0af1f6e745645ee3175703be"
+    },
+    "dataset_upload_session": {
+      "rows": 16,
+      "content_md5": "5fc532db85aa441afb1f68831fe02a36"
+    },
+    "dataset_search_index": {
+      "rows": 16,
+      "content_md5": "d8aae3d5c455c452abd93817324f91d1"
+    },
+    "dataset_provenance": {
+      "rows": 16,
+      "content_md5": "8e77f62fb870be2bd3dde09baf7e143f"
+    },
+    "dataset": {
+      "rows": 16,
+      "content_md5": "9c935e051684e39b75a4d3039b8cc6cb"
+    },
+    "map_log": {
+      "rows": 50,
+      "content_md5": "c9d41ca83b5e589d07b245b7e39c795d"
+    },
+    "visibility": {
+      "rows": 64,
+      "content_md5": "1c296d47f1fe89ed61fb3b0acc26c392"
+    },
+    "capture_log": {
+      "rows": 50,
+      "content_md5": "40649e3cf0f1083504a70d24352f4a89"
+    },
+    "scene": {
+      "rows": 56,
+      "content_md5": "567eee7a463ca7cedab60de4a8c87ceb"
+    },
+    "map_asset": {
+      "rows": 64,
+      "content_md5": "07eb9fd9aff8a5a80ee1f5943aa8b876"
+    },
+    "attribute": {
+      "rows": 128,
+      "content_md5": "5bf45bd2169c3db42c56a28b1088adf8"
+    },
+    "label_document": {
+      "rows": 0,
+      "content_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "sensor": {
+      "rows": 192,
+      "content_md5": "f8020f88d46d164f72c4db5f9788e061"
+    },
+    "label_revision": {
+      "rows": 0,
+      "content_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "auto_label_job_sample": {
+      "rows": 277,
+      "content_md5": "22e0bd4a51b64ea453fd88e11d9e6bce"
+    },
+    "label_edit": {
+      "rows": 0,
+      "content_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "label_edit_target": {
+      "rows": 0,
+      "content_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "category": {
+      "rows": 368,
+      "content_md5": "ea1a64db98c2e4ddb37ec8158f0fa441"
+    },
+    "label_override": {
+      "rows": 0,
+      "content_md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "calibrated_sensor": {
+      "rows": 672,
+      "content_md5": "3621d8e881998050381bdd6c76b6a54f"
+    },
+    "sample": {
+      "rows": 2239,
+      "content_md5": "84ac83acfb2cac436cbaff02621444aa"
+    },
+    "predicted_annotation": {
+      "rows": 2616,
+      "content_md5": "6a9824a54e519b29543e1b4d8784f379"
+    },
+    "object_instance": {
+      "rows": 7283,
+      "content_md5": "0dbbfdeba6d7bea790aa2aaedada38c3"
+    },
+    "image_embedding": {
+      "rows": 13434,
+      "content_md5": "205ca9ffc83959432b6d24b1ae9792e2"
+    },
+    "annotation_attribute": {
+      "rows": 97585,
+      "content_md5": "f1ea271e9bff7af1b85e3bc018ba73bf"
+    },
+    "gt_annotation": {
+      "rows": 143871,
+      "content_md5": "92f6e61d6ed1f77daa3a157ac5677241"
+    },
+    "sample_data": {
+      "rows": 105942,
+      "content_md5": "6acb02bdb50376cde3362b8e232ae735"
+    },
+    "ego_pose": {
+      "rows": 105942,
+      "content_md5": "b773289da7b3d03fcd610875e3b21062"
+    }
+  },
+  "sequences": "attribute_id_seq|154|t\nauto_label_artifact_id_seq|5|t\nauto_label_job_id_seq|13|t\ncalibrated_sensor_id_seq|938|t\ncapture_log_id_seq|69|t\ncategory_id_seq|439|t\ndataset_id_seq|21|t\nego_pose_id_seq|171331|t\ngt_annotation_id_seq|185648|t\nimage_embedding_id_seq|15858|t\nlabel_document_id_seq|5|t\nlabel_edit_id_seq|1|f\nlabel_revision_id_seq|11|t\nmap_asset_id_seq|75|t\nobject_instance_id_seq|9334|t\npredicted_annotation_id_seq|5831|t\nsample_data_id_seq|171331|t\nsample_id_seq|3088|t\nscene_id_seq|79|t\nscene_recording_id_seq|13|t\nsensor_id_seq|242|t\nvisibility_id_seq|78|t",
+  "tables_match": true,
+  "sequences_match": true
+}

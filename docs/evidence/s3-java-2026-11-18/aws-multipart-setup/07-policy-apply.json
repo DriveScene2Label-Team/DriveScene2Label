@@ -1,0 +1,23 @@
+{
+  "command": [
+    "aws",
+    "iam",
+    "put-role-policy",
+    "--role-name",
+    "ds2l-hybrid-storage",
+    "--policy-name",
+    "DatasetArchivesOnly",
+    "--policy-document",
+    "file://$REPO\\.local\\hybrid\\experiments\\20261118T072013Z-s3-java\\aws-multipart-setup\\policy-candidate.json",
+    "--profile",
+    "ds2l-seoul",
+    "--region",
+    "ap-northeast-2",
+    "--output",
+    "json",
+    "--no-cli-pager"
+  ],
+  "exit_code": 0,
+  "result": null,
+  "error": ""
+}

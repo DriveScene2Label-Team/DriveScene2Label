@@ -65,7 +65,8 @@ def ensure_database(timeout=1800):
         if state == 'stopped' and not started:
             aws('rds', 'start-db-instance', '--db-instance-identifier', DATABASE)
             started = True
-        elif state not in ('starting', 'stopping', 'stopped', 'rebooting', 'backing-up', 'modifying', 'maintenance'):
+        elif state not in ('starting', 'stopping', 'stopped', 'rebooting', 'backing-up', 'modifying', 'maintenance',
+                           'configuring-enhanced-monitoring'):
             raise RuntimeError(f'RDS is in {state}; manual diagnosis is required.')
         if time.monotonic() >= deadline:
             raise TimeoutError('RDS is not available yet. Retry start later; the existing instance is preserved.')

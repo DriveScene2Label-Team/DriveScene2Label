@@ -1,0 +1,122 @@
+{
+  "events": [
+    {
+      "tag": "S3_TRANSFER",
+      "at": "07:49:24.046",
+      "stage": "multipart_create",
+      "key": "uploads/ab0b54a6-2401-44df-af68-a5313d79d9a0.tar.gz",
+      "upload_id": "nPBXjXAO4TOSg_MITSJIdmXN8g4EiRh2mdw_Wg0le24jK72Zb..PnCegJYrSI62UKKMWbWbirAKLkKQSbUfdHqQygk_No6dB7YVMXw_cLbPkN1lm7rPKpWaeA8uoiowQIOEXzyTAT0DHePsc83mH382BDdWWvi6nZwEgN39ltd4-",
+      "concurrency": "4"
+    },
+    {
+      "tag": "S3_TRANSFER",
+      "at": "07:49:26.017",
+      "stage": "upload_part",
+      "key": "uploads/ab0b54a6-2401-44df-af68-a5313d79d9a0.tar.gz",
+      "part": "1",
+      "bytes": "16777216",
+      "wall_ms": "1965",
+      "status": "200",
+      "request_id": "3MZ2BS5PN96HVCTE"
+    },
+    {
+      "tag": "S3_TRANSFER",
+      "at": "07:49:26.181",
+      "stage": "upload_part",
+      "key": "uploads/ab0b54a6-2401-44df-af68-a5313d79d9a0.tar.gz",
+      "part": "3",
+      "bytes": "16777216",
+      "wall_ms": "2128",
+      "status": "200",
+      "request_id": "3MZ8GW9NEGQKCFMS"
+    },
+    {
+      "tag": "S3_TRANSFER",
+      "at": "07:49:26.829",
+      "stage": "upload_part",
+      "key": "uploads/ab0b54a6-2401-44df-af68-a5313d79d9a0.tar.gz",
+      "part": "4",
+      "bytes": "16777216",
+      "wall_ms": "2776",
+      "status": "200",
+      "request_id": "3MZ9R8KV7TXKA580"
+    },
+    {
+      "tag": "S3_TRANSFER",
+      "at": "07:49:27.574",
+      "stage": "upload_part",
+      "key": "uploads/ab0b54a6-2401-44df-af68-a5313d79d9a0.tar.gz",
+      "part": "5",
+      "bytes": "16777216",
+      "wall_ms": "1552",
+      "status": "200",
+      "request_id": "0ZPB3C14S1Y29XFK"
+    },
+    {
+      "tag": "S3_TRANSFER",
+      "at": "07:49:27.686",
+      "stage": "upload_part",
+      "key": "uploads/ab0b54a6-2401-44df-af68-a5313d79d9a0.tar.gz",
+      "part": "6",
+      "bytes": "16777216",
+      "wall_ms": "1504",
+      "status": "200",
+      "request_id": "0ZPATNNSFDEDQM1P"
+    },
+    {
+      "tag": "S3_TRANSFER",
+      "at": "07:49:27.709",
+      "stage": "upload_part",
+      "key": "uploads/ab0b54a6-2401-44df-af68-a5313d79d9a0.tar.gz",
+      "part": "7",
+      "bytes": "9033143",
+      "wall_ms": "879",
+      "status": "200",
+      "request_id": "0ZP5QYM3VFAT8VB5"
+    },
+    {
+      "tag": "S3_TRANSFER",
+      "at": "07:49:28.111",
+      "stage": "multipart_abort",
+      "key": "uploads/ab0b54a6-2401-44df-af68-a5313d79d9a0.tar.gz",
+      "upload_id": "nPBXjXAO4TOSg_MITSJIdmXN8g4EiRh2mdw_Wg0le24jK72Zb..PnCegJYrSI62UKKMWbWbirAKLkKQSbUfdHqQygk_No6dB7YVMXw_cLbPkN1lm7rPKpWaeA8uoiowQIOEXzyTAT0DHePsc83mH382BDdWWvi6nZwEgN39ltd4-",
+      "result": "verified_absent"
+    },
+    {
+      "tag": "S3_TRANSFER",
+      "at": "07:49:28.112",
+      "stage": "archive_put",
+      "key": "uploads/ab0b54a6-2401-44df-af68-a5313d79d9a0.tar.gz",
+      "mode": "multipart",
+      "bytes": "109696439",
+      "result": "failed",
+      "error": "IOException"
+    }
+  ],
+  "summary": {
+    "events": 9,
+    "timings": [
+      {
+        "boundary": "S3_TRANSFER / upload_part / uploads/ab0b54a6-2401-44df-af68-a5313d79d9a0.tar.gz / observed / wall_ms",
+        "count": 6,
+        "sum_ms": 10804.0,
+        "p50_ms": 1552.0,
+        "p95_ms": 2776.0,
+        "max_ms": 2776.0
+      }
+    ],
+    "failures": [
+      {
+        "tag": "S3_TRANSFER",
+        "at": "07:49:28.112",
+        "stage": "archive_put",
+        "key": "uploads/ab0b54a6-2401-44df-af68-a5313d79d9a0.tar.gz",
+        "mode": "multipart",
+        "bytes": "109696439",
+        "result": "failed",
+        "error": "IOException"
+      }
+    ],
+    "limitation": "Inclusive/nested spans overlap; do not sum rows. Missing stages are unmeasured. Browser metrics are self-reported. CPU time is not CUDA kernel time."
+  }
+}

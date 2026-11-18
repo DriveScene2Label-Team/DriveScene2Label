@@ -1,0 +1,3 @@
+{"event": "http_attempt", "operation": "PutObjectRequest", "status": 200, "request_id": "N7YKHQPRY8SFH67C", "utc": "2026-11-18T07:54:55.664993313Z"}
+{"event": "http_attempt", "operation": "GetObjectRequest", "status": 404, "request_id": "QRV7BJ2QDH4D9SMS", "utc": "2026-11-18T07:54:55.868636378Z"}
+{"event": "http_attempt", "operation": "GetObjectRequest", "status": 200, "request_id": "QRV3NPFB2X3WNYG9", "utc": "2026-11-18T07:54:55.976416184Z"}

@@ -1,0 +1,37 @@
+{
+  "scope": "isolated Linux test workspace + ephemeral pgvector; synthetic AI; no AWS resources",
+  "started_at": "2026-11-18T08:48:11.116767+00:00",
+  "network": "ds2l-opt-test-20261118084811",
+  "containers": [
+    "ds2l-opt-test-20261118084811-db",
+    "ds2l-opt-test-20261118084811-java"
+  ],
+  "exit_code": 0,
+  "suites": [
+    {
+      "name": "com.example.demo.DatasetArchiveTests",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.609"
+    },
+    {
+      "name": "com.example.demo.nuscenes.storage.S3ArchiveTransferTests",
+      "tests": "9",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "2.517"
+    },
+    {
+      "name": "com.example.demo.UploadStorageTests",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "2.308"
+    }
+  ],
+  "finished_at": "2026-11-18T08:49:08.094305+00:00"
+}

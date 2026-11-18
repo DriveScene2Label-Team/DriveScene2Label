@@ -14,6 +14,16 @@ spec.loader.exec_module(measurement)
 
 
 class MeasurementTests(unittest.TestCase):
+    def test_s3_transfers_keep_identity_and_cleanup_failures_without_secrets(self):
+        row=measurement.parse_line('2026-11-18T07:00:00Z [S3_TRANSFER] stage=upload_part key=uploads/one.tar.gz part=2 bytes=16777216 wall_ms=250 status=200 request_id=test cookie=PRIVATE')
+        self.assertEqual((row['key'],row['part'],row['request_id']),('uploads/one.tar.gz','2','test'))
+        self.assertNotIn('cookie',row)
+        failure=measurement.parse_line('2026-11-18T07:00:01Z [S3_TRANSFER] stage=multipart_abort key=uploads/two.tar.gz upload_id=owned result=unconfirmed error=S3Exception token=PRIVATE')
+        summary=measurement.summarize([row,failure])
+        self.assertEqual(summary['failures'],[failure])
+        self.assertIn('uploads/one.tar.gz',summary['timings'][0]['boundary'])
+        self.assertNotIn('token',failure)
+
     def test_runner_configuration_is_allowlisted_without_credentials(self):
         row=measurement.parse_line('DS2L_STAGE '+json.dumps({'stage':'grounding_preprocessing','event':'configured',
             'mode':'reuse','seed':42,'token':'must-not-appear','environment':{'DB_PASSWORD':'must-not-appear'}}))

@@ -19,11 +19,12 @@ from evidence_io import save_json
 REPO = Path(__file__).resolve().parents[2]
 ROOT = REPO / '.local/hybrid/measurements'
 CONTAINERS = {'backend': 'drivescene-hybrid-backend-1', 'ai': 'drivescene-hybrid-ai-server-1'}
-TAGS = 'HTTP|UPLOAD_CLIENT|UPLOAD_TRANSFER|UPLOAD_STAGE|UPLOAD|DB_IMPORT|SEARCH|VESPA_STAGE|VESPA|AUTO_LABEL_STAGE|AUTO_LABEL|CLIP_INDEX|CLIP_STAGE|CLIP|RERUN_STAGE|RERUN|RECORDING|UPLOAD_CACHE|CACHE'
+TAGS = 'HTTP|UPLOAD_CLIENT|UPLOAD_TRANSFER|UPLOAD_STAGE|UPLOAD|DB_IMPORT|SEARCH|VESPA_STAGE|VESPA|AUTO_LABEL_STAGE|AUTO_LABEL|CLIP_INDEX|CLIP_STAGE|CLIP|RERUN_STAGE|RERUN|RECORDING|UPLOAD_CACHE|CACHE|S3_TRANSFER'
 TAG = re.compile(r'\[(' + TAGS + r')\]')
 PAIR = re.compile(r'([A-Za-z_]+)=([^\s,]+)')
 FIELDS = set('request method route status stage event upload dataset job run scene recording image table rows batches bytes offset received source outcome transfer_ms processing_ms total_ms sent_bytes resumed_bytes receive_ms db_lock_ms file_ms db_update_ms transaction_ms status_ms jdbc_ms wall_ms stage_wall_ms total_wall_ms ai_ms storage_ms db_mapping_ms lock_wait_ms decode_ms preprocess_ms gpu_ms handler_ms cache wall_seconds cpu_seconds ai_seconds storage_seconds total_seconds prepare_seconds executor_seconds frames images count boxes samples scenes topK aggregation remote format'.split())
 FIELDS.update(('source_ms', 'cache_ms', 'exists_ms'))
+S3_FIELDS = set('key upload_id part concurrency mode queue_ms result error request_id'.split())
 
 
 def now():
@@ -46,7 +47,8 @@ def parse_line(line):
     match = TAG.search(line)
     if not match:
         return None
-    fields = {key: value for key, value in PAIR.findall(line[match.end():]) if key in FIELDS}
+    allowed = FIELDS | S3_FIELDS if match[1] == 'S3_TRANSFER' else FIELDS
+    fields = {key: value for key, value in PAIR.findall(line[match.end():]) if key in allowed}
     # Only explicit structured fields: no request bodies, cookies, queries or free-form exceptions.
     if not fields:
         return None
@@ -64,6 +66,7 @@ def summarize(rows):
     failures = []
     for row in unique.values():
         if (row.get('event') == 'failed' or row.get('outcome') == 'failed' or row.get('status') == 'FAILED'
+                or (row.get('tag') == 'S3_TRANSFER' and row.get('result') in ('failed', 'unconfirmed'))
                 or (row.get('tag') == 'HTTP' and str(row.get('status', '')).startswith('5'))):
             failures.append(row)
         if row.get('event') == 'started':
@@ -71,6 +74,8 @@ def summarize(rows):
         scope = row.get('stage', row.get('table', row.get('route', row.get('event', 'boundary'))))
         # Keep runs/uploads independent. No sum across different jobs is presented as one job time.
         context = row.get('run_id', row.get('run', row.get('upload', row.get('recording', row.get('job', row.get('dataset', 'all'))))))
+        if row.get('tag') == 'S3_TRANSFER':
+            context = row.get('key', context)
         for field, value in row.items():
             if not (field.endswith('_ms') or field.endswith('_seconds')):
                 continue

@@ -44,6 +44,10 @@ services:
       RECORDING_ROOT: /recordings
       UPLOAD_ROOT: /uploads
       UPLOAD_S3_BUCKET: ${UPLOAD_S3_BUCKET:?Set the private archive bucket in .env.hybrid}
+      # S3-J: mixed paired results; keep multipart opt-in, with a small-file guard.
+      UPLOAD_S3_MULTIPART_ENABLED: ${UPLOAD_S3_MULTIPART_ENABLED:-false}
+      UPLOAD_S3_UPLOAD_CONCURRENCY: ${UPLOAD_S3_UPLOAD_CONCURRENCY:-4}
+      UPLOAD_S3_MULTIPART_THRESHOLD_BYTES: ${UPLOAD_S3_MULTIPART_THRESHOLD_BYTES:-1073741824}
       AWS_REGION: ${AWS_REGION:-ap-northeast-2}
       AWS_PROFILE: ${AWS_PROFILE:-default}
       AWS_SHARED_CREDENTIALS_FILE: /run/secrets/s3_credentials

@@ -1,0 +1,17 @@
+{
+  "torch": "2.14.1+cu130",
+  "cuda": "13.0",
+  "device": "NVIDIA GeForce RTX 5060 Ti",
+  "cuda_check": true,
+  "health": {
+    "status": "ok",
+    "service": "drivescene-ai",
+    "inference": {
+      "clip": "ready",
+      "vespa": "not_configured",
+      "vespa_executor": "local",
+      "recording": "configured"
+    },
+    "device": "cuda"
+  }
+}

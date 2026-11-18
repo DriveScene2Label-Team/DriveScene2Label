@@ -1,0 +1,86 @@
+{
+  "started_at": "2026-11-18T07:46:55.473658+00:00",
+  "phase": "pilot",
+  "cases": [
+    {
+      "label": "00-single-none",
+      "uuid": "00a4922d-d937-4569-8568-842f3bc946a3",
+      "key": "uploads/00a4922d-d937-4569-8568-842f3bc946a3.tar.gz",
+      "container": "ds2l-s3-00a4922d-d937-4569-8568-842f3bc946a3",
+      "volume": "ds2l-s3-00a4922d-d937-4569-8568-842f3bc946a3-work",
+      "cleaned": true,
+      "result": {
+        "started_at": "2026-11-18T07:47:01.463689151Z",
+        "mode": "single",
+        "fault": "none",
+        "key": "uploads/00a4922d-d937-4569-8568-842f3bc946a3.tar.gz",
+        "bytes": 109696439,
+        "java": "21.0.13",
+        "processors": 4,
+        "scope": "Java production UploadArchiveStore + DatasetStorage; no HTTP/browser/RDS/model execution",
+        "source_sha256": "4e3e8959c49ce9f6ba4fb0817a443d2af9763d85e6a15f00290189834a4ce9c5",
+        "upload_s": 3.351879047,
+        "download_s": 14.516734626,
+        "download_sha256": "4e3e8959c49ce9f6ba4fb0817a443d2af9763d85e6a15f00290189834a4ce9c5",
+        "pass": true,
+        "process_cpu_s": 8.87,
+        "peak_heap_bytes": 16734904,
+        "peak_rss_bytes": 144695296,
+        "injected_http_503": 0,
+        "finished_at": "2026-11-18T07:47:20.455046030Z"
+      }
+    },
+    {
+      "label": "01-multipart-none",
+      "uuid": "2dcdd936-4a6c-4b53-9e64-a04a3a9e865d",
+      "key": "uploads/2dcdd936-4a6c-4b53-9e64-a04a3a9e865d.tar.gz",
+      "container": "ds2l-s3-2dcdd936-4a6c-4b53-9e64-a04a3a9e865d",
+      "volume": "ds2l-s3-2dcdd936-4a6c-4b53-9e64-a04a3a9e865d-work",
+      "cleaned": true,
+      "result": {
+        "started_at": "2026-11-18T07:47:35.457896031Z",
+        "mode": "multipart",
+        "fault": "none",
+        "key": "uploads/2dcdd936-4a6c-4b53-9e64-a04a3a9e865d.tar.gz",
+        "bytes": 109696439,
+        "java": "21.0.13",
+        "processors": 4,
+        "scope": "Java production UploadArchiveStore + DatasetStorage; no HTTP/browser/RDS/model execution",
+        "source_sha256": "4e3e8959c49ce9f6ba4fb0817a443d2af9763d85e6a15f00290189834a4ce9c5",
+        "upload_s": 5.629138893,
+        "download_s": 13.602525866,
+        "download_sha256": "4e3e8959c49ce9f6ba4fb0817a443d2af9763d85e6a15f00290189834a4ce9c5",
+        "pass": true,
+        "process_cpu_s": 13.39,
+        "peak_heap_bytes": 17956728,
+        "peak_rss_bytes": 165523456,
+        "injected_http_503": 0,
+        "finished_at": "2026-11-18T07:47:56.123216003Z"
+      }
+    }
+  ],
+  "scope": "actual Java production storage methods against existing S3; RDS and GPU remain stopped",
+  "source_id": "bd78307e-83c5-4215-a06f-f569a6bba684",
+  "case_order": [
+    [
+      "single",
+      "none"
+    ],
+    [
+      "multipart",
+      "none"
+    ]
+  ],
+  "source_hashes": {
+    "scripts\\hybrid\\run_s3_java_experiment.py": "f7daa456e4cd0e25e162790ac43dadfb700c3b9f8b66b353a999eecd2415f2c0",
+    "src\\main\\java\\com\\example\\demo\\nuscenes\\storage\\DatasetArchive.java": "977e9e76518dd1150e15e07950f73421409febe9556b5a319c5011fd484dd19e",
+    "src\\main\\java\\com\\example\\demo\\nuscenes\\storage\\DatasetFiles.java": "49a5b2571e127e3a649b012b5e1b8c1b8cbc756d6e6d24b656ebb11b6d16ac49",
+    "src\\main\\java\\com\\example\\demo\\nuscenes\\storage\\DatasetStorage.java": "428070879cb43a3ad0ba4759fbda5c2900ad3a8d7f2478cd2ac38bff8c457d06",
+    "src\\main\\java\\com\\example\\demo\\nuscenes\\storage\\MultipartArchiveUploader.java": "f345a8d6217583f4683079ebeaa0f1bc750f3d0eb62c010a72198473a27591e0",
+    "src\\main\\java\\com\\example\\demo\\nuscenes\\storage\\RecordingFiles.java": "5b0ba1c16e6d4aec7565dc44fdbbe546376d92548a6676744dcbb3f0a3654dc7",
+    "src\\main\\java\\com\\example\\demo\\nuscenes\\storage\\S3ArchiveExperiment.java": "285a287e51b7ff84ce0888c710633716f1929eb3dcbe25eaccac4fff7995514b",
+    "src\\main\\java\\com\\example\\demo\\nuscenes\\storage\\UploadArchiveStore.java": "df4b84779fb1df801fbe5c7f3d15c22c204f4fab3e8f62eba4e566e2ccd149bc"
+  },
+  "pass": true,
+  "finished_at": "2026-11-18T07:48:06.487939+00:00"
+}

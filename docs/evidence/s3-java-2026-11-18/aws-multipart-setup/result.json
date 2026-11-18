@@ -1,0 +1,10 @@
+{
+  "applied": true,
+  "actions_added": [
+    "s3:AbortMultipartUpload",
+    "s3:ListMultipartUploadParts"
+  ],
+  "resource": "arn:aws:s3:::ds2l-189750306426-ap-northeast-2-data/uploads/*",
+  "completed_objects_expired": false,
+  "lifecycle_observed_expiration": false
+}

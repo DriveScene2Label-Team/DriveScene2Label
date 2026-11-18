@@ -1,0 +1,22 @@
+{
+  "started_at": "2026-11-18T08:46:00.498943+00:00",
+  "applied": true,
+  "original_manifest_preserved": true,
+  "cases": [
+    {
+      "case": "05-multipart-none",
+      "uuid": "9ee07c32-105e-4b5a-abb2-d0c8bf8539b6",
+      "key": "uploads/9ee07c32-105e-4b5a-abb2-d0c8bf8539b6.tar.gz",
+      "pending": [
+        {
+          "upload_id": "Fjsl8Md2KD.kygOxWFgL4_YaL4w9lbGOtI5lomescyZWLuzwp4nRDQUReeUXTJFUaPLM4aFA0F2lkpUpByshmtpUTA1ig3wI9SzxKIugRpLfN933SHSwN_cW6aGLjHvEubIOwbpuV03Xkw.BNgNsWES.79ZLXvjYNDUW15AY9uY-",
+          "parts": 73,
+          "bytes": 1224736768
+        }
+      ],
+      "cleaned": true
+    }
+  ],
+  "finished_at": "2026-11-18T08:46:11.788973+00:00",
+  "pass": true
+}

@@ -1,0 +1,18 @@
+{
+  "events": [
+    {
+      "tag": "S3_TRANSFER",
+      "at": "07:50:48.227",
+      "stage": "multipart_create",
+      "key": "uploads/f03beb1c-838e-4dea-89ef-ef02cafe4e11.tar.gz",
+      "upload_id": "UxWyWVsXLFkiQm99AUlWQ0rJxDYTgpy1jemJhtkGmxitwjrZvxao1QKOA4cuTlvntskO1ZGcOQOa6l6PrWcIJ2CgHSsWoxP1cyTuzMUGXQt0p7GOhUYwGoWdLl1IPuoArwTDW1IlACWlbRBPWSJy8.3wBQJiv7.eiVK8nOljymg-",
+      "concurrency": "4"
+    }
+  ],
+  "summary": {
+    "events": 1,
+    "timings": [],
+    "failures": [],
+    "limitation": "Inclusive/nested spans overlap; do not sum rows. Missing stages are unmeasured. Browser metrics are self-reported. CPU time is not CUDA kernel time."
+  }
+}

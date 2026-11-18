@@ -1,0 +1,62 @@
+{
+  "events": [
+    {
+      "tag": "S3_TRANSFER",
+      "at": "09:07:31.861",
+      "stage": "archive_put",
+      "key": "uploads/455e8f20-cf0e-4598-a02c-f35970ae08d1.tar.gz",
+      "mode": "single",
+      "bytes": "109696439",
+      "queue_ms": "0",
+      "transfer_ms": "3421",
+      "result": "completed"
+    },
+    {
+      "tag": "CACHE",
+      "at": "09:07:31.866",
+      "upload": "455e8f20-cf0e-4598-a02c-f35970ae08d1",
+      "stage": "s3_download",
+      "event": "started"
+    },
+    {
+      "tag": "CACHE",
+      "at": "09:07:39.221",
+      "upload": "455e8f20-cf0e-4598-a02c-f35970ae08d1",
+      "stage": "s3_download",
+      "event": "completed",
+      "bytes": "109696439",
+      "wall_ms": "7355"
+    }
+  ],
+  "summary": {
+    "events": 3,
+    "timings": [
+      {
+        "boundary": "CACHE / s3_download / 455e8f20-cf0e-4598-a02c-f35970ae08d1 / completed / wall_ms",
+        "count": 1,
+        "sum_ms": 7355.0,
+        "p50_ms": 7355.0,
+        "p95_ms": 7355.0,
+        "max_ms": 7355.0
+      },
+      {
+        "boundary": "S3_TRANSFER / archive_put / uploads/455e8f20-cf0e-4598-a02c-f35970ae08d1.tar.gz / observed / queue_ms",
+        "count": 1,
+        "sum_ms": 0.0,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "max_ms": 0.0
+      },
+      {
+        "boundary": "S3_TRANSFER / archive_put / uploads/455e8f20-cf0e-4598-a02c-f35970ae08d1.tar.gz / observed / transfer_ms",
+        "count": 1,
+        "sum_ms": 3421.0,
+        "p50_ms": 3421.0,
+        "p95_ms": 3421.0,
+        "max_ms": 3421.0
+      }
+    ],
+    "failures": [],
+    "limitation": "Inclusive/nested spans overlap; do not sum rows. Missing stages are unmeasured. Browser metrics are self-reported. CPU time is not CUDA kernel time."
+  }
+}

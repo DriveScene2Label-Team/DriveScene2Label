@@ -1,0 +1,200 @@
+{
+  "started_at": "2026-11-18T07:51:21.951144+00:00",
+  "phase": "large",
+  "cases": [
+    {
+      "label": "00-single-none",
+      "uuid": "4c4e8ed2-dc89-40d3-a1f7-9e9d7f84f059",
+      "key": "uploads/4c4e8ed2-dc89-40d3-a1f7-9e9d7f84f059.tar.gz",
+      "container": "ds2l-s3-4c4e8ed2-dc89-40d3-a1f7-9e9d7f84f059",
+      "volume": "ds2l-s3-4c4e8ed2-dc89-40d3-a1f7-9e9d7f84f059-work",
+      "cleaned": true,
+      "result": {
+        "started_at": "2026-11-18T07:51:26.095343437Z",
+        "mode": "single",
+        "fault": "none",
+        "key": "uploads/4c4e8ed2-dc89-40d3-a1f7-9e9d7f84f059.tar.gz",
+        "bytes": 4168148189,
+        "java": "21.0.13",
+        "processors": 4,
+        "scope": "Java production UploadArchiveStore + DatasetStorage; no HTTP/browser/RDS/model execution",
+        "source_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+        "upload_s": 204.320132769,
+        "download_s": 304.284696158,
+        "download_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+        "restore_s": 52.624312077,
+        "restored_files": 31225,
+        "all_file_hashes_equal": true,
+        "local_cache_hit_s": 0.000300549,
+        "pass": true,
+        "process_cpu_s": 168.64,
+        "peak_heap_bytes": 79929704,
+        "peak_rss_bytes": 243982336,
+        "injected_http_503": 0,
+        "finished_at": "2026-11-18T08:01:43.588006721Z"
+      }
+    },
+    {
+      "label": "01-multipart-none",
+      "uuid": "3bc1bdd4-c740-4adb-82a9-78cdf0c0d45d",
+      "key": "uploads/3bc1bdd4-c740-4adb-82a9-78cdf0c0d45d.tar.gz",
+      "container": "ds2l-s3-3bc1bdd4-c740-4adb-82a9-78cdf0c0d45d",
+      "volume": "ds2l-s3-3bc1bdd4-c740-4adb-82a9-78cdf0c0d45d-work",
+      "cleaned": true,
+      "result": {
+        "started_at": "2026-11-18T08:01:59.110883515Z",
+        "mode": "multipart",
+        "fault": "none",
+        "key": "uploads/3bc1bdd4-c740-4adb-82a9-78cdf0c0d45d.tar.gz",
+        "bytes": 4168148189,
+        "java": "21.0.13",
+        "processors": 4,
+        "scope": "Java production UploadArchiveStore + DatasetStorage; no HTTP/browser/RDS/model execution",
+        "source_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+        "upload_s": 207.476076,
+        "download_s": 283.755294106,
+        "download_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+        "restore_s": 51.88816427,
+        "restored_files": 31225,
+        "all_file_hashes_equal": true,
+        "local_cache_hit_s": 0.000372737,
+        "pass": true,
+        "process_cpu_s": 164.69,
+        "peak_heap_bytes": 70669128,
+        "peak_rss_bytes": 217006080,
+        "injected_http_503": 0,
+        "finished_at": "2026-11-18T08:11:57.462298885Z"
+      }
+    },
+    {
+      "label": "02-multipart-none",
+      "uuid": "c3b567a1-f5a3-45eb-bb91-dcb015d5e2c9",
+      "key": "uploads/c3b567a1-f5a3-45eb-bb91-dcb015d5e2c9.tar.gz",
+      "container": "ds2l-s3-c3b567a1-f5a3-45eb-bb91-dcb015d5e2c9",
+      "volume": "ds2l-s3-c3b567a1-f5a3-45eb-bb91-dcb015d5e2c9-work",
+      "cleaned": true,
+      "result": {
+        "started_at": "2026-11-18T08:12:15.263060023Z",
+        "mode": "multipart",
+        "fault": "none",
+        "key": "uploads/c3b567a1-f5a3-45eb-bb91-dcb015d5e2c9.tar.gz",
+        "bytes": 4168148189,
+        "java": "21.0.13",
+        "processors": 4,
+        "scope": "Java production UploadArchiveStore + DatasetStorage; no HTTP/browser/RDS/model execution",
+        "source_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+        "upload_s": 176.826817628,
+        "download_s": 299.735959453,
+        "download_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+        "pass": true,
+        "process_cpu_s": 91.47,
+        "peak_heap_bytes": 26812264,
+        "peak_rss_bytes": 158220288,
+        "injected_http_503": 0,
+        "finished_at": "2026-11-18T08:20:22.775871323Z"
+      }
+    },
+    {
+      "label": "03-single-none",
+      "uuid": "7af844fe-721d-475b-8465-9a1b31df74bb",
+      "key": "uploads/7af844fe-721d-475b-8465-9a1b31df74bb.tar.gz",
+      "container": "ds2l-s3-7af844fe-721d-475b-8465-9a1b31df74bb",
+      "volume": "ds2l-s3-7af844fe-721d-475b-8465-9a1b31df74bb-work",
+      "cleaned": true,
+      "result": {
+        "started_at": "2026-11-18T08:20:37.666604478Z",
+        "mode": "single",
+        "fault": "none",
+        "key": "uploads/7af844fe-721d-475b-8465-9a1b31df74bb.tar.gz",
+        "bytes": 4168148189,
+        "java": "21.0.13",
+        "processors": 4,
+        "scope": "Java production UploadArchiveStore + DatasetStorage; no HTTP/browser/RDS/model execution",
+        "source_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+        "upload_s": 202.092915569,
+        "download_s": 300.455330292,
+        "download_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+        "pass": true,
+        "process_cpu_s": 85.01,
+        "peak_heap_bytes": 16788304,
+        "peak_rss_bytes": 142233600,
+        "injected_http_503": 0,
+        "finished_at": "2026-11-18T08:29:10.631094913Z"
+      }
+    },
+    {
+      "label": "04-single-none",
+      "uuid": "28e295b1-d11d-4199-91b3-e31a6bfc7f28",
+      "key": "uploads/28e295b1-d11d-4199-91b3-e31a6bfc7f28.tar.gz",
+      "container": "ds2l-s3-28e295b1-d11d-4199-91b3-e31a6bfc7f28",
+      "volume": "ds2l-s3-28e295b1-d11d-4199-91b3-e31a6bfc7f28-work",
+      "cleaned": true,
+      "result": {
+        "started_at": "2026-11-18T08:29:27.447444677Z",
+        "mode": "single",
+        "fault": "none",
+        "key": "uploads/28e295b1-d11d-4199-91b3-e31a6bfc7f28.tar.gz",
+        "bytes": 4168148189,
+        "java": "21.0.13",
+        "processors": 4,
+        "scope": "Java production UploadArchiveStore + DatasetStorage; no HTTP/browser/RDS/model execution",
+        "source_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+        "upload_s": 163.912043701,
+        "download_s": 242.220480536,
+        "download_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+        "pass": true,
+        "process_cpu_s": 97.05,
+        "peak_heap_bytes": 16782608,
+        "peak_rss_bytes": 152625152,
+        "injected_http_503": 0,
+        "finished_at": "2026-11-18T08:36:25.527647162Z"
+      }
+    },
+    {
+      "label": "05-multipart-none",
+      "uuid": "9ee07c32-105e-4b5a-abb2-d0c8bf8539b6",
+      "key": "uploads/9ee07c32-105e-4b5a-abb2-d0c8bf8539b6.tar.gz",
+      "container": "ds2l-s3-9ee07c32-105e-4b5a-abb2-d0c8bf8539b6",
+      "volume": "ds2l-s3-9ee07c32-105e-4b5a-abb2-d0c8bf8539b6-work",
+      "cleaned": false
+    }
+  ],
+  "scope": "actual Java production storage methods against existing S3; RDS and GPU remain stopped",
+  "source_id": "f00cc327-dc93-4e82-a8aa-ef9d18dcc550",
+  "case_order": [
+    [
+      "single",
+      "none"
+    ],
+    [
+      "multipart",
+      "none"
+    ],
+    [
+      "multipart",
+      "none"
+    ],
+    [
+      "single",
+      "none"
+    ],
+    [
+      "single",
+      "none"
+    ],
+    [
+      "multipart",
+      "none"
+    ]
+  ],
+  "source_hashes": {
+    "scripts\\hybrid\\run_s3_java_experiment.py": "f7daa456e4cd0e25e162790ac43dadfb700c3b9f8b66b353a999eecd2415f2c0",
+    "src\\main\\java\\com\\example\\demo\\nuscenes\\storage\\DatasetArchive.java": "977e9e76518dd1150e15e07950f73421409febe9556b5a319c5011fd484dd19e",
+    "src\\main\\java\\com\\example\\demo\\nuscenes\\storage\\DatasetFiles.java": "49a5b2571e127e3a649b012b5e1b8c1b8cbc756d6e6d24b656ebb11b6d16ac49",
+    "src\\main\\java\\com\\example\\demo\\nuscenes\\storage\\DatasetStorage.java": "428070879cb43a3ad0ba4759fbda5c2900ad3a8d7f2478cd2ac38bff8c457d06",
+    "src\\main\\java\\com\\example\\demo\\nuscenes\\storage\\MultipartArchiveUploader.java": "f345a8d6217583f4683079ebeaa0f1bc750f3d0eb62c010a72198473a27591e0",
+    "src\\main\\java\\com\\example\\demo\\nuscenes\\storage\\RecordingFiles.java": "5b0ba1c16e6d4aec7565dc44fdbbe546376d92548a6676744dcbb3f0a3654dc7",
+    "src\\main\\java\\com\\example\\demo\\nuscenes\\storage\\S3ArchiveExperiment.java": "285a287e51b7ff84ce0888c710633716f1929eb3dcbe25eaccac4fff7995514b",
+    "src\\main\\java\\com\\example\\demo\\nuscenes\\storage\\UploadArchiveStore.java": "df4b84779fb1df801fbe5c7f3d15c22c204f4fab3e8f62eba4e566e2ccd149bc"
+  }
+}

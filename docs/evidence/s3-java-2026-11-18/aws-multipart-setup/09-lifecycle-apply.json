@@ -1,0 +1,23 @@
+{
+  "command": [
+    "aws",
+    "s3api",
+    "put-bucket-lifecycle-configuration",
+    "--bucket",
+    "ds2l-189750306426-ap-northeast-2-data",
+    "--lifecycle-configuration",
+    "file://$REPO\\.local\\hybrid\\experiments\\20261118T072013Z-s3-java\\aws-multipart-setup\\lifecycle-candidate.json",
+    "--profile",
+    "ds2l-seoul",
+    "--region",
+    "ap-northeast-2",
+    "--output",
+    "json",
+    "--no-cli-pager"
+  ],
+  "exit_code": 0,
+  "result": {
+    "TransitionDefaultMinimumObjectSize": "all_storage_classes_128K"
+  },
+  "error": ""
+}

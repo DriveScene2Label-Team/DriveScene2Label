@@ -1,0 +1,294 @@
+[
+  {
+    "attempt": "java-pilot-tests",
+    "summary": {
+      "scope": "isolated Linux test workspace + ephemeral pgvector; synthetic AI; no AWS resources",
+      "started_at": "2026-11-18T07:31:24.900348+00:00",
+      "network": "ds2l-opt-test-20261118073124",
+      "containers": [
+        "ds2l-opt-test-20261118073124-db",
+        "ds2l-opt-test-20261118073124-java"
+      ],
+      "exit_code": 1,
+      "suites": [],
+      "finished_at": "2026-11-18T07:31:44.105356+00:00"
+    },
+    "failures": [],
+    "compiler_diagnostics": [
+      "/workspace/src/test/java/com/example/demo/nuscenes/storage/S3ArchiveTransferTests.java:32: error: incompatible types: SdkResponse cannot be converted to UploadPartResponse",
+      "  /workspace/src/test/java/com/example/demo/nuscenes/storage/S3ArchiveTransferTests.java:32: error: incompatible types: SdkResponse cannot be converted to UploadPartResponse"
+    ]
+  },
+  {
+    "attempt": "java-pilot-tests-r2",
+    "summary": {
+      "scope": "isolated Linux test workspace + ephemeral pgvector; synthetic AI; no AWS resources",
+      "started_at": "2026-11-18T07:32:58.968771+00:00",
+      "network": "ds2l-opt-test-20261118073258",
+      "containers": [
+        "ds2l-opt-test-20261118073258-db",
+        "ds2l-opt-test-20261118073258-java"
+      ],
+      "exit_code": 1,
+      "suites": [
+        {
+          "name": "com.example.demo.DatasetArchiveTests",
+          "tests": "3",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.813"
+        },
+        {
+          "name": "com.example.demo.nuscenes.storage.S3ArchiveTransferTests",
+          "tests": "8",
+          "failures": "2",
+          "errors": "0",
+          "skipped": "0",
+          "time": "3.747"
+        },
+        {
+          "name": "com.example.demo.UploadStorageTests",
+          "tests": "3",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "3.554"
+        }
+      ],
+      "finished_at": "2026-11-18T07:34:06.883881+00:00"
+    },
+    "failures": [
+      {
+        "test": "boundedConcurrencyAndOrderedCompletionWithShortLastPart()",
+        "type": "java.io.IOException",
+        "message": "java.io.IOException: S3 multipart upload failed"
+      },
+      {
+        "test": "lostCompletionAcknowledgementAcceptsOnlyMatchingAttemptAndLength()",
+        "type": "java.lang.AssertionError",
+        "message": "java.lang.AssertionError: \nExpecting actual throwable to be an instance of:\n  java.lang.RuntimeException\nbut was:\n  java.io.IOException: S3 multipart upload failed\n\tat com.example.demo.nuscenes.storage.MultipartArchiveUploader.upload(MultipartArchiveUploader.java:76)\n\tat com.example.demo.nuscenes.storage.S3ArchiveTransferTests.lambda$lostCompletionAcknowledgementAcceptsOnlyMatchingAttemptAndLength$5(S3ArchiveTransferTests.java:92)\n\tat org.assertj.core.api.ThrowableAssert.catchThrowable(ThrowableAssert.java:66)\n\t...(95 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)"
+      }
+    ],
+    "compiler_diagnostics": []
+  },
+  {
+    "attempt": "java-pilot-tests-r3",
+    "summary": {
+      "scope": "isolated Linux test workspace + ephemeral pgvector; synthetic AI; no AWS resources",
+      "started_at": "2026-11-18T07:36:52.725494+00:00",
+      "network": "ds2l-opt-test-20261118073652",
+      "containers": [
+        "ds2l-opt-test-20261118073652-db",
+        "ds2l-opt-test-20261118073652-java"
+      ],
+      "exit_code": 1,
+      "suites": [],
+      "finished_at": "2026-11-18T07:37:32.460933+00:00"
+    },
+    "failures": [],
+    "compiler_diagnostics": [
+      "/workspace/src/test/java/com/example/demo/nuscenes/storage/S3ArchiveTransferTests.java:32: error: incompatible types: no instance(s) of type variable(s) K,V exist so that Map<K,V> conforms to AwsResponseMetadata",
+      "  /workspace/src/test/java/com/example/demo/nuscenes/storage/S3ArchiveTransferTests.java:32: error: incompatible types: no instance(s) of type variable(s) K,V exist so that Map<K,V> conforms to AwsResponseMetadata"
+    ]
+  },
+  {
+    "attempt": "java-pilot-tests-r4",
+    "summary": {
+      "scope": "isolated Linux test workspace + ephemeral pgvector; synthetic AI; no AWS resources",
+      "started_at": "2026-11-18T07:40:12.733014+00:00",
+      "network": "ds2l-opt-test-20261118074012",
+      "containers": [
+        "ds2l-opt-test-20261118074012-db",
+        "ds2l-opt-test-20261118074012-java"
+      ],
+      "exit_code": 1,
+      "suites": [],
+      "finished_at": "2026-11-18T07:40:39.905283+00:00"
+    },
+    "failures": [],
+    "compiler_diagnostics": [
+      "/workspace/src/main/java/com/example/demo/nuscenes/storage/S3ArchiveExperiment.java:3: error: package com.fasterxml.jackson.databind does not exist",
+      "/workspace/src/main/java/com/example/demo/nuscenes/storage/S3ArchiveExperiment.java:22: error: cannot find symbol",
+      "  /workspace/src/main/java/com/example/demo/nuscenes/storage/S3ArchiveExperiment.java:22: error: cannot find symbol",
+      "  /workspace/src/main/java/com/example/demo/nuscenes/storage/S3ArchiveExperiment.java:3: error: package com.fasterxml.jackson.databind does not exist"
+    ]
+  },
+  {
+    "attempt": "java-pilot-tests-r5",
+    "summary": {
+      "scope": "isolated Linux test workspace + ephemeral pgvector; synthetic AI; no AWS resources",
+      "started_at": "2026-11-18T07:41:15.843376+00:00",
+      "network": "ds2l-opt-test-20261118074115",
+      "containers": [
+        "ds2l-opt-test-20261118074115-db",
+        "ds2l-opt-test-20261118074115-java"
+      ],
+      "exit_code": 1,
+      "suites": [],
+      "finished_at": "2026-11-18T07:41:57.549770+00:00"
+    },
+    "failures": [],
+    "compiler_diagnostics": [
+      "/workspace/src/test/java/com/example/demo/nuscenes/storage/S3ArchiveTransferTests.java:32: error: cannot find symbol",
+      "  /workspace/src/test/java/com/example/demo/nuscenes/storage/S3ArchiveTransferTests.java:32: error: cannot find symbol"
+    ]
+  },
+  {
+    "attempt": "java-pilot-tests-r6",
+    "summary": {
+      "scope": "isolated Linux test workspace + ephemeral pgvector; synthetic AI; no AWS resources",
+      "started_at": "2026-11-18T07:43:13.310669+00:00",
+      "network": "ds2l-opt-test-20261118074313",
+      "containers": [
+        "ds2l-opt-test-20261118074313-db",
+        "ds2l-opt-test-20261118074313-java"
+      ],
+      "exit_code": 1,
+      "suites": [],
+      "finished_at": "2026-11-18T07:43:56.081156+00:00"
+    },
+    "failures": [],
+    "compiler_diagnostics": [
+      "/workspace/src/test/java/com/example/demo/nuscenes/storage/S3ArchiveTransferTests.java:34: error: incompatible types: S3Response cannot be converted to UploadPartResponse",
+      "  /workspace/src/test/java/com/example/demo/nuscenes/storage/S3ArchiveTransferTests.java:34: error: incompatible types: S3Response cannot be converted to UploadPartResponse"
+    ]
+  },
+  {
+    "attempt": "java-pilot-tests-r7",
+    "summary": {
+      "scope": "isolated Linux test workspace + ephemeral pgvector; synthetic AI; no AWS resources",
+      "started_at": "2026-11-18T07:44:33.217944+00:00",
+      "network": "ds2l-opt-test-20261118074433",
+      "containers": [
+        "ds2l-opt-test-20261118074433-db",
+        "ds2l-opt-test-20261118074433-java"
+      ],
+      "exit_code": 1,
+      "suites": [
+        {
+          "name": "com.example.demo.DatasetArchiveTests",
+          "tests": "3",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.244"
+        },
+        {
+          "name": "com.example.demo.nuscenes.storage.S3ArchiveTransferTests",
+          "tests": "8",
+          "failures": "2",
+          "errors": "0",
+          "skipped": "0",
+          "time": "1.456"
+        },
+        {
+          "name": "com.example.demo.UploadStorageTests",
+          "tests": "3",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "1.394"
+        }
+      ],
+      "finished_at": "2026-11-18T07:45:08.958648+00:00"
+    },
+    "failures": [
+      {
+        "test": "boundedConcurrencyAndOrderedCompletionWithShortLastPart()",
+        "type": "java.io.IOException",
+        "message": "java.io.IOException: S3 multipart upload failed"
+      },
+      {
+        "test": "lostCompletionAcknowledgementAcceptsOnlyMatchingAttemptAndLength()",
+        "type": "org.mockito.exceptions.misusing.UnfinishedStubbingException",
+        "message": "org.mockito.exceptions.misusing.UnfinishedStubbingException: \nUnfinished stubbing detected here:\n-> at com.example.demo.nuscenes.storage.S3ArchiveTransferTests.lostCompletionAcknowledgementAcceptsOnlyMatchingAttemptAndLength(S3ArchiveTransferTests.java:88)\n\nE.g. thenReturn() may be missing.\nExamples of correct stubbing:\n    when(mock.isOk()).thenReturn(true);\n    when(mock.isOk()).thenThrow(exception);\n    doThrow(exception).when(mock).someVoidMethod();\nHints:\n 1. missing thenReturn()\n 2. you are trying to stub a final method, which is not supported\n 3. you are stubbing the behaviour of another mock inside before 'thenReturn' instruction is completed, possibly on another thread\n"
+      }
+    ],
+    "compiler_diagnostics": []
+  },
+  {
+    "attempt": "java-pilot-tests-r8",
+    "summary": {
+      "scope": "isolated Linux test workspace + ephemeral pgvector; synthetic AI; no AWS resources",
+      "started_at": "2026-11-18T07:45:53.890761+00:00",
+      "network": "ds2l-opt-test-20261118074553",
+      "containers": [
+        "ds2l-opt-test-20261118074553-db",
+        "ds2l-opt-test-20261118074553-java"
+      ],
+      "exit_code": 0,
+      "suites": [
+        {
+          "name": "com.example.demo.DatasetArchiveTests",
+          "tests": "3",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.24"
+        },
+        {
+          "name": "com.example.demo.nuscenes.storage.S3ArchiveTransferTests",
+          "tests": "8",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "1.158"
+        },
+        {
+          "name": "com.example.demo.UploadStorageTests",
+          "tests": "3",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "1.226"
+        }
+      ],
+      "finished_at": "2026-11-18T07:46:25.508016+00:00"
+    },
+    "failures": [],
+    "compiler_diagnostics": []
+  },
+  {
+    "attempt": "java-final-tests",
+    "summary": {
+      "scope": "isolated Linux test workspace + ephemeral pgvector; synthetic AI; no AWS resources",
+      "started_at": "2026-11-18T08:48:11.116767+00:00",
+      "network": "ds2l-opt-test-20261118084811",
+      "containers": [
+        "ds2l-opt-test-20261118084811-db",
+        "ds2l-opt-test-20261118084811-java"
+      ],
+      "exit_code": 0,
+      "suites": [
+        {
+          "name": "com.example.demo.DatasetArchiveTests",
+          "tests": "3",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.609"
+        },
+        {
+          "name": "com.example.demo.nuscenes.storage.S3ArchiveTransferTests",
+          "tests": "9",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "2.517"
+        },
+        {
+          "name": "com.example.demo.UploadStorageTests",
+          "tests": "3",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "2.308"
+        }
+      ],
+      "finished_at": "2026-11-18T08:49:08.094305+00:00"
+    },
+    "failures": [],
+    "compiler_diagnostics": []
+  }
+]

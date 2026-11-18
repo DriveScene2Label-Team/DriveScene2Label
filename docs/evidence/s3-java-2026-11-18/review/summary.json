@@ -1,0 +1,984 @@
+{
+  "generated_at": "2026-11-18T09:08:17.069899+00:00",
+  "cases": [
+    {
+      "phase": "pilot",
+      "case": "00-single-none",
+      "result": {
+        "started_at": "2026-11-18T07:47:01.463689151Z",
+        "mode": "single",
+        "fault": "none",
+        "key": "uploads/00a4922d-d937-4569-8568-842f3bc946a3.tar.gz",
+        "bytes": 109696439,
+        "java": "21.0.13",
+        "processors": 4,
+        "scope": "Java production UploadArchiveStore + DatasetStorage; no HTTP/browser/RDS/model execution",
+        "source_sha256": "4e3e8959c49ce9f6ba4fb0817a443d2af9763d85e6a15f00290189834a4ce9c5",
+        "upload_s": 3.351879047,
+        "download_s": 14.516734626,
+        "download_sha256": "4e3e8959c49ce9f6ba4fb0817a443d2af9763d85e6a15f00290189834a4ce9c5",
+        "pass": true,
+        "process_cpu_s": 8.87,
+        "peak_heap_bytes": 16734904,
+        "peak_rss_bytes": 144695296,
+        "injected_http_503": 0,
+        "finished_at": "2026-11-18T07:47:20.455046030Z"
+      },
+      "cleaned": true,
+      "http_attempts": [
+        {
+          "operation": "GetObjectRequest",
+          "actual_http_status": 200,
+          "count": 1
+        },
+        {
+          "operation": "GetObjectRequest",
+          "actual_http_status": 404,
+          "count": 1
+        },
+        {
+          "operation": "PutObjectRequest",
+          "actual_http_status": 200,
+          "count": 1
+        }
+      ],
+      "injections": [],
+      "inventories": {}
+    },
+    {
+      "phase": "pilot",
+      "case": "01-multipart-none",
+      "result": {
+        "started_at": "2026-11-18T07:47:35.457896031Z",
+        "mode": "multipart",
+        "fault": "none",
+        "key": "uploads/2dcdd936-4a6c-4b53-9e64-a04a3a9e865d.tar.gz",
+        "bytes": 109696439,
+        "java": "21.0.13",
+        "processors": 4,
+        "scope": "Java production UploadArchiveStore + DatasetStorage; no HTTP/browser/RDS/model execution",
+        "source_sha256": "4e3e8959c49ce9f6ba4fb0817a443d2af9763d85e6a15f00290189834a4ce9c5",
+        "upload_s": 5.629138893,
+        "download_s": 13.602525866,
+        "download_sha256": "4e3e8959c49ce9f6ba4fb0817a443d2af9763d85e6a15f00290189834a4ce9c5",
+        "pass": true,
+        "process_cpu_s": 13.39,
+        "peak_heap_bytes": 17956728,
+        "peak_rss_bytes": 165523456,
+        "injected_http_503": 0,
+        "finished_at": "2026-11-18T07:47:56.123216003Z"
+      },
+      "cleaned": true,
+      "http_attempts": [
+        {
+          "operation": "CompleteMultipartUploadRequest",
+          "actual_http_status": 200,
+          "count": 1
+        },
+        {
+          "operation": "CreateMultipartUploadRequest",
+          "actual_http_status": 200,
+          "count": 1
+        },
+        {
+          "operation": "GetObjectRequest",
+          "actual_http_status": 200,
+          "count": 1
+        },
+        {
+          "operation": "GetObjectRequest",
+          "actual_http_status": 404,
+          "count": 1
+        },
+        {
+          "operation": "UploadPartRequest",
+          "actual_http_status": 200,
+          "count": 7
+        }
+      ],
+      "injections": [],
+      "inventories": {}
+    },
+    {
+      "phase": "faults",
+      "case": "00-multipart-transient503",
+      "result": {
+        "started_at": "2026-11-18T07:48:44.445105962Z",
+        "mode": "multipart",
+        "fault": "transient503",
+        "key": "uploads/1132275c-ba60-427a-bc73-b5b60f4c1e11.tar.gz",
+        "bytes": 109696439,
+        "java": "21.0.13",
+        "processors": 4,
+        "scope": "Java production UploadArchiveStore + DatasetStorage; no HTTP/browser/RDS/model execution",
+        "source_sha256": "4e3e8959c49ce9f6ba4fb0817a443d2af9763d85e6a15f00290189834a4ce9c5",
+        "upload_s": 7.898585915,
+        "download_s": 16.214461326,
+        "download_sha256": "4e3e8959c49ce9f6ba4fb0817a443d2af9763d85e6a15f00290189834a4ce9c5",
+        "pass": true,
+        "process_cpu_s": 6.94,
+        "peak_heap_bytes": 18319464,
+        "peak_rss_bytes": 161210368,
+        "injected_http_503": 1,
+        "finished_at": "2026-11-18T07:49:09.200621794Z"
+      },
+      "cleaned": true,
+      "http_attempts": [
+        {
+          "operation": "CompleteMultipartUploadRequest",
+          "actual_http_status": 200,
+          "count": 1
+        },
+        {
+          "operation": "CreateMultipartUploadRequest",
+          "actual_http_status": 200,
+          "count": 1
+        },
+        {
+          "operation": "GetObjectRequest",
+          "actual_http_status": 200,
+          "count": 1
+        },
+        {
+          "operation": "GetObjectRequest",
+          "actual_http_status": 404,
+          "count": 1
+        },
+        {
+          "operation": "UploadPartRequest",
+          "actual_http_status": 200,
+          "count": 8
+        }
+      ],
+      "injections": [
+        {
+          "attempt": 1,
+          "part": 2,
+          "status": 503,
+          "event": "injected_http_response",
+          "utc": "2026-11-18T07:48:49.767197721Z"
+        }
+      ],
+      "inventories": {}
+    },
+    {
+      "phase": "faults",
+      "case": "01-multipart-permanent503",
+      "result": {
+        "started_at": "2026-11-18T07:49:22.175172477Z",
+        "mode": "multipart",
+        "fault": "permanent503",
+        "key": "uploads/ab0b54a6-2401-44df-af68-a5313d79d9a0.tar.gz",
+        "bytes": 109696439,
+        "java": "21.0.13",
+        "processors": 4,
+        "scope": "Java production UploadArchiveStore + DatasetStorage; no HTTP/browser/RDS/model execution",
+        "source_sha256": "4e3e8959c49ce9f6ba4fb0817a443d2af9763d85e6a15f00290189834a4ce9c5",
+        "upload_s": 4.883288393,
+        "upload_error": "IOException",
+        "expected_failure": true,
+        "pass": true,
+        "process_cpu_s": 8.78,
+        "peak_heap_bytes": 18083784,
+        "peak_rss_bytes": 157184000,
+        "injected_http_503": 3,
+        "finished_at": "2026-11-18T07:49:28.113820587Z"
+      },
+      "cleaned": true,
+      "http_attempts": [
+        {
+          "operation": "AbortMultipartUploadRequest",
+          "actual_http_status": 204,
+          "count": 1
+        },
+        {
+          "operation": "CreateMultipartUploadRequest",
+          "actual_http_status": 200,
+          "count": 1
+        },
+        {
+          "operation": "HeadObjectRequest",
+          "actual_http_status": 404,
+          "count": 1
+        },
+        {
+          "operation": "ListPartsRequest",
+          "actual_http_status": 404,
+          "count": 1
+        },
+        {
+          "operation": "UploadPartRequest",
+          "actual_http_status": 200,
+          "count": 9
+        }
+      ],
+      "injections": [
+        {
+          "event": "injected_http_response",
+          "status": 503,
+          "part": 2,
+          "attempt": 1,
+          "utc": "2026-11-18T07:49:25.997517905Z"
+        },
+        {
+          "event": "injected_http_response",
+          "status": 503,
+          "part": 2,
+          "attempt": 2,
+          "utc": "2026-11-18T07:49:27.137338723Z"
+        },
+        {
+          "event": "injected_http_response",
+          "status": 503,
+          "part": 2,
+          "attempt": 3,
+          "utc": "2026-11-18T07:49:27.912386586Z"
+        }
+      ],
+      "inventories": {}
+    },
+    {
+      "phase": "faults",
+      "case": "02-multipart-complete-lost",
+      "result": {
+        "started_at": "2026-11-18T07:49:42.234005386Z",
+        "mode": "multipart",
+        "fault": "complete-lost",
+        "key": "uploads/c7e35058-3de0-4248-b254-1007ceb51ef3.tar.gz",
+        "bytes": 109696439,
+        "java": "21.0.13",
+        "processors": 4,
+        "scope": "Java production UploadArchiveStore + DatasetStorage; no HTTP/browser/RDS/model execution",
+        "source_sha256": "4e3e8959c49ce9f6ba4fb0817a443d2af9763d85e6a15f00290189834a4ce9c5",
+        "upload_s": 5.330114923,
+        "download_s": 9.832886679,
+        "download_sha256": "4e3e8959c49ce9f6ba4fb0817a443d2af9763d85e6a15f00290189834a4ce9c5",
+        "pass": true,
+        "process_cpu_s": 11.88,
+        "peak_heap_bytes": 18256616,
+        "peak_rss_bytes": 163315712,
+        "injected_http_503": 0,
+        "finished_at": "2026-11-18T07:49:58.826540658Z"
+      },
+      "cleaned": true,
+      "http_attempts": [
+        {
+          "operation": "CompleteMultipartUploadRequest",
+          "actual_http_status": 200,
+          "count": 1
+        },
+        {
+          "operation": "CreateMultipartUploadRequest",
+          "actual_http_status": 200,
+          "count": 1
+        },
+        {
+          "operation": "GetObjectRequest",
+          "actual_http_status": 200,
+          "count": 1
+        },
+        {
+          "operation": "GetObjectRequest",
+          "actual_http_status": 404,
+          "count": 1
+        },
+        {
+          "operation": "HeadObjectRequest",
+          "actual_http_status": 200,
+          "count": 1
+        },
+        {
+          "operation": "UploadPartRequest",
+          "actual_http_status": 200,
+          "count": 7
+        }
+      ],
+      "injections": [
+        {
+          "event": "injected_lost_complete_ack",
+          "utc": "2026-11-18T07:49:48.855037393Z"
+        }
+      ],
+      "inventories": {}
+    },
+    {
+      "phase": "faults",
+      "case": "03-multipart-download-cut",
+      "result": {
+        "started_at": "2026-11-18T07:50:14.349752249Z",
+        "mode": "multipart",
+        "fault": "download-cut",
+        "key": "uploads/947b2dbe-aefb-4584-9c48-52eea9c7ad61.tar.gz",
+        "bytes": 109696439,
+        "java": "21.0.13",
+        "processors": 4,
+        "scope": "Java production UploadArchiveStore + DatasetStorage; no HTTP/browser/RDS/model execution",
+        "source_sha256": "4e3e8959c49ce9f6ba4fb0817a443d2af9763d85e6a15f00290189834a4ce9c5",
+        "upload_s": 4.24693479,
+        "download_failure_clean": true,
+        "download_s": 11.333571943,
+        "download_sha256": "4e3e8959c49ce9f6ba4fb0817a443d2af9763d85e6a15f00290189834a4ce9c5",
+        "pass": true,
+        "process_cpu_s": 10.88,
+        "peak_heap_bytes": 17907752,
+        "peak_rss_bytes": 155246592,
+        "injected_http_503": 0,
+        "finished_at": "2026-11-18T07:50:31.678982086Z"
+      },
+      "cleaned": true,
+      "http_attempts": [
+        {
+          "operation": "CompleteMultipartUploadRequest",
+          "actual_http_status": 200,
+          "count": 1
+        },
+        {
+          "operation": "CreateMultipartUploadRequest",
+          "actual_http_status": 200,
+          "count": 1
+        },
+        {
+          "operation": "GetObjectRequest",
+          "actual_http_status": 200,
+          "count": 2
+        },
+        {
+          "operation": "GetObjectRequest",
+          "actual_http_status": 404,
+          "count": 2
+        },
+        {
+          "operation": "UploadPartRequest",
+          "actual_http_status": 200,
+          "count": 7
+        }
+      ],
+      "injections": [
+        {
+          "after_bytes": 1048576,
+          "event": "injected_download_cut",
+          "utc": "2026-11-18T07:50:20.077362940Z"
+        }
+      ],
+      "inventories": {}
+    },
+    {
+      "phase": "faults",
+      "case": "04-multipart-crash",
+      "result": {
+        "pass": true,
+        "expected_abrupt_exit": 137,
+        "orphan_uploads_observed": 1,
+        "lifecycle_expiration_observed": false,
+        "recovery": "operator exact upload-ID abort, verified below"
+      },
+      "cleaned": true,
+      "http_attempts": [
+        {
+          "operation": "CreateMultipartUploadRequest",
+          "actual_http_status": 200,
+          "count": 1
+        },
+        {
+          "operation": "UploadPartRequest",
+          "actual_http_status": 200,
+          "count": 4
+        }
+      ],
+      "injections": [],
+      "inventories": {}
+    },
+    {
+      "phase": "large",
+      "case": "00-single-none",
+      "result": {
+        "started_at": "2026-11-18T07:51:26.095343437Z",
+        "mode": "single",
+        "fault": "none",
+        "key": "uploads/4c4e8ed2-dc89-40d3-a1f7-9e9d7f84f059.tar.gz",
+        "bytes": 4168148189,
+        "java": "21.0.13",
+        "processors": 4,
+        "scope": "Java production UploadArchiveStore + DatasetStorage; no HTTP/browser/RDS/model execution",
+        "source_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+        "upload_s": 204.320132769,
+        "download_s": 304.284696158,
+        "download_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+        "restore_s": 52.624312077,
+        "restored_files": 31225,
+        "all_file_hashes_equal": true,
+        "local_cache_hit_s": 0.000300549,
+        "pass": true,
+        "process_cpu_s": 168.64,
+        "peak_heap_bytes": 79929704,
+        "peak_rss_bytes": 243982336,
+        "injected_http_503": 0,
+        "finished_at": "2026-11-18T08:01:43.588006721Z"
+      },
+      "cleaned": true,
+      "http_attempts": [
+        {
+          "operation": "GetObjectRequest",
+          "actual_http_status": 200,
+          "count": 1
+        },
+        {
+          "operation": "GetObjectRequest",
+          "actual_http_status": 404,
+          "count": 1
+        },
+        {
+          "operation": "PutObjectRequest",
+          "actual_http_status": 200,
+          "count": 1
+        }
+      ],
+      "injections": [],
+      "inventories": {
+        "original-files.json": {
+          "entries": 31225,
+          "bytes": 5374922749,
+          "manifest_sha256": "81df9d6284a13df3125c398bf9b317ed6b799a269ec40b343adb0c2cf2392976",
+          "inventory_content_sha256": "97e8168c487dfab747747b0cfe4a4f87b3b7af3c057db420735ab41a4fde7a93"
+        },
+        "restored-files.json": {
+          "entries": 31225,
+          "bytes": 5374922749,
+          "manifest_sha256": "81df9d6284a13df3125c398bf9b317ed6b799a269ec40b343adb0c2cf2392976",
+          "inventory_content_sha256": "97e8168c487dfab747747b0cfe4a4f87b3b7af3c057db420735ab41a4fde7a93"
+        }
+      }
+    },
+    {
+      "phase": "large",
+      "case": "01-multipart-none",
+      "result": {
+        "started_at": "2026-11-18T08:01:59.110883515Z",
+        "mode": "multipart",
+        "fault": "none",
+        "key": "uploads/3bc1bdd4-c740-4adb-82a9-78cdf0c0d45d.tar.gz",
+        "bytes": 4168148189,
+        "java": "21.0.13",
+        "processors": 4,
+        "scope": "Java production UploadArchiveStore + DatasetStorage; no HTTP/browser/RDS/model execution",
+        "source_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+        "upload_s": 207.476076,
+        "download_s": 283.755294106,
+        "download_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+        "restore_s": 51.88816427,
+        "restored_files": 31225,
+        "all_file_hashes_equal": true,
+        "local_cache_hit_s": 0.000372737,
+        "pass": true,
+        "process_cpu_s": 164.69,
+        "peak_heap_bytes": 70669128,
+        "peak_rss_bytes": 217006080,
+        "injected_http_503": 0,
+        "finished_at": "2026-11-18T08:11:57.462298885Z"
+      },
+      "cleaned": true,
+      "http_attempts": [
+        {
+          "operation": "CompleteMultipartUploadRequest",
+          "actual_http_status": 200,
+          "count": 1
+        },
+        {
+          "operation": "CreateMultipartUploadRequest",
+          "actual_http_status": 200,
+          "count": 1
+        },
+        {
+          "operation": "GetObjectRequest",
+          "actual_http_status": 200,
+          "count": 1
+        },
+        {
+          "operation": "GetObjectRequest",
+          "actual_http_status": 404,
+          "count": 1
+        },
+        {
+          "operation": "UploadPartRequest",
+          "actual_http_status": 200,
+          "count": 249
+        }
+      ],
+      "injections": [],
+      "inventories": {
+        "original-files.json": {
+          "entries": 31225,
+          "bytes": 5374922749,
+          "manifest_sha256": "81df9d6284a13df3125c398bf9b317ed6b799a269ec40b343adb0c2cf2392976",
+          "inventory_content_sha256": "97e8168c487dfab747747b0cfe4a4f87b3b7af3c057db420735ab41a4fde7a93"
+        },
+        "restored-files.json": {
+          "entries": 31225,
+          "bytes": 5374922749,
+          "manifest_sha256": "81df9d6284a13df3125c398bf9b317ed6b799a269ec40b343adb0c2cf2392976",
+          "inventory_content_sha256": "97e8168c487dfab747747b0cfe4a4f87b3b7af3c057db420735ab41a4fde7a93"
+        }
+      }
+    },
+    {
+      "phase": "large",
+      "case": "02-multipart-none",
+      "result": {
+        "started_at": "2026-11-18T08:12:15.263060023Z",
+        "mode": "multipart",
+        "fault": "none",
+        "key": "uploads/c3b567a1-f5a3-45eb-bb91-dcb015d5e2c9.tar.gz",
+        "bytes": 4168148189,
+        "java": "21.0.13",
+        "processors": 4,
+        "scope": "Java production UploadArchiveStore + DatasetStorage; no HTTP/browser/RDS/model execution",
+        "source_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+        "upload_s": 176.826817628,
+        "download_s": 299.735959453,
+        "download_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+        "pass": true,
+        "process_cpu_s": 91.47,
+        "peak_heap_bytes": 26812264,
+        "peak_rss_bytes": 158220288,
+        "injected_http_503": 0,
+        "finished_at": "2026-11-18T08:20:22.775871323Z"
+      },
+      "cleaned": true,
+      "http_attempts": [
+        {
+          "operation": "CompleteMultipartUploadRequest",
+          "actual_http_status": 200,
+          "count": 1
+        },
+        {
+          "operation": "CreateMultipartUploadRequest",
+          "actual_http_status": 200,
+          "count": 1
+        },
+        {
+          "operation": "GetObjectRequest",
+          "actual_http_status": 200,
+          "count": 1
+        },
+        {
+          "operation": "GetObjectRequest",
+          "actual_http_status": 404,
+          "count": 1
+        },
+        {
+          "operation": "UploadPartRequest",
+          "actual_http_status": 200,
+          "count": 249
+        }
+      ],
+      "injections": [],
+      "inventories": {}
+    },
+    {
+      "phase": "large",
+      "case": "03-single-none",
+      "result": {
+        "started_at": "2026-11-18T08:20:37.666604478Z",
+        "mode": "single",
+        "fault": "none",
+        "key": "uploads/7af844fe-721d-475b-8465-9a1b31df74bb.tar.gz",
+        "bytes": 4168148189,
+        "java": "21.0.13",
+        "processors": 4,
+        "scope": "Java production UploadArchiveStore + DatasetStorage; no HTTP/browser/RDS/model execution",
+        "source_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+        "upload_s": 202.092915569,
+        "download_s": 300.455330292,
+        "download_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+        "pass": true,
+        "process_cpu_s": 85.01,
+        "peak_heap_bytes": 16788304,
+        "peak_rss_bytes": 142233600,
+        "injected_http_503": 0,
+        "finished_at": "2026-11-18T08:29:10.631094913Z"
+      },
+      "cleaned": true,
+      "http_attempts": [
+        {
+          "operation": "GetObjectRequest",
+          "actual_http_status": 200,
+          "count": 1
+        },
+        {
+          "operation": "GetObjectRequest",
+          "actual_http_status": 404,
+          "count": 1
+        },
+        {
+          "operation": "PutObjectRequest",
+          "actual_http_status": 200,
+          "count": 1
+        }
+      ],
+      "injections": [],
+      "inventories": {}
+    },
+    {
+      "phase": "large",
+      "case": "04-single-none",
+      "result": {
+        "started_at": "2026-11-18T08:29:27.447444677Z",
+        "mode": "single",
+        "fault": "none",
+        "key": "uploads/28e295b1-d11d-4199-91b3-e31a6bfc7f28.tar.gz",
+        "bytes": 4168148189,
+        "java": "21.0.13",
+        "processors": 4,
+        "scope": "Java production UploadArchiveStore + DatasetStorage; no HTTP/browser/RDS/model execution",
+        "source_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+        "upload_s": 163.912043701,
+        "download_s": 242.220480536,
+        "download_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+        "pass": true,
+        "process_cpu_s": 97.05,
+        "peak_heap_bytes": 16782608,
+        "peak_rss_bytes": 152625152,
+        "injected_http_503": 0,
+        "finished_at": "2026-11-18T08:36:25.527647162Z"
+      },
+      "cleaned": true,
+      "http_attempts": [
+        {
+          "operation": "GetObjectRequest",
+          "actual_http_status": 200,
+          "count": 1
+        },
+        {
+          "operation": "GetObjectRequest",
+          "actual_http_status": 404,
+          "count": 1
+        },
+        {
+          "operation": "PutObjectRequest",
+          "actual_http_status": 200,
+          "count": 1
+        }
+      ],
+      "injections": [],
+      "inventories": {}
+    },
+    {
+      "phase": "post-reboot-pair",
+      "case": "00-single-none",
+      "result": {
+        "started_at": "2026-11-18T08:52:34.808079835Z",
+        "requested_mode": "single",
+        "mode": "single",
+        "fault": "none",
+        "multipart_threshold_bytes": 67108864,
+        "key": "uploads/715187e4-3104-4573-b0e0-60a9033bc8a4.tar.gz",
+        "bytes": 4168148189,
+        "java": "21.0.13",
+        "processors": 4,
+        "scope": "Java production UploadArchiveStore + DatasetStorage; no HTTP/browser/RDS/model execution",
+        "source_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+        "upload_s": 126.499693154,
+        "download_s": 270.312366172,
+        "download_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+        "pass": true,
+        "process_cpu_s": 141.37,
+        "peak_heap_bytes": 17100480,
+        "peak_rss_bytes": 144236544,
+        "injected_http_503": 0,
+        "finished_at": "2026-11-18T08:59:22.718787048Z"
+      },
+      "cleaned": true,
+      "http_attempts": [
+        {
+          "operation": "GetObjectRequest",
+          "actual_http_status": 200,
+          "count": 1
+        },
+        {
+          "operation": "GetObjectRequest",
+          "actual_http_status": 404,
+          "count": 1
+        },
+        {
+          "operation": "PutObjectRequest",
+          "actual_http_status": 200,
+          "count": 1
+        }
+      ],
+      "injections": [],
+      "inventories": {}
+    },
+    {
+      "phase": "post-reboot-pair",
+      "case": "01-multipart-none",
+      "result": {
+        "started_at": "2026-11-18T08:59:37.192761731Z",
+        "requested_mode": "multipart",
+        "mode": "multipart",
+        "fault": "none",
+        "multipart_threshold_bytes": 67108864,
+        "key": "uploads/9230369f-9cd0-4ef9-8fca-9adc88f521d6.tar.gz",
+        "bytes": 4168148189,
+        "java": "21.0.13",
+        "processors": 4,
+        "scope": "Java production UploadArchiveStore + DatasetStorage; no HTTP/browser/RDS/model execution",
+        "source_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+        "upload_s": 121.172701172,
+        "download_s": 263.424728424,
+        "download_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+        "pass": true,
+        "process_cpu_s": 145.23,
+        "peak_heap_bytes": 26371496,
+        "peak_rss_bytes": 152219648,
+        "injected_http_503": 0,
+        "finished_at": "2026-11-18T09:06:13.311548757Z"
+      },
+      "cleaned": true,
+      "http_attempts": [
+        {
+          "operation": "CompleteMultipartUploadRequest",
+          "actual_http_status": 200,
+          "count": 1
+        },
+        {
+          "operation": "CreateMultipartUploadRequest",
+          "actual_http_status": 200,
+          "count": 1
+        },
+        {
+          "operation": "GetObjectRequest",
+          "actual_http_status": 200,
+          "count": 1
+        },
+        {
+          "operation": "GetObjectRequest",
+          "actual_http_status": 404,
+          "count": 1
+        },
+        {
+          "operation": "UploadPartRequest",
+          "actual_http_status": 200,
+          "count": 249
+        }
+      ],
+      "injections": [],
+      "inventories": {}
+    },
+    {
+      "phase": "threshold",
+      "case": "00-automatic-none",
+      "result": {
+        "started_at": "2026-11-18T09:07:27.827386773Z",
+        "requested_mode": "automatic",
+        "mode": "single",
+        "fault": "none",
+        "multipart_threshold_bytes": 1073741824,
+        "key": "uploads/455e8f20-cf0e-4598-a02c-f35970ae08d1.tar.gz",
+        "bytes": 109696439,
+        "java": "21.0.13",
+        "processors": 4,
+        "scope": "Java production UploadArchiveStore + DatasetStorage; no HTTP/browser/RDS/model execution",
+        "source_sha256": "4e3e8959c49ce9f6ba4fb0817a443d2af9763d85e6a15f00290189834a4ce9c5",
+        "upload_s": 3.425569784,
+        "download_s": 7.356580017,
+        "download_sha256": "4e3e8959c49ce9f6ba4fb0817a443d2af9763d85e6a15f00290189834a4ce9c5",
+        "pass": true,
+        "process_cpu_s": 8.28,
+        "peak_heap_bytes": 15985648,
+        "peak_rss_bytes": 150761472,
+        "injected_http_503": 0,
+        "finished_at": "2026-11-18T09:07:39.294456971Z"
+      },
+      "cleaned": true,
+      "http_attempts": [
+        {
+          "operation": "GetObjectRequest",
+          "actual_http_status": 200,
+          "count": 1
+        },
+        {
+          "operation": "GetObjectRequest",
+          "actual_http_status": 404,
+          "count": 1
+        },
+        {
+          "operation": "PutObjectRequest",
+          "actual_http_status": 200,
+          "count": 1
+        }
+      ],
+      "injections": [],
+      "inventories": {}
+    }
+  ],
+  "large_comparison": {
+    "single": {
+      "upload_s": [
+        204.320132769,
+        202.092915569,
+        126.499693154
+      ],
+      "download_s": [
+        304.284696158,
+        300.455330292,
+        270.312366172
+      ],
+      "peak_heap_bytes": [
+        79929704,
+        16788304,
+        17100480
+      ],
+      "peak_rss_bytes": [
+        243982336,
+        142233600,
+        144236544
+      ],
+      "upload_median_s": 202.092915569,
+      "download_median_s": 300.455330292
+    },
+    "multipart": {
+      "upload_s": [
+        207.476076,
+        176.826817628,
+        121.172701172
+      ],
+      "download_s": [
+        283.755294106,
+        299.735959453,
+        263.424728424
+      ],
+      "peak_heap_bytes": [
+        70669128,
+        26812264,
+        26371496
+      ],
+      "peak_rss_bytes": [
+        217006080,
+        158220288,
+        152219648
+      ],
+      "upload_median_s": 176.826817628,
+      "download_median_s": 283.755294106
+    },
+    "upload_reduction": 0.12502218531442533
+  },
+  "pairs": [
+    {
+      "phase": "large",
+      "pair": 0,
+      "cases": [
+        "00-single-none",
+        "01-multipart-none"
+      ],
+      "single_s": 204.320132769,
+      "multipart_s": 207.476076,
+      "upload_reduction": -0.015446070772516807
+    },
+    {
+      "phase": "large",
+      "pair": 1,
+      "cases": [
+        "02-multipart-none",
+        "03-single-none"
+      ],
+      "single_s": 202.092915569,
+      "multipart_s": 176.826817628,
+      "upload_reduction": 0.12502218531442533
+    },
+    {
+      "phase": "post-reboot-pair",
+      "pair": 0,
+      "cases": [
+        "00-single-none",
+        "01-multipart-none"
+      ],
+      "single_s": 126.499693154,
+      "multipart_s": 121.172701172,
+      "upload_reduction": 0.04211071069962946
+    }
+  ],
+  "unpaired_observations": [
+    {
+      "phase": "large",
+      "case": "04-single-none",
+      "result": {
+        "started_at": "2026-11-18T08:29:27.447444677Z",
+        "mode": "single",
+        "fault": "none",
+        "key": "uploads/28e295b1-d11d-4199-91b3-e31a6bfc7f28.tar.gz",
+        "bytes": 4168148189,
+        "java": "21.0.13",
+        "processors": 4,
+        "scope": "Java production UploadArchiveStore + DatasetStorage; no HTTP/browser/RDS/model execution",
+        "source_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+        "upload_s": 163.912043701,
+        "download_s": 242.220480536,
+        "download_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+        "pass": true,
+        "process_cpu_s": 97.05,
+        "peak_heap_bytes": 16782608,
+        "peak_rss_bytes": 152625152,
+        "injected_http_503": 0,
+        "finished_at": "2026-11-18T08:36:25.527647162Z"
+      },
+      "cleaned": true,
+      "http_attempts": [
+        {
+          "operation": "GetObjectRequest",
+          "actual_http_status": 200,
+          "count": 1
+        },
+        {
+          "operation": "GetObjectRequest",
+          "actual_http_status": 404,
+          "count": 1
+        },
+        {
+          "operation": "PutObjectRequest",
+          "actual_http_status": 200,
+          "count": 1
+        }
+      ],
+      "injections": [],
+      "inventories": {}
+    }
+  ],
+  "interrupted": [
+    {
+      "phase": "large",
+      "case": "05-multipart-none",
+      "reason": "user-reported GPU issue and host reboot; S3 test had no GPU access",
+      "excluded_from_timing": true,
+      "recovery": {
+        "started_at": "2026-11-18T08:46:00.498943+00:00",
+        "applied": true,
+        "original_manifest_preserved": true,
+        "cases": [
+          {
+            "case": "05-multipart-none",
+            "uuid": "9ee07c32-105e-4b5a-abb2-d0c8bf8539b6",
+            "key": "uploads/9ee07c32-105e-4b5a-abb2-d0c8bf8539b6.tar.gz",
+            "pending": [
+              {
+                "upload_id": "Fjsl8Md2KD.kygOxWFgL4_YaL4w9lbGOtI5lomescyZWLuzwp4nRDQUReeUXTJFUaPLM4aFA0F2lkpUpByshmtpUTA1ig3wI9SzxKIugRpLfN933SHSwN_cW6aGLjHvEubIOwbpuV03Xkw.BNgNsWES.79ZLXvjYNDUW15AY9uY-",
+                "parts": 73,
+                "bytes": 1224736768
+              }
+            ],
+            "cleaned": true
+          }
+        ],
+        "finished_at": "2026-11-18T08:46:11.788973+00:00",
+        "pass": true
+      }
+    }
+  ],
+  "limits": [
+    "Two complete pairs before reboot plus a fresh pair after reboot; pooled medians are descriptive only; no p95 or fleet claim",
+    "The third pre-reboot single trial remains an unpaired observation; never match it with a post-reboot candidate",
+    "HTTP 503 and lost acknowledgements are injected after real S3 responses",
+    "SIGKILL cleanup is operator recovery; lifecycle expiration is configured but not observed",
+    "RDS/GPU/browser full cycle excluded",
+    "process CPU/peak memory includes verification; first large pair also includes extraction and full file inventory hashing"
+  ]
+}

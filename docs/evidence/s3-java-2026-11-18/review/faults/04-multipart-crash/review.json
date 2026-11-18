@@ -1,0 +1,26 @@
+{
+  "phase": "faults",
+  "case": "04-multipart-crash",
+  "result": {
+    "pass": true,
+    "expected_abrupt_exit": 137,
+    "orphan_uploads_observed": 1,
+    "lifecycle_expiration_observed": false,
+    "recovery": "operator exact upload-ID abort, verified below"
+  },
+  "cleaned": true,
+  "http_attempts": [
+    {
+      "operation": "CreateMultipartUploadRequest",
+      "actual_http_status": 200,
+      "count": 1
+    },
+    {
+      "operation": "UploadPartRequest",
+      "actual_http_status": 200,
+      "count": 4
+    }
+  ],
+  "injections": [],
+  "inventories": {}
+}

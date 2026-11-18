@@ -1,0 +1,61 @@
+{
+  "phase": "faults",
+  "case": "03-multipart-download-cut",
+  "result": {
+    "started_at": "2026-11-18T07:50:14.349752249Z",
+    "mode": "multipart",
+    "fault": "download-cut",
+    "key": "uploads/947b2dbe-aefb-4584-9c48-52eea9c7ad61.tar.gz",
+    "bytes": 109696439,
+    "java": "21.0.13",
+    "processors": 4,
+    "scope": "Java production UploadArchiveStore + DatasetStorage; no HTTP/browser/RDS/model execution",
+    "source_sha256": "4e3e8959c49ce9f6ba4fb0817a443d2af9763d85e6a15f00290189834a4ce9c5",
+    "upload_s": 4.24693479,
+    "download_failure_clean": true,
+    "download_s": 11.333571943,
+    "download_sha256": "4e3e8959c49ce9f6ba4fb0817a443d2af9763d85e6a15f00290189834a4ce9c5",
+    "pass": true,
+    "process_cpu_s": 10.88,
+    "peak_heap_bytes": 17907752,
+    "peak_rss_bytes": 155246592,
+    "injected_http_503": 0,
+    "finished_at": "2026-11-18T07:50:31.678982086Z"
+  },
+  "cleaned": true,
+  "http_attempts": [
+    {
+      "operation": "CompleteMultipartUploadRequest",
+      "actual_http_status": 200,
+      "count": 1
+    },
+    {
+      "operation": "CreateMultipartUploadRequest",
+      "actual_http_status": 200,
+      "count": 1
+    },
+    {
+      "operation": "GetObjectRequest",
+      "actual_http_status": 200,
+      "count": 2
+    },
+    {
+      "operation": "GetObjectRequest",
+      "actual_http_status": 404,
+      "count": 2
+    },
+    {
+      "operation": "UploadPartRequest",
+      "actual_http_status": 200,
+      "count": 7
+    }
+  ],
+  "injections": [
+    {
+      "after_bytes": 1048576,
+      "event": "injected_download_cut",
+      "utc": "2026-11-18T07:50:20.077362940Z"
+    }
+  ],
+  "inventories": {}
+}

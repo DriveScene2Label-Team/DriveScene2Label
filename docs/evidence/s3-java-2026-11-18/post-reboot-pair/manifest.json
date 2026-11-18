@@ -1,0 +1,90 @@
+{
+  "started_at": "2026-11-18T08:52:29.673924+00:00",
+  "phase": "large-pair",
+  "cases": [
+    {
+      "label": "00-single-none",
+      "uuid": "715187e4-3104-4573-b0e0-60a9033bc8a4",
+      "key": "uploads/715187e4-3104-4573-b0e0-60a9033bc8a4.tar.gz",
+      "container": "ds2l-s3-715187e4-3104-4573-b0e0-60a9033bc8a4",
+      "volume": "ds2l-s3-715187e4-3104-4573-b0e0-60a9033bc8a4-work",
+      "cleaned": true,
+      "result": {
+        "started_at": "2026-11-18T08:52:34.808079835Z",
+        "requested_mode": "single",
+        "mode": "single",
+        "fault": "none",
+        "multipart_threshold_bytes": 67108864,
+        "key": "uploads/715187e4-3104-4573-b0e0-60a9033bc8a4.tar.gz",
+        "bytes": 4168148189,
+        "java": "21.0.13",
+        "processors": 4,
+        "scope": "Java production UploadArchiveStore + DatasetStorage; no HTTP/browser/RDS/model execution",
+        "source_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+        "upload_s": 126.499693154,
+        "download_s": 270.312366172,
+        "download_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+        "pass": true,
+        "process_cpu_s": 141.37,
+        "peak_heap_bytes": 17100480,
+        "peak_rss_bytes": 144236544,
+        "injected_http_503": 0,
+        "finished_at": "2026-11-18T08:59:22.718787048Z"
+      }
+    },
+    {
+      "label": "01-multipart-none",
+      "uuid": "9230369f-9cd0-4ef9-8fca-9adc88f521d6",
+      "key": "uploads/9230369f-9cd0-4ef9-8fca-9adc88f521d6.tar.gz",
+      "container": "ds2l-s3-9230369f-9cd0-4ef9-8fca-9adc88f521d6",
+      "volume": "ds2l-s3-9230369f-9cd0-4ef9-8fca-9adc88f521d6-work",
+      "cleaned": true,
+      "result": {
+        "started_at": "2026-11-18T08:59:37.192761731Z",
+        "requested_mode": "multipart",
+        "mode": "multipart",
+        "fault": "none",
+        "multipart_threshold_bytes": 67108864,
+        "key": "uploads/9230369f-9cd0-4ef9-8fca-9adc88f521d6.tar.gz",
+        "bytes": 4168148189,
+        "java": "21.0.13",
+        "processors": 4,
+        "scope": "Java production UploadArchiveStore + DatasetStorage; no HTTP/browser/RDS/model execution",
+        "source_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+        "upload_s": 121.172701172,
+        "download_s": 263.424728424,
+        "download_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+        "pass": true,
+        "process_cpu_s": 145.23,
+        "peak_heap_bytes": 26371496,
+        "peak_rss_bytes": 152219648,
+        "injected_http_503": 0,
+        "finished_at": "2026-11-18T09:06:13.311548757Z"
+      }
+    }
+  ],
+  "scope": "actual Java production storage methods against existing S3; RDS and GPU remain stopped",
+  "source_id": "f00cc327-dc93-4e82-a8aa-ef9d18dcc550",
+  "case_order": [
+    [
+      "single",
+      "none"
+    ],
+    [
+      "multipart",
+      "none"
+    ]
+  ],
+  "source_hashes": {
+    "scripts\\hybrid\\run_s3_java_experiment.py": "27e0440789ce4dadb5b1eb0d74b1951521f4ccaed868509a3f38c374c8aefd23",
+    "src\\main\\java\\com\\example\\demo\\nuscenes\\storage\\DatasetArchive.java": "977e9e76518dd1150e15e07950f73421409febe9556b5a319c5011fd484dd19e",
+    "src\\main\\java\\com\\example\\demo\\nuscenes\\storage\\DatasetFiles.java": "49a5b2571e127e3a649b012b5e1b8c1b8cbc756d6e6d24b656ebb11b6d16ac49",
+    "src\\main\\java\\com\\example\\demo\\nuscenes\\storage\\DatasetStorage.java": "428070879cb43a3ad0ba4759fbda5c2900ad3a8d7f2478cd2ac38bff8c457d06",
+    "src\\main\\java\\com\\example\\demo\\nuscenes\\storage\\MultipartArchiveUploader.java": "f345a8d6217583f4683079ebeaa0f1bc750f3d0eb62c010a72198473a27591e0",
+    "src\\main\\java\\com\\example\\demo\\nuscenes\\storage\\RecordingFiles.java": "5b0ba1c16e6d4aec7565dc44fdbbe546376d92548a6676744dcbb3f0a3654dc7",
+    "src\\main\\java\\com\\example\\demo\\nuscenes\\storage\\S3ArchiveExperiment.java": "e30a877bc0b4ad89263a0d128e10cf43353ac927cc3a5418941bc4d8e0279acc",
+    "src\\main\\java\\com\\example\\demo\\nuscenes\\storage\\UploadArchiveStore.java": "4f714bd3d1da068873f8ac50816c096a7fce401ed57d307a347aca0bfae9bc54"
+  },
+  "pass": true,
+  "finished_at": "2026-11-18T09:06:23.586773+00:00"
+}

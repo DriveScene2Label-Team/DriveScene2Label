@@ -1,0 +1,33 @@
+{
+  "command": [
+    "aws",
+    "s3api",
+    "get-bucket-lifecycle-configuration",
+    "--bucket",
+    "ds2l-189750306426-ap-northeast-2-data",
+    "--profile",
+    "ds2l-seoul",
+    "--region",
+    "ap-northeast-2",
+    "--output",
+    "json",
+    "--no-cli-pager"
+  ],
+  "exit_code": 0,
+  "result": {
+    "TransitionDefaultMinimumObjectSize": "all_storage_classes_128K",
+    "Rules": [
+      {
+        "ID": "ds2l-abort-incomplete-archive-uploads",
+        "Filter": {
+          "Prefix": "uploads/"
+        },
+        "Status": "Enabled",
+        "AbortIncompleteMultipartUpload": {
+          "DaysAfterInitiation": 1
+        }
+      }
+    ]
+  },
+  "error": ""
+}

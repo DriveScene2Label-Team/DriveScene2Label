@@ -1,0 +1,71 @@
+{
+  "phase": "large",
+  "case": "01-multipart-none",
+  "result": {
+    "started_at": "2026-11-18T08:01:59.110883515Z",
+    "mode": "multipart",
+    "fault": "none",
+    "key": "uploads/3bc1bdd4-c740-4adb-82a9-78cdf0c0d45d.tar.gz",
+    "bytes": 4168148189,
+    "java": "21.0.13",
+    "processors": 4,
+    "scope": "Java production UploadArchiveStore + DatasetStorage; no HTTP/browser/RDS/model execution",
+    "source_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+    "upload_s": 207.476076,
+    "download_s": 283.755294106,
+    "download_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+    "restore_s": 51.88816427,
+    "restored_files": 31225,
+    "all_file_hashes_equal": true,
+    "local_cache_hit_s": 0.000372737,
+    "pass": true,
+    "process_cpu_s": 164.69,
+    "peak_heap_bytes": 70669128,
+    "peak_rss_bytes": 217006080,
+    "injected_http_503": 0,
+    "finished_at": "2026-11-18T08:11:57.462298885Z"
+  },
+  "cleaned": true,
+  "http_attempts": [
+    {
+      "operation": "CompleteMultipartUploadRequest",
+      "actual_http_status": 200,
+      "count": 1
+    },
+    {
+      "operation": "CreateMultipartUploadRequest",
+      "actual_http_status": 200,
+      "count": 1
+    },
+    {
+      "operation": "GetObjectRequest",
+      "actual_http_status": 200,
+      "count": 1
+    },
+    {
+      "operation": "GetObjectRequest",
+      "actual_http_status": 404,
+      "count": 1
+    },
+    {
+      "operation": "UploadPartRequest",
+      "actual_http_status": 200,
+      "count": 249
+    }
+  ],
+  "injections": [],
+  "inventories": {
+    "original-files.json": {
+      "entries": 31225,
+      "bytes": 5374922749,
+      "manifest_sha256": "81df9d6284a13df3125c398bf9b317ed6b799a269ec40b343adb0c2cf2392976",
+      "inventory_content_sha256": "97e8168c487dfab747747b0cfe4a4f87b3b7af3c057db420735ab41a4fde7a93"
+    },
+    "restored-files.json": {
+      "entries": 31225,
+      "bytes": 5374922749,
+      "manifest_sha256": "81df9d6284a13df3125c398bf9b317ed6b799a269ec40b343adb0c2cf2392976",
+      "inventory_content_sha256": "97e8168c487dfab747747b0cfe4a4f87b3b7af3c057db420735ab41a4fde7a93"
+    }
+  }
+}

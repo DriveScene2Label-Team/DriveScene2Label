@@ -1,0 +1,19 @@
+{
+  "command": [
+    "aws",
+    "s3api",
+    "get-bucket-lifecycle-configuration",
+    "--bucket",
+    "ds2l-189750306426-ap-northeast-2-data",
+    "--profile",
+    "ds2l-seoul",
+    "--region",
+    "ap-northeast-2",
+    "--output",
+    "json",
+    "--no-cli-pager"
+  ],
+  "exit_code": 254,
+  "result": null,
+  "error": "\naws: [ERROR]: An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist\n"
+}

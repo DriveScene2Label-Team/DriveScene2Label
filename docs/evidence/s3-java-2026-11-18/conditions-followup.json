@@ -1,0 +1,17 @@
+{
+  "host_reboot_kst": "2026-11-18T17:37:53+09:00",
+  "reboot_user_report": "GPU issue; host reboot requested by user",
+  "gpu_used_by_s3_experiment": false,
+  "post_reboot_external_activity": [
+    "RDS started remotely for user-requested deployment",
+    "one read-only DB reset-plan scan and local contract tests during multipart download",
+    "no GPU inference, builds or backup/restore during measured transfer pair"
+  ],
+  "resource_sampling": "Docker sampler began during first single download; Java heap/RSS samples cover transfer and verification, excluding initial source hashing",
+  "decision": "multipart stays opt-in; tested download completion/failure handling and logs deployed",
+  "large_completed": 7,
+  "large_interrupted": 1,
+  "paired_comparisons": 3,
+  "unpaired_completed": 1,
+  "original_phase_manifests_preserved": true
+}

@@ -1,0 +1,16 @@
+{
+  "java_storage_tests": {
+    "passed": 15,
+    "failed": 0
+  },
+  "hybrid_tests": {
+    "run": 47,
+    "passed": 45,
+    "skipped": 2,
+    "failed": 0
+  },
+  "final_java_image_built": true,
+  "hybrid_backend_ai_images_built": true,
+  "automatic_109mb_used_single": true,
+  "reset_verified": true
+}

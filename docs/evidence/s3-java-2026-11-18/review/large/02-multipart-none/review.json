@@ -1,0 +1,54 @@
+{
+  "phase": "large",
+  "case": "02-multipart-none",
+  "result": {
+    "started_at": "2026-11-18T08:12:15.263060023Z",
+    "mode": "multipart",
+    "fault": "none",
+    "key": "uploads/c3b567a1-f5a3-45eb-bb91-dcb015d5e2c9.tar.gz",
+    "bytes": 4168148189,
+    "java": "21.0.13",
+    "processors": 4,
+    "scope": "Java production UploadArchiveStore + DatasetStorage; no HTTP/browser/RDS/model execution",
+    "source_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+    "upload_s": 176.826817628,
+    "download_s": 299.735959453,
+    "download_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+    "pass": true,
+    "process_cpu_s": 91.47,
+    "peak_heap_bytes": 26812264,
+    "peak_rss_bytes": 158220288,
+    "injected_http_503": 0,
+    "finished_at": "2026-11-18T08:20:22.775871323Z"
+  },
+  "cleaned": true,
+  "http_attempts": [
+    {
+      "operation": "CompleteMultipartUploadRequest",
+      "actual_http_status": 200,
+      "count": 1
+    },
+    {
+      "operation": "CreateMultipartUploadRequest",
+      "actual_http_status": 200,
+      "count": 1
+    },
+    {
+      "operation": "GetObjectRequest",
+      "actual_http_status": 200,
+      "count": 1
+    },
+    {
+      "operation": "GetObjectRequest",
+      "actual_http_status": 404,
+      "count": 1
+    },
+    {
+      "operation": "UploadPartRequest",
+      "actual_http_status": 200,
+      "count": 249
+    }
+  ],
+  "injections": [],
+  "inventories": {}
+}

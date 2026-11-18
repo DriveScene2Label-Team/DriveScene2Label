@@ -1,0 +1,21 @@
+{
+  "command": [
+    "aws",
+    "sts",
+    "get-caller-identity",
+    "--profile",
+    "ds2l-seoul",
+    "--region",
+    "ap-northeast-2",
+    "--output",
+    "json",
+    "--no-cli-pager"
+  ],
+  "exit_code": 0,
+  "result": {
+    "UserId": "AROASYLP74Z5LUXZPGEU4:44e804c8-8051-705e-43a9-5e0992d22c02",
+    "Account": "189750306426",
+    "Arn": "arn:aws:sts::189750306426:assumed-role/AccountFullAccessRole/44e804c8-8051-705e-43a9-5e0992d22c02"
+  },
+  "error": ""
+}

@@ -1,0 +1,22 @@
+{
+  "image-build-final.log": {
+    "sha256": "f31723dfba019da12ae0a51c003a9d1fd2ee2cd3fef8bee9cf396b3c55c83923",
+    "bytes": 5162
+  },
+  "deploy-build.log": {
+    "sha256": "09fb689b82522d2b984707cebe960b5cc9a2a5e7b98f71583713cf848797fcf6",
+    "bytes": 8015
+  },
+  "hybrid-final-tests.log": {
+    "sha256": "e6197eae5e57c17b1448436a66703e6481f3cebb473bef49dbc68dc6f53626a1",
+    "bytes": 8314
+  },
+  "measurement-tests.log": {
+    "sha256": "8fde243b6d028e625555a18d91c3893420149a5d7dd96cd371287e9c465d3d7a",
+    "bytes": 1970
+  },
+  "rds-start.log": {
+    "sha256": "6cd8a82df6e2e1f8a7cd5b2afcab0354d8327f238a2cdf735b57ea96e0029991",
+    "bytes": 241
+  }
+}

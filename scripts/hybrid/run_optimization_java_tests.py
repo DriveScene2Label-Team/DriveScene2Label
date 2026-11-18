@@ -15,7 +15,9 @@ ROOT=Path(__file__).resolve().parents[2]
 
 
 def main():
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--directory',type=Path,required=True);a=p.parse_args()
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--directory',type=Path,required=True)
+    p.add_argument('--suite',action='append',help='Explicit regression suite, repeatable; defaults to search/index/worker suites');a=p.parse_args()
+    suites=a.suite or ['com.example.demo.SceneSearchTests','com.example.demo.PrefetchedSceneSearchTests','com.example.demo.WorkerConcurrencyTests']
     a.directory.mkdir(parents=True,exist_ok=False)
     suffix=datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')
     network='ds2l-opt-test-'+suffix;db=network+'-db';runner=network+'-java'
@@ -48,9 +50,8 @@ def main():
              '-e','TEST_DB_PASSWORD=isolated-test-only','gradle:9.7.1-jdk21','sleep','infinity'],'start-java');owned.append(('container',runner))
         for name in ('src','build.gradle','settings.gradle'):
             run(['docker','cp',str(ROOT/name),runner+':/workspace/'+name],'copy-'+name.replace('.','-'))
-        command=['docker','exec',runner,'gradle','--no-daemon','--max-workers=2','test',
-                 '--tests','com.example.demo.SceneSearchTests','--tests','com.example.demo.PrefetchedSceneSearchTests',
-                 '--tests','com.example.demo.WorkerConcurrencyTests']
+        command=['docker','exec',runner,'gradle','--no-daemon','--max-workers=2','test']
+        for suite in suites:command+=['--tests',suite]
         result=run(command,'java-tests',False)
         run(['docker','cp',runner+':/workspace/build/test-results/test',str(a.directory/'test-results')],'copy-results',False)
         results=[]
@@ -59,7 +60,7 @@ def main():
         save.update(exit_code=result,suites=results,finished_at=datetime.now(timezone.utc).isoformat())
         (a.directory/'summary.json').write_text(json.dumps(save,indent=2),encoding='utf-8')
         print(json.dumps(save),flush=True)
-        if result or len(results)!=3 or any(int(row['failures'])+int(row['errors']) for row in results):raise RuntimeError('Java regression gate did not pass')
+        if result or len(results)!=len(suites) or any(int(row['failures'])+int(row['errors']) for row in results):raise RuntimeError('Java regression gate did not pass')
     finally:
         # Only names created by this invocation, with an independently checked ownership label.
         for kind,name in reversed(owned):

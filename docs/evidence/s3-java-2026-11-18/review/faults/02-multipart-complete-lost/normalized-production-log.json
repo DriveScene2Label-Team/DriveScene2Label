@@ -1,0 +1,162 @@
+{
+  "events": [
+    {
+      "tag": "S3_TRANSFER",
+      "at": "07:49:44.612",
+      "stage": "multipart_create",
+      "key": "uploads/c7e35058-3de0-4248-b254-1007ceb51ef3.tar.gz",
+      "upload_id": "H1QOuTVsbmI7aAKZyUT0XeU8MyDWt9N18gHT9pko4OQtWFme4FZ6lROlVfptLhOFF68tMh.0nnavGIEtEySXAKrW8O3qClIbyokctJ7L2Y9Engh5DZITPLirY.v9TQcx1hSa0Gt4q3NCU7rLMvd_0kHdBhiwxAErefW4q27QdHg-",
+      "concurrency": "4"
+    },
+    {
+      "tag": "S3_TRANSFER",
+      "at": "07:49:46.854",
+      "stage": "upload_part",
+      "key": "uploads/c7e35058-3de0-4248-b254-1007ceb51ef3.tar.gz",
+      "part": "1",
+      "bytes": "16777216",
+      "wall_ms": "2232",
+      "status": "200",
+      "request_id": "1K1KESBSFMHJ1EGJ"
+    },
+    {
+      "tag": "S3_TRANSFER",
+      "at": "07:49:47.182",
+      "stage": "upload_part",
+      "key": "uploads/c7e35058-3de0-4248-b254-1007ceb51ef3.tar.gz",
+      "part": "4",
+      "bytes": "16777216",
+      "wall_ms": "2555",
+      "status": "200",
+      "request_id": "1K1J8AC7HH2QJ7T0"
+    },
+    {
+      "tag": "S3_TRANSFER",
+      "at": "07:49:48.114",
+      "stage": "upload_part",
+      "key": "uploads/c7e35058-3de0-4248-b254-1007ceb51ef3.tar.gz",
+      "part": "2",
+      "bytes": "16777216",
+      "wall_ms": "3490",
+      "status": "200",
+      "request_id": "1K1Q18624RFZ4N93"
+    },
+    {
+      "tag": "S3_TRANSFER",
+      "at": "07:49:48.538",
+      "stage": "upload_part",
+      "key": "uploads/c7e35058-3de0-4248-b254-1007ceb51ef3.tar.gz",
+      "part": "5",
+      "bytes": "16777216",
+      "wall_ms": "1673",
+      "status": "200",
+      "request_id": "P3PEWAW3DK4CWP64"
+    },
+    {
+      "tag": "S3_TRANSFER",
+      "at": "07:49:48.540",
+      "stage": "upload_part",
+      "key": "uploads/c7e35058-3de0-4248-b254-1007ceb51ef3.tar.gz",
+      "part": "6",
+      "bytes": "16777216",
+      "wall_ms": "1357",
+      "status": "200",
+      "request_id": "GF33KXVYD00MMVPH"
+    },
+    {
+      "tag": "S3_TRANSFER",
+      "at": "07:49:48.669",
+      "stage": "upload_part",
+      "key": "uploads/c7e35058-3de0-4248-b254-1007ceb51ef3.tar.gz",
+      "part": "3",
+      "bytes": "16777216",
+      "wall_ms": "4044",
+      "status": "200",
+      "request_id": "1K1S9PZZ8833D47W"
+    },
+    {
+      "tag": "S3_TRANSFER",
+      "at": "07:49:48.713",
+      "stage": "upload_part",
+      "key": "uploads/c7e35058-3de0-4248-b254-1007ceb51ef3.tar.gz",
+      "part": "7",
+      "bytes": "9033143",
+      "wall_ms": "598",
+      "status": "200",
+      "request_id": "AARVJ2JVEMHXM61A"
+    },
+    {
+      "tag": "S3_TRANSFER",
+      "at": "07:49:48.914",
+      "stage": "multipart_reconcile",
+      "key": "uploads/c7e35058-3de0-4248-b254-1007ceb51ef3.tar.gz",
+      "result": "committed"
+    },
+    {
+      "tag": "S3_TRANSFER",
+      "at": "07:49:48.914",
+      "stage": "archive_put",
+      "key": "uploads/c7e35058-3de0-4248-b254-1007ceb51ef3.tar.gz",
+      "mode": "multipart",
+      "bytes": "109696439",
+      "queue_ms": "0",
+      "transfer_ms": "5329",
+      "result": "completed"
+    },
+    {
+      "tag": "CACHE",
+      "at": "07:49:48.923",
+      "upload": "c7e35058-3de0-4248-b254-1007ceb51ef3",
+      "stage": "s3_download",
+      "event": "started"
+    },
+    {
+      "tag": "CACHE",
+      "at": "07:49:58.747",
+      "upload": "c7e35058-3de0-4248-b254-1007ceb51ef3",
+      "stage": "s3_download",
+      "event": "completed",
+      "bytes": "109696439",
+      "wall_ms": "9823"
+    }
+  ],
+  "summary": {
+    "events": 12,
+    "timings": [
+      {
+        "boundary": "CACHE / s3_download / c7e35058-3de0-4248-b254-1007ceb51ef3 / completed / wall_ms",
+        "count": 1,
+        "sum_ms": 9823.0,
+        "p50_ms": 9823.0,
+        "p95_ms": 9823.0,
+        "max_ms": 9823.0
+      },
+      {
+        "boundary": "S3_TRANSFER / archive_put / uploads/c7e35058-3de0-4248-b254-1007ceb51ef3.tar.gz / observed / queue_ms",
+        "count": 1,
+        "sum_ms": 0.0,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "max_ms": 0.0
+      },
+      {
+        "boundary": "S3_TRANSFER / archive_put / uploads/c7e35058-3de0-4248-b254-1007ceb51ef3.tar.gz / observed / transfer_ms",
+        "count": 1,
+        "sum_ms": 5329.0,
+        "p50_ms": 5329.0,
+        "p95_ms": 5329.0,
+        "max_ms": 5329.0
+      },
+      {
+        "boundary": "S3_TRANSFER / upload_part / uploads/c7e35058-3de0-4248-b254-1007ceb51ef3.tar.gz / observed / wall_ms",
+        "count": 7,
+        "sum_ms": 15949.0,
+        "p50_ms": 2232.0,
+        "p95_ms": 4044.0,
+        "max_ms": 4044.0
+      }
+    ],
+    "failures": [],
+    "limitation": "Inclusive/nested spans overlap; do not sum rows. Missing stages are unmeasured. Browser metrics are self-reported. CPU time is not CUDA kernel time."
+  }
+}

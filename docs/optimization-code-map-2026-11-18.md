@@ -46,4 +46,6 @@
 
 ## 아직 별도 설계가 필요한 변경
 
+Java S3 후속은 [S3-J 구현·실측·채택 결정](s3-java-optimization-2026-11-18.md)에 정리했다. `UploadArchiveStore`의 단일 경로와 `MultipartArchiveUploader`의 제한된 병렬 경로를 실제 4.17GB로 비교하고, `S3ArchiveExperiment`와 `run_s3_java_experiment.py`가 장애·SHA·정리 증거를 남긴다. 기본 multipart는 false이며 다운로드 완전성·실패 기록은 운영에 반영한다. `reset_app_data.py`는 별도 복원 검증 뒤 명시한 앱 테이블만 초기화하고 원본·계정·모델·시퀀스를 보존한다.
+
 INT8/INT4는 calibration 데이터·지원 연산·정확도 예산이 필요하다. FlashAttention·TensorRT 설치만으로 현재 모델을 자동 변환하지 않는다. S3 직접 업로드/씬별 저장은 업로드 프로토콜·검증·캐시 복구를 함께 바꾸는 설계다. RDS HNSW는 현재 씬 전체 집계와 의미가 달라 recall·scene ranking 검증이 필요하다. 이런 변경은 이번에 검증한 두 기본값과 섞지 않고 새로운 케이스로 추가한다.

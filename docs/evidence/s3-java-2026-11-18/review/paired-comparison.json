@@ -1,0 +1,35 @@
+[
+  {
+    "phase": "large",
+    "pair": 0,
+    "cases": [
+      "00-single-none",
+      "01-multipart-none"
+    ],
+    "single_s": 204.320132769,
+    "multipart_s": 207.476076,
+    "upload_reduction": -0.015446070772516807
+  },
+  {
+    "phase": "large",
+    "pair": 1,
+    "cases": [
+      "02-multipart-none",
+      "03-single-none"
+    ],
+    "single_s": 202.092915569,
+    "multipart_s": 176.826817628,
+    "upload_reduction": 0.12502218531442533
+  },
+  {
+    "phase": "post-reboot-pair",
+    "pair": 0,
+    "cases": [
+      "00-single-none",
+      "01-multipart-none"
+    ],
+    "single_s": 126.499693154,
+    "multipart_s": 121.172701172,
+    "upload_reduction": 0.04211071069962946
+  }
+]

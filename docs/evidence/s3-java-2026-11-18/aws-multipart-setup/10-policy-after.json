@@ -1,0 +1,55 @@
+{
+  "command": [
+    "aws",
+    "iam",
+    "get-role-policy",
+    "--role-name",
+    "ds2l-hybrid-storage",
+    "--policy-name",
+    "DatasetArchivesOnly",
+    "--profile",
+    "ds2l-seoul",
+    "--region",
+    "ap-northeast-2",
+    "--output",
+    "json",
+    "--no-cli-pager"
+  ],
+  "exit_code": 0,
+  "result": {
+    "RoleName": "ds2l-hybrid-storage",
+    "PolicyName": "DatasetArchivesOnly",
+    "PolicyDocument": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": [
+            "s3:AbortMultipartUpload",
+            "s3:DeleteObject",
+            "s3:GetObject",
+            "s3:ListMultipartUploadParts",
+            "s3:PutObject"
+          ],
+          "Resource": "arn:aws:s3:::ds2l-189750306426-ap-northeast-2-data/uploads/*"
+        },
+        {
+          "Effect": "Allow",
+          "Action": [
+            "s3:ListBucket"
+          ],
+          "Resource": "arn:aws:s3:::ds2l-189750306426-ap-northeast-2-data",
+          "Condition": {
+            "StringLike": {
+              "s3:prefix": [
+                "uploads/",
+                "uploads/*"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "error": ""
+}

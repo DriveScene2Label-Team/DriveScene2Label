@@ -1,0 +1,46 @@
+{
+  "phase": "post-reboot-pair",
+  "case": "00-single-none",
+  "result": {
+    "started_at": "2026-11-18T08:52:34.808079835Z",
+    "requested_mode": "single",
+    "mode": "single",
+    "fault": "none",
+    "multipart_threshold_bytes": 67108864,
+    "key": "uploads/715187e4-3104-4573-b0e0-60a9033bc8a4.tar.gz",
+    "bytes": 4168148189,
+    "java": "21.0.13",
+    "processors": 4,
+    "scope": "Java production UploadArchiveStore + DatasetStorage; no HTTP/browser/RDS/model execution",
+    "source_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+    "upload_s": 126.499693154,
+    "download_s": 270.312366172,
+    "download_sha256": "e5d9c2b5ced29f9e3d39651e2093d27e892d0571f10962409974b21033a254ee",
+    "pass": true,
+    "process_cpu_s": 141.37,
+    "peak_heap_bytes": 17100480,
+    "peak_rss_bytes": 144236544,
+    "injected_http_503": 0,
+    "finished_at": "2026-11-18T08:59:22.718787048Z"
+  },
+  "cleaned": true,
+  "http_attempts": [
+    {
+      "operation": "GetObjectRequest",
+      "actual_http_status": 200,
+      "count": 1
+    },
+    {
+      "operation": "GetObjectRequest",
+      "actual_http_status": 404,
+      "count": 1
+    },
+    {
+      "operation": "PutObjectRequest",
+      "actual_http_status": 200,
+      "count": 1
+    }
+  ],
+  "injections": [],
+  "inventories": {}
+}

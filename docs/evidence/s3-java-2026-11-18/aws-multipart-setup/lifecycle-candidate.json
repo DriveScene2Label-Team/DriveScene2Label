@@ -1,0 +1,14 @@
+{
+  "Rules": [
+    {
+      "ID": "ds2l-abort-incomplete-archive-uploads",
+      "Status": "Enabled",
+      "Filter": {
+        "Prefix": "uploads/"
+      },
+      "AbortIncompleteMultipartUpload": {
+        "DaysAfterInitiation": 1
+      }
+    }
+  ]
+}

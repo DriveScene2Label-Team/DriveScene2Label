@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "service": "drivescene-ai",
+  "checkedAt": "2026-11-18T09:12:55.849000Z",
+  "clip": {
+    "state": "READY",
+    "reasonCode": null,
+    "modelName": "ViT-L-14-quickgelu/openai",
+    "imagePreprocess": [
+      "lr-square-crop-mean",
+      "openclip-eval-224-centercrop"
+    ],
+    "textPreprocess": "clip-text-tokenizer",
+    "dimension": 768,
+    "device": "cuda"
+  },
+  "vespa": {
+    "executor": "local",
+    "datasetVersion": "v1.0-mini",
+    "metadataChecksum": "e0d7d33d6673140aaab8f6752cd8fc9aba78c98d6bc9b03ec5df028d963c71ce",
+    "state": "READY",
+    "reasonCode": null,
+    "checkedAt": "2026-11-18T09:13:06.711471Z",
+    "expiresAt": "2026-11-18T09:23:06.711471Z",
+    "datasetKey": "f00cc327-dc93-4e82-a8aa-ef9d18dcc550"
+  },
+  "recording": {
+    "expectedSdkVersion": "0.38.1",
+    "exportVersion": "ds2l-rrd-v3",
+    "sdkVersion": "0.38.1",
+    "state": "READY",
+    "reasonCode": null,
+    "checkedAt": "2026-11-18T09:12:55.849000Z",
+    "expiresAt": "2026-11-18T09:22:55.849000Z"
+  }
+}

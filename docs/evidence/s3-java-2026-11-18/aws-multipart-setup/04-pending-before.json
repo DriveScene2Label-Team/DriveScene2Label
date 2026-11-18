@@ -1,0 +1,24 @@
+{
+  "command": [
+    "aws",
+    "s3api",
+    "list-multipart-uploads",
+    "--bucket",
+    "ds2l-189750306426-ap-northeast-2-data",
+    "--prefix",
+    "uploads/",
+    "--profile",
+    "ds2l-seoul",
+    "--region",
+    "ap-northeast-2",
+    "--output",
+    "json",
+    "--no-cli-pager"
+  ],
+  "exit_code": 0,
+  "result": {
+    "RequestCharged": null,
+    "Prefix": "uploads/"
+  },
+  "error": ""
+}
