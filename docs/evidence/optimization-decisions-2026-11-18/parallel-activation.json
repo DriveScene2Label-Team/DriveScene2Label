@@ -1,0 +1,61 @@
+{
+  "started_at": "2026-11-18T10:28:46.078662+00:00",
+  "scope": "server to S3 only; browser chunks unchanged",
+  "source_commit": "0004788cf34317e09e9528d612936c693df4202e",
+  "changed": true,
+  "baseline_upload": {
+    "status": "COMPLETED",
+    "datasetId": 22,
+    "sceneCount": 10,
+    "receivedBytes": 4168148189,
+    "sizeBytes": 4168148189
+  },
+  "baseline_index": {
+    "datasetId": 22,
+    "status": "COMPLETED",
+    "indexedImages": 2424,
+    "totalImages": 2424,
+    "errorMessage": null,
+    "workerEnabled": true
+  },
+  "operations_before": {
+    "maintenance": false,
+    "activeWrites": 0,
+    "runningLabels": 0,
+    "runningRecordings": 0
+  },
+  "work_before": {
+    "uploads": 0,
+    "indexes": 0
+  },
+  "flags_before": {
+    "UPLOAD_S3_MULTIPART_ENABLED": "false",
+    "UPLOAD_S3_UPLOAD_CONCURRENCY": "4",
+    "UPLOAD_S3_MULTIPART_THRESHOLD_BYTES": "1073741824"
+  },
+  "ai_started_before": "2026-11-18T09:10:38.455200549Z",
+  "quiesced": {
+    "maintenance": true,
+    "activeWrites": 0,
+    "runningLabels": 0,
+    "runningRecordings": 0
+  },
+  "work_quiesced": {
+    "uploads": 0,
+    "indexes": 0
+  },
+  "flags_after": {
+    "UPLOAD_S3_MULTIPART_ENABLED": "true",
+    "UPLOAD_S3_UPLOAD_CONCURRENCY": "4",
+    "UPLOAD_S3_MULTIPART_THRESHOLD_BYTES": "1073741824"
+  },
+  "ai_started_after": "2026-11-18T09:10:38.455200549Z",
+  "pass": true,
+  "resumed": {
+    "maintenance": false,
+    "activeWrites": 0,
+    "runningLabels": 0,
+    "runningRecordings": 0
+  },
+  "finished_at": "2026-11-18T10:29:19.557654+00:00"
+}

@@ -1,0 +1,42 @@
+{
+  "currency": "USD",
+  "monthly_hours_assumption": 730,
+  "archive_bytes": 4168148189,
+  "archive_GiB": "3.881890502758324146270751953",
+  "multipart_parts": 249,
+  "multipart_put_class_requests_no_retry": 251,
+  "snapshot_storage_GiB": "21.274465084075927734375",
+  "rates": {
+    "rds_instance": "0.0510000000",
+    "rds_gp3": "0.1310000000",
+    "s3_standard": "0.0250000000",
+    "s3_put": "0.0000045000",
+    "s3_get": "3.500E-7",
+    "egress": "0.1260000000"
+  },
+  "scenarios": {
+    "rds_730h_compute": "37.2300000000",
+    "rds_100h_compute": "5.1000000000",
+    "rds_provisioned_storage_month": "2.6200000000",
+    "rds_730h_compute_and_storage": "39.8500000000",
+    "s3_snapshot_storage_month": "0.5318616271018981933593750000",
+    "rds_730h_and_s3_snapshot_storage_subtotal": "40.38186162710189819335937500",
+    "one_archive_storage_month": "0.09704726256895810365676879882",
+    "single_upload_requests": "0.0000045000",
+    "multipart_upload_requests_no_retry": "0.0011295000",
+    "multipart_extra_requests_per_upload": "0.0011250000",
+    "multipart_extra_requests_per_100_uploads": "0.1125000000",
+    "one_archive_download_if_free_allowance_exhausted": "0.4891185533475488424301147461",
+    "100_archive_downloads_with_100GiB_free_remaining": "36.31185533475488424301147461",
+    "100_archive_downloads_with_no_free_remaining": "48.91185533475488424301147461"
+  },
+  "excluded": [
+    "tax, credits, negotiated discounts",
+    "RDS CPU burst credits, extra backup storage, RDS network transfer",
+    "public IPv4 and other AWS resources",
+    "Vercel, Cognito, local electricity/hardware",
+    "S3 retries, incomplete parts, object growth after snapshot"
+  ],
+  "not_an_invoice": true,
+  "checked_at": "2026-11-18T10:17:27.109340+00:00"
+}

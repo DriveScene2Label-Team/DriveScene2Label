@@ -1,0 +1,7 @@
+{
+  "checked_at": "2026-11-18T10:28:25.467338+00:00",
+  "matching_request_ids": 1043,
+  "gateway_part_requests": 1043,
+  "scope": "authenticated upstream path correlated with backend; exact browser URL not logged",
+  "browser_visual_verification": false
+}

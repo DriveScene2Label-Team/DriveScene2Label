@@ -1,0 +1,20 @@
+{
+  "hybrid": {
+    "total": 52,
+    "passed": 50,
+    "skipped": 2,
+    "skipped_reason": "gateway integrations run in Linux CI"
+  },
+  "stage_pytest": {
+    "local_status": "not_run",
+    "reason": "host Python lacks pytest",
+    "followup": "added stage timing tests to existing AI contract CI environment"
+  },
+  "py_compile": "passed",
+  "diff_check": "passed",
+  "snapshot_services": [
+    "backend",
+    "ai"
+  ],
+  "runtime": "DINOv2 getter instrumentation not deployed during active job 14"
+}

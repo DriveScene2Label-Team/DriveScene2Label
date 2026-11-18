@@ -1,0 +1,140 @@
+{
+  "snapshot_at": "2026-11-18T10:43:11.416138+00:00",
+  "upload": {
+    "status": "COMPLETED",
+    "datasetId": 22,
+    "sceneCount": 10,
+    "receivedBytes": 4168148189,
+    "sizeBytes": 4168148189
+  },
+  "index": {
+    "datasetId": 22,
+    "status": "COMPLETED",
+    "indexedImages": 2424,
+    "totalImages": 2424,
+    "errorMessage": null,
+    "workerEnabled": true
+  },
+  "index_state_verified_at": "2026-11-18T10:28:46.078662+00:00",
+  "transfer_mode": "single",
+  "events": [
+    {
+      "tag": "UPLOAD_STAGE",
+      "at": "2026-11-18T10:18:17.399449320Z",
+      "upload": "4772f78b-5569-406e-bf57-28a5837623c9",
+      "stage": "COPYING",
+      "event": "started",
+      "bytes": "4168148189",
+      "service": "backend"
+    },
+    {
+      "tag": "UPLOAD_STAGE",
+      "at": "2026-11-18T10:18:48.884738245Z",
+      "upload": "4772f78b-5569-406e-bf57-28a5837623c9",
+      "stage": "COPYING",
+      "event": "completed",
+      "wall_ms": "31486",
+      "service": "backend"
+    },
+    {
+      "tag": "UPLOAD_STAGE",
+      "at": "2026-11-18T10:18:48.886471073Z",
+      "upload": "4772f78b-5569-406e-bf57-28a5837623c9",
+      "stage": "EXTRACTING",
+      "bytes": "4168148189",
+      "format": "TGZ",
+      "service": "backend"
+    },
+    {
+      "tag": "UPLOAD_STAGE",
+      "at": "2026-11-18T10:20:39.175403220Z",
+      "upload": "4772f78b-5569-406e-bf57-28a5837623c9",
+      "stage": "EXTRACTING",
+      "event": "completed",
+      "wall_ms": "110297",
+      "service": "backend"
+    },
+    {
+      "tag": "UPLOAD_STAGE",
+      "at": "2026-11-18T10:20:39.175857909Z",
+      "upload": "4772f78b-5569-406e-bf57-28a5837623c9",
+      "stage": "STORING_ORIGINAL",
+      "service": "backend"
+    },
+    {
+      "tag": "S3_TRANSFER",
+      "at": "2026-11-18T10:24:28.037802408Z",
+      "stage": "archive_put",
+      "key": "uploads/4772f78b-5569-406e-bf57-28a5837623c9.tar.gz",
+      "mode": "single",
+      "bytes": "4168148189",
+      "queue_ms": "0",
+      "transfer_ms": "228923",
+      "result": "completed",
+      "service": "backend"
+    },
+    {
+      "tag": "UPLOAD_STAGE",
+      "at": "2026-11-18T10:24:28.037853394Z",
+      "upload": "4772f78b-5569-406e-bf57-28a5837623c9",
+      "stage": "STORING_ORIGINAL",
+      "event": "completed",
+      "wall_ms": "228933",
+      "remote": "true",
+      "service": "backend"
+    },
+    {
+      "tag": "UPLOAD_STAGE",
+      "at": "2026-11-18T10:24:28.037858810Z",
+      "upload": "4772f78b-5569-406e-bf57-28a5837623c9",
+      "stage": "IMPORTING_METADATA",
+      "service": "backend"
+    },
+    {
+      "tag": "UPLOAD_STAGE",
+      "at": "2026-11-18T10:24:41.634914740Z",
+      "upload": "4772f78b-5569-406e-bf57-28a5837623c9",
+      "stage": "IMPORTING_METADATA",
+      "event": "completed",
+      "wall_ms": "13605",
+      "service": "backend"
+    },
+    {
+      "tag": "UPLOAD_STAGE",
+      "at": "2026-11-18T10:24:41.634947753Z",
+      "upload": "4772f78b-5569-406e-bf57-28a5837623c9",
+      "stage": "COMPLETED",
+      "dataset": "22",
+      "scenes": "10",
+      "service": "backend"
+    },
+    {
+      "tag": "UPLOAD_STAGE",
+      "at": "2026-11-18T10:24:41.634950976Z",
+      "upload": "4772f78b-5569-406e-bf57-28a5837623c9",
+      "stage": "TOTAL",
+      "event": "completed",
+      "wall_ms": "384323",
+      "service": "backend"
+    },
+    {
+      "tag": "UPLOAD_CLIENT",
+      "at": "2026-11-18T10:24:42.183951319Z",
+      "upload": "4772f78b-5569-406e-bf57-28a5837623c9",
+      "dataset": "22",
+      "source": "browser",
+      "outcome": "completed",
+      "transfer_ms": "411392",
+      "processing_ms": "385006",
+      "total_ms": "796398",
+      "sent_bytes": "4168148189",
+      "resumed_bytes": "0",
+      "service": "backend"
+    }
+  ],
+  "limitations": [
+    "CLIP completion wall timer missing: backend recreated after API-confirmed completion before next 30-second capture.",
+    "pre-activation-backend-events.jsonl was captured after recreation and cannot recover the removed container tail.",
+    "The runtime multipart opt-in happened after this upload; this baseline is not multipart performance evidence."
+  ]
+}

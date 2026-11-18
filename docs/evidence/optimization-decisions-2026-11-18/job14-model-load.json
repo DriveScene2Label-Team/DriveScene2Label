@@ -1,0 +1,68 @@
+{
+  "generated_at": "2026-11-18T10:43:11.322170+00:00",
+  "units": "seconds",
+  "runs": [
+    {
+      "run_id": "da39e1de-71e0-4ae3-aa7f-20c102fe7a36",
+      "job_id": 14,
+      "scene": "scene-0061",
+      "last_observed_at": "2026-11-18T10:43:09.422177+00:00",
+      "runner_result_written": false,
+      "open_spans": [
+        {
+          "stage": "image_detection_segmentation",
+          "call": 1,
+          "started_at": "2026-11-18T10:40:58.238605+00:00"
+        },
+        {
+          "stage": "grounding_dino_detection",
+          "call": 11,
+          "started_at": "2026-11-18T10:43:09.422177+00:00"
+        }
+      ],
+      "models": {
+        "detector_model_get": {
+          "first_access_seconds": 15.593834,
+          "later_access_count": 1,
+          "later_access_median_seconds": 0.000106,
+          "completed_access_count": 2,
+          "failure_count": 0
+        },
+        "sam_model_get": {
+          "first_access_seconds": 5.74566,
+          "later_access_count": 1,
+          "later_access_median_seconds": 1.3e-05,
+          "completed_access_count": 2,
+          "failure_count": 0
+        },
+        "dinov2_model_get": {
+          "first_access_seconds": null,
+          "later_access_count": 0,
+          "later_access_median_seconds": null,
+          "completed_access_count": 0,
+          "failure_count": 0
+        }
+      },
+      "context_completed_seconds": {
+        "runtime_import": [
+          17.424757
+        ],
+        "dataset_load": [
+          22.64145
+        ],
+        "ground_removal": [
+          349.95286
+        ],
+        "image_detection_segmentation": [],
+        "dinov2_features": []
+      }
+    }
+  ],
+  "limitations": [
+    "First access is a cold-process candidate, not proof of cold disk/network cache.",
+    "Getter timings include construction, cache lookup, I/O and device transfer; CUDA kernels are not separately synchronized.",
+    "Missing first access is null, never zero. Missing DINOv2 timing in older runners is unmeasured.",
+    "Inclusive stage spans overlap: do not add getters to enclosing detection/feature stages.",
+    "Open spans may be running, interrupted or missing their tail; result writing does not prove backend persistence."
+  ]
+}

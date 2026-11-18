@@ -1,0 +1,21 @@
+{
+  "at": "2026-11-18T10:43:14.096448+00:00",
+  "checks": [
+    {
+      "url": "https://drivescene2label.vercel.app/",
+      "status": 200
+    },
+    {
+      "url": "https://drivescene2label.vercel.app/api/datasets",
+      "status": 401
+    },
+    {
+      "url": "http://127.0.0.1:8000/health",
+      "error_type": "URLError"
+    }
+  ],
+  "followup": {
+    "ai_container_health_status": 200,
+    "note": "Host 8000 probe failed; the AI internal port responds 200. No service restart."
+  }
+}

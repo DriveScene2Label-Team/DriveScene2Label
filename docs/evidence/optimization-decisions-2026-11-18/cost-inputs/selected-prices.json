@@ -1,0 +1,181 @@
+{
+  "rds_instance": {
+    "sku": "UMH398UHTY46K8BK",
+    "attributes": {
+      "engineCode": "14",
+      "instanceTypeFamily": "T4G",
+      "memory": "2 GiB",
+      "vcpu": "2",
+      "instanceType": "db.t4g.small",
+      "unbundledLicensing": "FALSE",
+      "usagetype": "APN2-InstanceUsage:db.t4g.small",
+      "locationType": "AWS Region",
+      "storage": "EBS Only",
+      "normalizationSizeFactor": "1",
+      "instanceFamily": "General purpose",
+      "databaseEngine": "PostgreSQL",
+      "regionCode": "ap-northeast-2",
+      "servicecode": "AmazonRDS",
+      "physicalProcessor": "AWS Graviton2",
+      "licenseModel": "No license required",
+      "currentGeneration": "Yes",
+      "networkPerformance": "Up to 5 Gigabit",
+      "deploymentOption": "Single-AZ",
+      "location": "Asia Pacific (Seoul)",
+      "servicename": "Amazon Relational Database Service",
+      "processorArchitecture": "64-bit",
+      "operation": "CreateDBInstance:0014"
+    },
+    "effective_date": "2026-11-01T00:00:00Z",
+    "dimension": {
+      "unit": "Hrs",
+      "endRange": "Inf",
+      "description": "$ 0.051 per RDS db.t4g.small Single-AZ instance hour (or partial hour) running PostgreSQL",
+      "appliesTo": [],
+      "rateCode": "UMH398UHTY46K8BK.JRTCKXETXF.6YS6EN2CT7",
+      "beginRange": "0",
+      "pricePerUnit": {
+        "USD": "0.0510000000"
+      }
+    }
+  },
+  "rds_gp3": {
+    "sku": "8TFTRRBWJSP95DQP",
+    "attributes": {
+      "volumeType": "General Purpose-GP3",
+      "engineCode": "14",
+      "usagetype": "APN2-RDS:GP3-Storage",
+      "locationType": "AWS Region",
+      "maxVolumeSize": "16 TB",
+      "databaseEngine": "PostgreSQL",
+      "storageMedia": "SSD",
+      "regionCode": "ap-northeast-2",
+      "servicecode": "AmazonRDS",
+      "deploymentOption": "Single-AZ",
+      "location": "Asia Pacific (Seoul)",
+      "servicename": "Amazon Relational Database Service",
+      "operation": "CreateDBInstance:0014",
+      "minVolumeSize": "5 GB"
+    },
+    "effective_date": "2026-11-01T00:00:00Z",
+    "dimension": {
+      "unit": "GB-Mo",
+      "endRange": "Inf",
+      "description": "$0.131 per GB-month of provisioned GP3 storage running PostgreSQL",
+      "appliesTo": [],
+      "rateCode": "8TFTRRBWJSP95DQP.JRTCKXETXF.6YS6EN2CT7",
+      "beginRange": "0",
+      "pricePerUnit": {
+        "USD": "0.1310000000"
+      }
+    }
+  },
+  "s3_standard": {
+    "sku": "3JSN7K7UDDNCYCDM",
+    "attributes": {
+      "volumeType": "Standard",
+      "storageClass": "General Purpose",
+      "regionCode": "ap-northeast-2",
+      "servicecode": "AmazonS3",
+      "durability": "99.999999999%",
+      "usagetype": "APN2-TimedStorage-ByteHrs",
+      "locationType": "AWS Region",
+      "location": "Asia Pacific (Seoul)",
+      "servicename": "Amazon Simple Storage Service",
+      "availability": "99.99%",
+      "operation": ""
+    },
+    "effective_date": "2026-11-01T00:00:00Z",
+    "dimension": {
+      "unit": "GB-Mo",
+      "endRange": "51200",
+      "description": "$0.025 per GB - first 50 TB / month of storage used",
+      "appliesTo": [],
+      "rateCode": "3JSN7K7UDDNCYCDM.JRTCKXETXF.PGHJ3S3EYE",
+      "beginRange": "0",
+      "pricePerUnit": {
+        "USD": "0.0250000000"
+      }
+    }
+  },
+  "s3_put": {
+    "sku": "D3S5DN86CFPGUM5G",
+    "attributes": {
+      "regionCode": "ap-northeast-2",
+      "servicecode": "AmazonS3",
+      "groupDescription": "PUT/COPY/POST or LIST requests",
+      "usagetype": "APN2-Requests-Tier1",
+      "locationType": "AWS Region",
+      "location": "Asia Pacific (Seoul)",
+      "servicename": "Amazon Simple Storage Service",
+      "operation": "",
+      "group": "S3-API-Tier1"
+    },
+    "effective_date": "2026-11-01T00:00:00Z",
+    "dimension": {
+      "unit": "Requests",
+      "endRange": "Inf",
+      "description": "$0.0045 per 1,000 PUT, COPY, POST, or LIST requests",
+      "appliesTo": [],
+      "rateCode": "D3S5DN86CFPGUM5G.JRTCKXETXF.6YS6EN2CT7",
+      "beginRange": "0",
+      "pricePerUnit": {
+        "USD": "0.0000045000"
+      }
+    }
+  },
+  "s3_get": {
+    "sku": "84G6KSFBGCU9CEC9",
+    "attributes": {
+      "regionCode": "ap-northeast-2",
+      "servicecode": "AmazonS3",
+      "groupDescription": "GET and all other requests",
+      "usagetype": "APN2-Requests-Tier2",
+      "locationType": "AWS Region",
+      "location": "Asia Pacific (Seoul)",
+      "servicename": "Amazon Simple Storage Service",
+      "operation": "",
+      "group": "S3-API-Tier2"
+    },
+    "effective_date": "2026-11-01T00:00:00Z",
+    "dimension": {
+      "unit": "Requests",
+      "endRange": "Inf",
+      "description": "$0.0035 per 10,000 GET and all other requests",
+      "appliesTo": [],
+      "rateCode": "84G6KSFBGCU9CEC9.JRTCKXETXF.6YS6EN2CT7",
+      "beginRange": "0",
+      "pricePerUnit": {
+        "USD": "0.0000003500"
+      }
+    }
+  },
+  "egress": {
+    "sku": "9AS8NERTGECRPGT7",
+    "attributes": {
+      "fromLocationType": "AWS Region",
+      "toRegionCode": "",
+      "servicecode": "AWSDataTransfer",
+      "usagetype": "APN2-DataTransfer-Out-Bytes",
+      "fromRegionCode": "ap-northeast-2",
+      "transferType": "AWS Outbound",
+      "servicename": "AWS Data Transfer",
+      "fromLocation": "Asia Pacific (Seoul)",
+      "toLocationType": "Other",
+      "toLocation": "External",
+      "operation": ""
+    },
+    "effective_date": "2026-11-01T00:00:00Z",
+    "dimension": {
+      "unit": "GB",
+      "endRange": "10240",
+      "description": "$0.126 per GB - first 10 TB / month data transfer out beyond the global free tier",
+      "appliesTo": [],
+      "rateCode": "9AS8NERTGECRPGT7.JRTCKXETXF.Q3Z75P77EN",
+      "beginRange": "0",
+      "pricePerUnit": {
+        "USD": "0.1260000000"
+      }
+    }
+  }
+}

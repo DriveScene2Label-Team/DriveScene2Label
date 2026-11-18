@@ -39,7 +39,13 @@ backend·AI 이미지를 재빌드하고 인증 컨테이너와 함께 재생성
 
 ## 직접 시험과 로그
 
-[서비스](https://drivescene2label.vercel.app)에서 기존 팀 계정으로 로그인 → `/uploads`에서 nuScenes `.tgz`/`.zip` 업로드 → CLIP 완료 확인 → 검색 → 씬 선택 → **라벨 생성하기**를 누른다. 업로드 자체로 라벨링을 자동 실행하지 않는다. 새 사용자 시험은 아직 시작하지 않았다.
+**19:43 KST 후속:** 아래의 초기 빈 데이터 상태 이후 사용자가 원본을 올려 dataset 22·10씬, CLIP 2,424/2,424 완료를 확인했다. 인증 upstream과 backend 조각 요청 1,043개가 연결되며 정확한 브라우저 주소/화면은 자동 기록하지 않았다. 사용자 job 14(scene-0061)는 실행 중이다. 추가 초기화·AI 재시작은 하지 않는다. [완료 업로드·모델 첫 로딩·운영 설정 변경](optimization-decisions-and-costs-2026-11-18.md).
+
+19:29 KST 유휴 상태에서 backend만 재생성해 S3 multipart opt-in을 켰다. 초기 manifest는 보존하고 `deployment-transitions.jsonl`에 기록했다. 직전 CLIP 완료 상태는 API로 확인했지만 마지막 완료 시간 로그는 수집 주기와 재생성 사이에서 누락됐다. 이후 교체 전에는 `python scripts/hybrid/snapshot_stage_logs.py --directory .local/hybrid/experiments/<새이름> --since <UTC시각>`으로 retained 로그를 먼저 동결한다. 이 스냅샷은 이미 제거된 컨테이너의 로그를 복구하지 않는다.
+
+`python scripts/hybrid/model_load_report.py --events .local/hybrid/measurements/20261118T091728Z/events.jsonl --run-id da39e1de-71e0-4ae3-aa7f-20c102fe7a36 --output .local/hybrid/experiments/<새이름>`은 현재까지의 첫/후속 모델 접근을 초 단위로 별도 보고한다. 미측정을 0으로 만들지 않으며 활성 watcher의 report를 덮어쓰지 않는다.
+
+[서비스](https://drivescene2label.vercel.app)에서 기존 팀 계정으로 로그인 → `/uploads`에서 nuScenes `.tgz`/`.zip` 업로드 → CLIP 완료 확인 → 검색 → 씬 선택 → **라벨 생성하기**를 누른다. 업로드 자체로 라벨링을 자동 실행하지 않는다. 최초 배포 시점에는 새 사용자 시험 전이었으며 저녁 후속 관측은 위에 분리했다.
 
 새 수집기 폴더는 `.local/hybrid/measurements/20261118T091728Z/`이며 `report.md`, `report.json`, `events.jsonl`을 30초마다 갱신한다. 최대 48시간 또는 stop marker까지 동작한다. PC 재부팅으로 종료되면 다시 시작해야 한다. 공개 Vercel 주소/127.0.0.1 중 어느 경로로 올렸는지와 다른 동시 작업 여부도 기록한다. GPU·S3·DB의 중첩 구간을 더해 전체 시간으로 계산하지 않는다.
 

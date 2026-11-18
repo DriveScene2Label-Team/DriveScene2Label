@@ -1,0 +1,15 @@
+{
+  "at": "2026-11-18T10:46:18.023123+00:00",
+  "gpu_csv": "name, memory.used [MiB], memory.total [MiB], utilization.gpu [%]\nNVIDIA GeForce RTX 5060 Ti, 7933 MiB, 16311 MiB, 5 %\n",
+  "linux_memory": {
+    "MemTotal": "24610916 kB",
+    "MemFree": "507384 kB",
+    "MemAvailable": "16878700 kB",
+    "Buffers": "557212 kB",
+    "Cached": "15297812 kB",
+    "SwapTotal": "16777216 kB",
+    "SwapFree": "16775668 kB"
+  },
+  "ai_container_health_status": 200,
+  "scope": "single snapshot; no model started or GPU synchronized; not proof of memory pressure causation"
+}

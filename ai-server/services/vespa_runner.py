@@ -39,6 +39,7 @@ def main():
     # Install before the rigid module imports these functions. Algorithms/arguments stay unchanged.
     timer.instrument(main_pseudo_vlm, VESPA_STAGES)
     import src.image.grounding_sam as grounding_sam
+    import src.image.appearance_embedding as appearance_embedding
     import torch
     if a.experiment_seed is not None:
         import random
@@ -65,7 +66,8 @@ def main():
     })
     # The singleton caches remain intact; first access includes model loading, later accesses are cache hits.
     for owner, name in ((grounding_sam._VlmDetectorSingleton, "detector_model_get"),
-                        (grounding_sam._SamSegmentatorSingleton, "sam_model_get")):
+                        (grounding_sam._SamSegmentatorSingleton, "sam_model_get"),
+                        (appearance_embedding._ImgEmbedderSingleton, "dinov2_model_get")):
         owner.get_model_instance = staticmethod(timer.wrap(name, owner.get_model_instance))
 
     path = Path(a.config)

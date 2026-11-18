@@ -1,0 +1,105 @@
+{
+  "created_at": "2026-11-18T10:46:18.792937+00:00",
+  "transformation": "JSON formatting, absolute repository path replacement and LF text line endings; original evidence is retained locally",
+  "scope": "explicit selection; full vectors, original media, credentials and large raw output excluded",
+  "files": [
+    {
+      "source": ".local/hybrid/experiments/20261118T101633Z-cost-and-parallel/parallel-activation.json",
+      "target": "parallel-activation.json",
+      "source_sha256": "3a27a1152e32e47aca9bb73ee1b0ad44ec6226f743c2923ae61bf6d5b84f18fb",
+      "export_sha256": "da1ffee966b8816af573e349fd1eaad4b2fff8f0ec75fbb2e54d46be1be0cf3d",
+      "export_bytes": 1534
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T101633Z-cost-and-parallel/browser-route-proof.json",
+      "target": "browser-route-proof.json",
+      "source_sha256": "0483a5c51d832c4d0ec8a5348d8e912e2b2e428b187f6da71164a47da08f742b",
+      "export_sha256": "bdc75d7406b719810012beeab4416e6b8e3aaf81cf0a18328e7bf5431b20e8cc",
+      "export_bytes": 255
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T101633Z-cost-and-parallel/user-upload-baseline.json",
+      "target": "user-upload-baseline.json",
+      "source_sha256": "604502eeecf4b4a047658e80d2067def1c6ce101ef0bdadfae46c2eaeb5302b0",
+      "export_sha256": "70742da5f15e0ca55c633f4f1efac806338e0c59f9e484c58dd8cc329681cb50",
+      "export_bytes": 4089
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T101633Z-cost-and-parallel/job14-stage-snapshot.jsonl",
+      "target": "job14-stage-snapshot.jsonl",
+      "source_sha256": "9cc3c2bd2af9ea2c5fc4b47da08d9646e57b9df90647d01e18a72d542d1bda8f",
+      "export_sha256": "9cc3c2bd2af9ea2c5fc4b47da08d9646e57b9df90647d01e18a72d542d1bda8f",
+      "export_bytes": 23833
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T101633Z-cost-and-parallel/job14-model-load.json",
+      "target": "job14-model-load.json",
+      "source_sha256": "cd6cc0f086b616449c5d484a6908ec9d410d6f513d1b53c088c9691b28eb054c",
+      "export_sha256": "8415e7fe1e1493fde216851e4b235bd22e3de93638ef1194e43602c037f4cb44",
+      "export_bytes": 2227
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T101633Z-cost-and-parallel/job14-model-load.md",
+      "target": "job14-model-load.md",
+      "source_sha256": "0394d872ba4fa86db56c9e4f822f9c0ba96fb00064d84bac958f8f3ffbc0286f",
+      "export_sha256": "6de495f1580aa0806c1661460dbd65fe5e621c6ac1203d855975340a293b703c",
+      "export_bytes": 1007
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T101633Z-cost-and-parallel/post-activation-http.json",
+      "target": "post-activation-http.json",
+      "source_sha256": "95bf1b0a2a06b6af5fdcc8777b80c04c3f6da9f04650b5ccd5941d21a4815e8c",
+      "export_sha256": "391094dfbb713dba9808e7aa3c329eb2e4223be7128265f97f29a7554d5ec217",
+      "export_bytes": 490
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T101633Z-cost-and-parallel/resource-snapshot.json",
+      "target": "resource-snapshot.json",
+      "source_sha256": "3aa143cb4c6bf96b4af58e0629c7b47b34803ca952f8a6c42216ef3dfb1609c8",
+      "export_sha256": "3f4bf7a1ca1c732977290f9117a3487f8c919ae319f99d9a80271bf5408da585",
+      "export_bytes": 566
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T101633Z-cost-and-parallel/local-validation.json",
+      "target": "local-validation.json",
+      "source_sha256": "9e414ba97262a21e1ff159d68d568a414ec3658a32326a1c78e58ce8e68ebdc8",
+      "export_sha256": "b861f4203ce610c43be76347dcf948717f94880c6c16c179b66450f04832aaaa",
+      "export_bytes": 501
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T101633Z-cost-and-parallel/cost-inputs/rds-configuration.json",
+      "target": "cost-inputs/rds-configuration.json",
+      "source_sha256": "51ba5e16f9d2c0ff8373b65b786afd4e72ee1063012be24cd2db9819ca9ccb6c",
+      "export_sha256": "895745f080ce9d21a0657f048b75968c6139d0cd86e92d97bb57c6ae70f1d609",
+      "export_bytes": 184
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T101633Z-cost-and-parallel/cost-inputs/s3-current-objects.json",
+      "target": "cost-inputs/s3-current-objects.json",
+      "source_sha256": "4aad17a4f7c3222600a29df0cd777ae96f8166c2cf2d2044a1fbd70f8f81ed67",
+      "export_sha256": "07284a556a4f8afa41e98dcb8d2fe05e73d9ad0cb7a11d5db921e982c2d6d646",
+      "export_bytes": 43
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T101633Z-cost-and-parallel/cost-inputs/s3-all-versions.json",
+      "target": "cost-inputs/s3-all-versions.json",
+      "source_sha256": "0d7a5eba1fdba46943cc80e9cd5783ffc3eee5e9a4cd7952363a7861084190c9",
+      "export_sha256": "12cdac1743fcc1e87e9c58533a8e2a0f73467577d2284913aafdf094061a066f",
+      "export_bytes": 67
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T101633Z-cost-and-parallel/cost-inputs/selected-prices.json",
+      "target": "cost-inputs/selected-prices.json",
+      "source_sha256": "9cf76bc558c768d1d3765ddf158b57440c52b3f6dc03296e04a750413b225bb0",
+      "export_sha256": "1b8adf7cc6453c1864bd63c79cef73dcae7a26cf3553baa2b6de3a157f5ad30c",
+      "export_bytes": 5702
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T101633Z-cost-and-parallel/cost-inputs/cost-scenarios.json",
+      "target": "cost-inputs/cost-scenarios.json",
+      "source_sha256": "2a512dfce00e87c1047fc687b07196cc6e6ecaaf8c7b9c5365d95f581fea752e",
+      "export_sha256": "7c88ebf5b43d0039fddbd430f08e45d2ae6bc711a3ff72e4c3ea2c7fcad1e09a",
+      "export_bytes": 1761
+    }
+  ]
+}

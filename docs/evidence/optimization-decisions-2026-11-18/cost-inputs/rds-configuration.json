@@ -1,0 +1,10 @@
+{
+  "instance": "db.t4g.small",
+  "engine": "postgres",
+  "version": "16.15",
+  "storage": "gp3",
+  "allocatedGiB": 20,
+  "multiAZ": false,
+  "backupDays": 7,
+  "status": "available"
+}
