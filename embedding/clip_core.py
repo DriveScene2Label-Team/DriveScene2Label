@@ -77,6 +77,19 @@ def encode_crops(model, crops: torch.Tensor, device) -> torch.Tensor:
 
 
 @torch.no_grad()
+def encode_crop_batches(model, crops_per_image: list[torch.Tensor], device, max_crops: int = 128) -> torch.Tensor:
+    """GPU half for several images at once: every image's crops go through the model in forward passes of at most
+    max_crops rows, then combine_crops averages per image. Same math as encode_crops per image and as
+    embed_images.encode_batches (the offline CLI has batched this way from the start). Returns (images, EMBED_DIM)."""
+    if not crops_per_image:
+        return torch.empty(0, EMBED_DIM)
+    counts = [len(c) for c in crops_per_image]
+    stacked = torch.cat(crops_per_image)
+    features = torch.cat([model.encode_image(chunk.to(device)).float() for chunk in stacked.split(max_crops)])
+    return combine_crops(features, counts).cpu()
+
+
+@torch.no_grad()
 def encode_image(model, preprocess, image, device, mode=LR_SQUARE_CROP_MEAN):
     return encode_crops(model, preprocess_crops(preprocess, image, mode), device)
 

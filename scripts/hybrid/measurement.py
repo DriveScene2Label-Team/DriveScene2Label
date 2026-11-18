@@ -19,7 +19,7 @@ from evidence_io import save_json
 REPO = Path(__file__).resolve().parents[2]
 ROOT = REPO / '.local/hybrid/measurements'
 CONTAINERS = {'backend': 'drivescene-hybrid-backend-1', 'ai': 'drivescene-hybrid-ai-server-1'}
-TAGS = 'HTTP|UPLOAD_CLIENT|UPLOAD_TRANSFER|UPLOAD_STAGE|UPLOAD|DB_IMPORT|SEARCH|VESPA_STAGE|VESPA|AUTO_LABEL_STAGE|AUTO_LABEL|CLIP_INDEX|CLIP_STAGE|CLIP|RERUN_STAGE|RERUN|RECORDING|UPLOAD_CACHE|CACHE|S3_TRANSFER'
+TAGS = 'HTTP|UPLOAD_CLIENT|UPLOAD_TRANSFER|UPLOAD_STAGE|UPLOAD|DB_IMPORT|SEARCH|VESPA_STAGE|VESPA|AUTO_LABEL_STAGE|AUTO_LABEL|CLIP_INDEX|CLIP_STAGE|CLIP_BATCH|CLIP|RERUN_STAGE|RERUN|RECORDING|UPLOAD_CACHE|CACHE|S3_TRANSFER'
 TAG = re.compile(r'\[(' + TAGS + r')\]')
 PAIR = re.compile(r'([A-Za-z_]+)=([^\s,]+)')
 FIELDS = set('request method route status stage event upload dataset job run scene recording image table rows batches bytes offset received source outcome transfer_ms processing_ms total_ms sent_bytes resumed_bytes receive_ms db_lock_ms file_ms db_update_ms transaction_ms status_ms jdbc_ms wall_ms stage_wall_ms total_wall_ms ai_ms storage_ms db_mapping_ms lock_wait_ms decode_ms preprocess_ms gpu_ms handler_ms cache wall_seconds cpu_seconds ai_seconds storage_seconds total_seconds prepare_seconds executor_seconds frames images count boxes samples scenes topK aggregation remote format'.split())

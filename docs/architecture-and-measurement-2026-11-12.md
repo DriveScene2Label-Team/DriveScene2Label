@@ -122,6 +122,7 @@ Cloudflare는 Quick Tunnel을 개발/시험용으로 설명한다. 현재 시연
 |DB import 내부|DB_IMPORT / dataset+table|행 수·batch 호출 수·JDBC 호출 시간·테이블 전체 시간·advisory lock|
 |CLIP·검색|CLIP / dataset+image, SEARCH / request|AI와 DB 저장/검색을 분리|
 |CLIP 내부|CLIP_STAGE / 이미지 1장|lock 대기·JPEG 디코딩·crop 전처리·GPU(장치 왕복 포함)·handler. Spring `ai_ms` 합 − `handler_ms` 합 = HTTP·JSON 비용|
+|CLIP 배치|CLIP_STAGE stage=image_embed_batch / 호출 1회, CLIP_BATCH / Spring 배치|images·count와 lock 대기·디코딩 합·전처리 합·GPU(배치 1회)·handler. Spring `ai_ms`는 배치 호출 시간 합|
 |자동 라벨|VESPA_STAGE / job+run+scene|데이터 준비·AI 호출·결과 검증·저장|
 |모델 내부|DS2L_STAGE / run+stage+call|DINO/SAM·CPU 전처리·특징·후처리별 wall/CPU 시간|
 |3D|RERUN_STAGE / recording|요청 구성·export·결과 저장|

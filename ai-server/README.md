@@ -49,6 +49,12 @@ curl -X POST http://127.0.0.1:8000/embedding/image \
 
 성공 응답은 finite 768차원 unit vector인지 검사합니다. 빈 텍스트/잘못된 schema=422, 허용되지 않는 경로=400, 없는 파일=404, 손상된 이미지=400, 모델 미준비=503, 추론 실패=500. 응답에 내부 경로/stack trace를 노출하지 않고 서버 로그에 추론 예외를 기록합니다. 구버전 POST /embedding은 /embedding/text 또는 /embedding/image로 교체했습니다.
 
+### 배치 이미지 임베딩 (2026-11-18)
+
+`POST /embedding/images`는 `image_paths` 1~64개를 한 번에 받아 순서대로 `results`를 돌려줍니다. 이미지마다 디코딩·crop 전처리를 한 뒤, 모든 crop을 모델에 함께 넣고(`clip_core.encode_crop_batches`, forward 한 번에 최대 `CLIP_MAX_CROPS_PER_FORWARD`=128 crop) 이미지별로 crop 평균·L2 정규화합니다. 오프라인 CLI(`embed_images.py --batch-size`)와 같은 수학이고, 실제 가중치로 확인한 결과 단일 호출 벡터와의 최소 cosine은 0.99999982입니다(v1.0-mini keyframe 256장, Apple M5 MPS). 경로·이미지 오류는 해당 항목의 `error`에만 담고 나머지는 계속 처리하며, 모델 실행 실패는 호출 전체 500입니다. 디코딩·전처리는 모델 lock 밖에서, 모델 실행만 lock 안에서 합니다. 로그는 호출마다 `[CLIP_STAGE] stage=image_embed_batch images= count=`와 단계별 합계 ms입니다. Spring 검색 인덱싱은 `EMBEDDING_INDEX_BATCH_ENABLED=true`(C2, 기본 false)일 때 이 경로를 쓰고, 이 경로가 없는 구버전 AI 서버(404)에는 이미지별 `/embedding/image`로 되돌아갑니다.
+
+비교 측정: `scripts/clip_batch_benchmark.py`(HTTP 없이 같은 코드 경로), `scripts/clip_http_benchmark.py`(실행 중인 AI 서버에 단일/배치 호출).
+
 ## 테스트
 
 ```bash

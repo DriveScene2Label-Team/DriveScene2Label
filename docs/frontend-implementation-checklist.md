@@ -238,4 +238,6 @@ Spring 정적 리소스는 `Cache-Control: no-cache`로 재검증한다. 이미 
 - [x] README·[HTTP 400 원인/해결](http-400-header-troubleshooting-2026-11-12.md)·[단계 실측](upload-measurement-2026-11-12.md) 갱신.
 - [x] 2026-11-17 검색 인덱싱 루프: 8장마다 claim 해제·1초 대기 대신 한 claim에서 64장 묶음을 끝까지 반복, 대기 중/실행 중 라벨 작업이 있을 때만 PENDING으로 양보. Docker PostgreSQL 백엔드 74개 통과(신규 묶음·양보 테스트 포함). GPU PC 실데이터 재측정은 미실행.
 - [x] 2026-11-17 CLIP 구간 계측: AI 서버 `[CLIP_STAGE]` 로그(lock 대기·디코딩·전처리·GPU·handler ms, 경로 미기록)와 수집기 허용 필드 추가, 처리 순서·lock 범위 유지. 5060 Ti PC 실측은 미실행.
+- [x] 2026-11-17 5060 Ti CLIP 단독 실측(`878297b`): 캐시 이미지 2,424장 순차 `/embedding/image`, 185.016초(13.10장/초), 요청 p50/p95 72.3/92.7 ms, 내부 p50 전처리 20.6·GPU 39.8 ms, `handler_ms` 합 170.1초. 업로드·S3·RDS·스케줄러는 미포함.
+- [x] 2026-11-18 배치 임베딩: AI `POST /embedding/images`(1~64장, 이미지별 오류, 구버전 404 시 Spring이 단일 호출로 후퇴), Spring 검색 인덱싱이 64장당 AI 호출 1회(C2 스위치 `EMBEDDING_INDEX_BATCH_ENABLED`, 기본 false, C1 prefetch와 함께 동작). 실제 ViT-L/14 가중치·v1.0-mini keyframe 256장으로 단일 대비 최소 cosine 0.99999982(Apple M5 MPS). M5에서는 GPU 계산이 장당 약 170 ms로 포화돼 속도 차이 없음(HTTP 포함 256장 단일 47.9초/배치 50.8초). AI pytest CLIP·텍스트 캐시 21개, Spring 전체 169개 통과(배치 켠 `BatchedSceneSearchTests` 15개 포함). **5060 Ti 배치 실측은 미실행.**
 - [ ] Mac/Safari 실기기 검증. 브라우저 사용자와 CUDA 서버 운영 환경을 구분해 안내.

@@ -17,8 +17,9 @@ public class DatasetSearchIndexService {
  private record Row(String status,String errorMessage) {}
  private record Pending(long id,ImageEmbeddingRepository.Source source) {}
  private final JdbcClient jdbc; private final ImageEmbeddingService images; private final TransactionTemplate tx;
- private final String model,preprocess; private final boolean enabled,prefetchEnabled;
- /** Images per heartbeat/yield check. Not a GPU batch: images are still embedded one request at a time. */
+ private final String model,preprocess; private final boolean enabled,prefetchEnabled,batchEnabled;
+ /** Images per heartbeat/yield check. With embedding.index-batch-enabled this is also one AI batch call (C2);
+  *  otherwise images are still embedded one request at a time. */
  public static final int BATCH_SIZE=64;
  private static final String CAMERA_FROM="""
   FROM sample_data sd JOIN calibrated_sensor cs ON cs.dataset_id=sd.dataset_id AND cs.token=sd.calibrated_sensor_token
@@ -29,8 +30,9 @@ public class DatasetSearchIndexService {
  public DatasetSearchIndexService(JdbcClient jdbc,ImageEmbeddingService images,PlatformTransactionManager manager,
    @Value("${embedding.model-name}") String model,@Value("${embedding.preprocess}") String preprocess,
    @Value("${embedding.index-worker.enabled:true}") boolean enabled,
-   @Value("${embedding.index-prefetch-enabled:false}") boolean prefetchEnabled) {
-  this.jdbc=jdbc;this.images=images;this.tx=new TransactionTemplate(manager);this.model=model;this.preprocess=preprocess;this.enabled=enabled;this.prefetchEnabled=prefetchEnabled;
+   @Value("${embedding.index-prefetch-enabled:false}") boolean prefetchEnabled,
+   @Value("${embedding.index-batch-enabled:false}") boolean batchEnabled) {
+  this.jdbc=jdbc;this.images=images;this.tx=new TransactionTemplate(manager);this.model=model;this.preprocess=preprocess;this.enabled=enabled;this.prefetchEnabled=prefetchEnabled;this.batchEnabled=batchEnabled;
  }
  public Status status(long dataset) {
   if(!jdbc.sql("SELECT EXISTS(SELECT 1 FROM dataset WHERE id=:d)").param("d",dataset).query(Boolean.class).single()) throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Dataset not found");
@@ -80,13 +82,20 @@ public class DatasetSearchIndexService {
     long queryStarted=System.nanoTime();
     var pending=pending(work.datasetId());
     var ids=pending.stream().map(Pending::id).toList();
-    org.slf4j.LoggerFactory.getLogger(getClass()).info("[CLIP_INDEX] dataset={} event=batch_loaded source={} images={} jdbc_ms={}",work.datasetId(),prefetchEnabled?"pending_batch":"per_image",pending.size(),(System.nanoTime()-queryStarted)/1_000_000);
+    org.slf4j.LoggerFactory.getLogger(getClass()).info("[CLIP_INDEX] dataset={} event=batch_loaded source={} ai={} images={} jdbc_ms={}",work.datasetId(),prefetchEnabled?"pending_batch":"per_image",batchEnabled?"batch":"per_image",pending.size(),(System.nanoTime()-queryStarted)/1_000_000);
     if(pending.isEmpty()) { finish(work,"COMPLETED",null); outcome="completed"; return; }
     // A batch that stored nothing would repeat forever; release it to the normal retry path instead.
     if(ids.equals(previous)) { finish(work,"PENDING",null); outcome="no_progress"; return; }
     // One batch takes seconds, far below the 10-minute stale-claim window.
     if(!heartbeat(work)) { outcome="claim_lost"; return; }
-    for(var item:pending) {
+    if(batchEnabled) {
+     // C2 (2026-11-18): one AI call per batch (POST /embedding/images) instead of one per image. 5060 Ti 11-17:
+     // a 2-crop forward pass ~40.8 ms and HTTP + JSON ~6.0 ms per image. Uses the C1 prefetched sources when on.
+     var prefetched=new HashMap<Long,ImageEmbeddingRepository.Source>();
+     for(var item:pending) if(item.source()!=null) prefetched.put(item.id(),item.source());
+     images.embedBatch(ids,prefetched);
+     processed+=pending.size();
+    } else for(var item:pending) {
      if(prefetchEnabled) images.embedPending(item.id(),item.source());
      else images.embed(item.id(),false);
      processed++;

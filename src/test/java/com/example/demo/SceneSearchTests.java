@@ -31,6 +31,10 @@ class SceneSearchTests {
  private static final AtomicReference<String> RESPONSE=new AtomicReference<>();
  private static final AtomicReference<String> REQUEST=new AtomicReference<>();
  private static final AtomicInteger STATUS=new AtomicInteger(200), CALLS=new AtomicInteger();
+ // POST /embedding/images: 404 here means "route missing" (an older AI server), so Spring falls back to single calls.
+ private static final AtomicInteger BATCH_ROUTE=new AtomicInteger(200);
+ private static final AtomicReference<String> BATCH_ERROR_PATH=new AtomicReference<>();
+ private static final java.util.List<Integer> BATCH_SIZES=java.util.Collections.synchronizedList(new java.util.ArrayList<>());
  private static HttpServer AI=startAi();
  private static HttpServer startAi() {
   try {
@@ -42,6 +46,25 @@ class SceneSearchTests {
     exchange.getResponseHeaders().set("Content-Type","application/json");
     exchange.sendResponseHeaders(STATUS.get(),body.length);
     try(var output=exchange.getResponseBody()) { output.write(body); }
+   });
+   server.createContext("/embedding/images",exchange->{
+    CALLS.incrementAndGet();
+    String request=new String(exchange.getRequestBody().readAllBytes(),StandardCharsets.UTF_8);
+    REQUEST.set(exchange.getRequestMethod()+" "+request);
+    var paths=new java.util.ArrayList<String>();
+    var m=java.util.regex.Pattern.compile("\"(samples/[^\"]+)\"").matcher(request);
+    while(m.find()) paths.add(m.group(1));
+    BATCH_SIZES.add(paths.size());
+    int status=BATCH_ROUTE.get()!=200?BATCH_ROUTE.get():STATUS.get();
+    String body=status==404?"{\"detail\":\"Not Found\"}":status!=200?"{\"detail\":{\"code\":\"X\",\"message\":\"x\"}}":
+     paths.stream().map(p->p.equals(BATCH_ERROR_PATH.get())
+       ?"{\"image_path\":\""+p+"\",\"embedding\":null,\"error\":{\"status\":400,\"code\":\"INVALID_IMAGE\",\"message\":\"File is not a readable image.\"}}"
+       :"{\"image_path\":\""+p+"\",\"embedding\":"+vector(1)+",\"error\":null}")
+      .collect(java.util.stream.Collectors.joining(",","{\"model_name\":\""+MODEL+"\",\"dimension\":768,\"preprocess\":\""+PREPROCESS+"\",\"results\":[","]}"));
+    byte[] bytes=body.getBytes(StandardCharsets.UTF_8);
+    exchange.getResponseHeaders().set("Content-Type","application/json");
+    exchange.sendResponseHeaders(status,bytes.length);
+    try(var output=exchange.getResponseBody()) { output.write(bytes); }
    });
    server.start(); return server;
   } catch(Exception e) { throw new IllegalStateException(e); }
@@ -55,7 +78,9 @@ class SceneSearchTests {
   return "http://127.0.0.1:"+AI.getAddress().getPort();
  }
  @AfterAll static synchronized void stopAi() { if(AI!=null) { AI.stop(0); AI=null; } }
- @BeforeEach void resetAi() { STATUS.set(200); RESPONSE.set(aiResponse()); CALLS.set(0); }
+ @BeforeEach void resetAi() { STATUS.set(200); RESPONSE.set(aiResponse()); CALLS.set(0); BATCH_ROUTE.set(200); BATCH_ERROR_PATH.set(null); BATCH_SIZES.clear(); }
+ /** BatchedSceneSearchTests runs every test here with embedding.index-batch-enabled=true (C2). */
+ protected boolean batched() { return false; }
  @Autowired JdbcClient jdbc;
  @Autowired MockMvc mvc;
  @Autowired com.example.demo.nuscenes.service.DatasetSearchIndexService indexes;
@@ -196,12 +221,81 @@ class SceneSearchTests {
    indexes.process(indexes.claim().orElseThrow());
    assertThat(indexes.status(d).status()).isEqualTo("COMPLETED");
    assertThat(indexes.status(d).indexedImages()).isEqualTo(images);
-   assertThat(CALLS.get()).isEqualTo(images);
+   if(batched()) {
+    // C2: one AI call per batch of 64, not one per image.
+    assertThat(CALLS.get()).isEqualTo(3);
+    assertThat(BATCH_SIZES).containsExactly(64,64,6);
+   } else assertThat(CALLS.get()).isEqualTo(images);
    assertThat(indexes.claim()).isEmpty();
   } finally {
    for(int i=0;i<images;i++) java.nio.file.Files.deleteIfExists(root.resolve("samples/a-file-"+i+".jpg"));
    java.nio.file.Files.deleteIfExists(root.resolve("samples")); java.nio.file.Files.deleteIfExists(root);
   }
+ }
+ private record Uploaded(long dataset,java.nio.file.Path root,int images) {}
+ private Uploaded uploadedImages(String version,int images) throws Exception {
+  long d=dataset(version); scene(d,"a","A",new double[images]);
+  String key=java.util.UUID.randomUUID().toString();
+  jdbc.sql("UPDATE dataset SET storage_key='uploads',root_relative_path=:k WHERE id=:d").param("k",key).param("d",d).update();
+  jdbc.sql("DELETE FROM image_embedding WHERE dataset_id=:d").param("d",d).update();
+  var root=storage.uploads().resolve("datasets").resolve(key);
+  for(int i=0;i<images;i++) {
+   var file=root.resolve("samples/a-file-"+i+".jpg");
+   java.nio.file.Files.createDirectories(file.getParent());java.nio.file.Files.writeString(file,"AI is stubbed");
+  }
+  return new Uploaded(d,root,images);
+ }
+ private void remove(Uploaded u) throws Exception {
+  for(int i=0;i<u.images();i++) java.nio.file.Files.deleteIfExists(u.root().resolve("samples/a-file-"+i+".jpg"));
+  java.nio.file.Files.deleteIfExists(u.root().resolve("samples")); java.nio.file.Files.deleteIfExists(u.root());
+ }
+ @Test void batchPendingSnapshotNeverOverwritesAConcurrentStoredVector() {
+  long d=dataset("pending-race-batch"); scene(d,"a","A",.5);
+  jdbc.sql("UPDATE dataset SET storage_key='nuscenes' WHERE id=:d").param("d",d).update();
+  long id=jdbc.sql("SELECT id FROM sample_data WHERE dataset_id=:d").param("d",d).query(Long.class).single();
+  var source=imageRepository.source(id).orElseThrow();
+  // Same stale-snapshot race as embedPending, through the C2 batch call.
+  assertThat(imageEmbeddings.embedBatch(java.util.List.of(id),java.util.Map.of(id,source))).extracting("status").containsExactly("SKIPPED");
+  assertThat(BATCH_SIZES).containsExactly(1);
+  assertThat(jdbc.sql("SELECT embedding <=> CAST(:v AS vector) FROM image_embedding WHERE dataset_id=:d").param("v",vector(.5)).param("d",d).query(Double.class).single()).isCloseTo(0,within(1e-6));
+ }
+ @Test void batchIndexStoresGoodImagesAndFailsOnPerImageError() throws Exception {
+  Assumptions.assumeTrue(batched(),"C2 batch path only");
+  var u=uploadedImages("uploaded-batch-error",5);
+  try {
+   BATCH_ERROR_PATH.set("samples/a-file-2.jpg");
+   indexes.enqueue(u.dataset()); indexes.process(indexes.claim().orElseThrow());
+   // Same outcome as the per-image path: the index fails, but the other four images are already stored.
+   assertThat(indexes.status(u.dataset()).status()).isEqualTo("FAILED");
+   assertThat(indexes.status(u.dataset()).indexedImages()).isEqualTo(4);
+   assertThat(CALLS.get()).isEqualTo(1);
+   BATCH_ERROR_PATH.set(null);
+   indexes.enqueue(u.dataset()); indexes.process(indexes.claim().orElseThrow());
+   assertThat(indexes.status(u.dataset()).status()).isEqualTo("COMPLETED");
+   assertThat(BATCH_SIZES).containsExactly(5,1); // the retry sends only the missing image
+  } finally { remove(u); }
+ }
+ @Test void batchIndexFallsBackToSingleCallsOnOlderAiServer() throws Exception {
+  Assumptions.assumeTrue(batched(),"C2 batch path only");
+  var u=uploadedImages("uploaded-batch-fallback",3);
+  try {
+   BATCH_ROUTE.set(404); RESPONSE.set(aiResponse().replace("clip-text-tokenizer",PREPROCESS));
+   indexes.enqueue(u.dataset()); indexes.process(indexes.claim().orElseThrow());
+   assertThat(indexes.status(u.dataset()).status()).isEqualTo("COMPLETED");
+   assertThat(indexes.status(u.dataset()).indexedImages()).isEqualTo(3);
+   assertThat(CALLS.get()).isEqualTo(1+3); // one refused batch call, then /embedding/image per image
+   assertThat(REQUEST.get()).contains("image_path","samples/a-file-2.jpg");
+  } finally { remove(u); }
+ }
+ @Test void batchIndexFailsWhenTheBatchCallFails() throws Exception {
+  Assumptions.assumeTrue(batched(),"C2 batch path only");
+  var u=uploadedImages("uploaded-batch-mismatch",2);
+  try {
+   BATCH_ROUTE.set(500);
+   indexes.enqueue(u.dataset()); indexes.process(indexes.claim().orElseThrow());
+   assertThat(indexes.status(u.dataset()).status()).isEqualTo("FAILED");
+   assertThat(indexes.status(u.dataset()).indexedImages()).isZero();
+  } finally { remove(u); }
  }
  @Test void unavailableAiReturnsServiceUnavailable() throws Exception {
   int unused;
