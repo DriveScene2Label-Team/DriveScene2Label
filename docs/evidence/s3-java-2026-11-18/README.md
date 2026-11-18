@@ -4,6 +4,8 @@
 
 로컬 원본은 `.local/hybrid/experiments/20261118T072013Z-s3-java/`에 보존했다. `manifest.json`은 각 선택 파일의 원본/내보낸 SHA-256과 변환을 기록한다. 실제 파일 inventory·압축 파일·모델·DB 덤프·자격증명은 포함하지 않는다.
 
+첫 내보내기의 원본 manifest 이름이 내보내기 인덱스 `manifest.json`과 겹친 것을 최종 해시 검사에서 발견했다. 원래 기록된 해시에 해당하는 바이트를 `experiment-manifest.json`으로 복구하고 인덱스의 대상 경로만 수정했다. 85개 파일의 해시를 다시 검증했다. 실험 원본은 변경하지 않았으며 exporter에 예약 이름·중복 경로를 쓰기 전에 거부하는 검사를 추가했다.
+
 - `review/summary.json`: 완료·중단·단독 관측을 나눈 결과. 재부팅 전 2쌍과 후 1쌍의 합친 중앙값은 기술 통계이며 안정적인 개선 주장이 아니다.
 - `pilot`, `faults`, `large`, `post-reboot-pair`, `threshold`: 원래 실행 manifest와 실제 HTTP 시도 JSONL. `large`의 중단 상태는 그대로다.
 - `reboot-recovery/result.json`: 실제 재부팅 잔여 73파트의 소유 범위 정리. 주입 SIGKILL과 별도 사건이다.

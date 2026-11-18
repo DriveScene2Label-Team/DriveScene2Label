@@ -4,7 +4,7 @@ nuScenes 원본을 올리고, 주행 씬을 찾아 **선택한 씬의 3D 라벨�
 
 **[서비스 열기](https://drivescene2label.vercel.app) · [API 명세](README_API.md) · [구조·병목 분석·면접 학습 문서](docs/architecture-and-measurement-2026-11-12.md)**
 
-> **운영 중지 · 2026-11-18 15:26 KST 확인.** 재개한 GPU·검색·S3 비교를 끝내고 GPU·백엔드·인증 컨테이너를 종료했습니다. RDS는 `stopped`, 기존 Vercel pause·Git 자동 배포 false를 유지합니다. 원본·라벨·볼륨은 보존하며 RDS 자동 재시작 예정은 **11월 25일 15:24:52 KST**입니다. [최종 중지 상태](docs/shutdown-2026-11-18.md).
+> **수동 시험용 운영 재개 · 2026-11-18 18:34 KST 확인.** **로컬 GPU·백엔드 + AWS RDS·S3 + Vercel**에서 서비스가 준비됐습니다. CI 통과·Vercel READY·공개 화면 200·익명 API 401을 확인했습니다. 백업을 별도 DB에 복원해 33테이블 내용·22시퀀스 일치를 검증한 뒤 앱 데이터만 초기화했고 **S3 원본 26개·계정·모델은 보존**했습니다. [재배포·초기화·직접 시험 기록](docs/manual-test-deployment-2026-11-18.md). 사용자가 직접 시험하도록 켜두며 15:26 중지 기록은 이전 이력입니다.
 
 기준: **2026-11-18 · `release-version`**. 현재 프론트는 Vercel, 백엔드와 GPU는 로컬 PC, 원본은 AWS S3, 메타데이터·라벨은 RDS에 둡니다. **EC2·ECS·EKS는 이번 MVP에 사용하지 않습니다.** 과거 전체 AWS 운영 명령과 검증 기록은 [별도 이력 문서](docs/aws-deployment-history-2026-11-09.md)로 옮겼습니다.
 
@@ -23,12 +23,15 @@ nuScenes 원본을 올리고, 주행 씬을 찾아 **선택한 씬의 3D 라벨�
 | T3 / T4 | CPU 스레드 1·2·4 → 전체 씬 후보 2 검증 | SAM은 빨라졌지만 최종 한 박스의 9개 필드가 달라 채택 보류. 기본값 1 유지 |
 | A2 / P | SDPA·FlashAttention·FP16/BF16/TF32 | 현재 모델의 attention 설정 미지원. AMP FP16은 30.198→22.428초지만 검출 차이로 보류 |
 | R1 / R2 후속 | ORT·TensorRT와 6카메라 검출 비교 | TRT 빌드 143.666초·추론 중앙값 0.2122초. 자동차 6개 대응하지만 raw/박스/점수 차이 존재. 전체 클래스·3D 미검증으로 엔진 교체 보류 |
-| S2 | S3 단일/병렬도 1·2·4, 각 3회 | 109.7MB 업로드 **13.107→4.996초(61.88% 감소)**, 12개 SHA·실험 객체 정리 통과. 다운로드 이득 작음. Python SDK 결과이며 Java 운영 multipart는 후속 검증 |
+| S2 | S3 단일/병렬도 1·2·4, 각 3회 | 109.7MB 업로드 **13.107→4.996초(61.88% 감소)**, 12개 SHA·실험 객체 정리 통과. Python SDK 결과이며 Java 적용 판단은 아래 S3-J로 분리 |
+| S3-J | 실제 Java 4.17GB 왕복·복원·5종 장애 | 완료 7건 SHA, 첫 쌍 31,225파일 일치. 3쌍 업로드 감소율 **-1.54% / 12.50% / 4.21%**로 편차. **multipart 기본 false**, 실패 처리·불완전 다운로드 방지·계측 적용. 재부팅 중단/73파트 정리도 기록 |
 | Q2 | MATERIALIZED + 검색 트랜잭션에서 custom 계획 | auto/custom/generic/최종 후보 비교 216쌍 결과 일치. 최종 SQL 데이터셋 **789.562→55.290ms**, 전체 **4,397.725→218.554ms**. 검색 전용 스위치 채택 |
 | Q3 | CLIP exact-text LRU 256개, 동시 중복 계산 제거 | 보강 시험 1,152쌍 응답 일치. 반복 32요청 추론 **32→1회**, 배치 시간 약 **65~67% 감소**. 모두 다른 문장에는 추론 절감 없음. cache 0으로 원복 가능 |
 | Q2+Q3 | 실제 loopback 검색 HTTP 전후 | 54쌍 응답 전체 일치. dataset **990→88ms**, global **5,433→246ms**. warm·반복 문장 조건이며 공개 인증 경로/동시 사용자 p95는 제외 |
 
 G2는 전체 씬 1쌍이며 전체 데이터셋 정확도나 p95 개선을 입증하지 않습니다. C1의 재시작 조건이 달랐던 pilot은 성능 근거에서 제외하고 다시 측정했습니다. A1 전체 업로드는 S3 보관 구간이 늘어 과거 C0보다 느렸습니다. 두 채택 최적화의 개선율을 서비스 전체에 그대로 적용하지 않습니다.
+
+**[Java S3 문제·SDK 선택·실측·실패·적용/보류 이유](docs/s3-java-optimization-2026-11-18.md)** · [전후 report.md](docs/evidence/s3-java-2026-11-18/review/report.md) · [요청 로그·테스트 실패 이력·해시](docs/evidence/s3-java-2026-11-18/README.md). 최종 Java 저장 테스트 15개 통과. 109.7MB는 단일 PUT이 빨라 후보의 크기 기준을 보수적으로 1GiB 초과로 뒀으며 최적 임계값을 찾았다는 뜻은 아닙니다. 전체 파일 복원은 전송 시간이 커서 다음 후보는 Range GET·씬별 저장 구조이며 Spark/Kafka를 추가하지 않았습니다.
 
 **[후속 보고서: 모델 서빙·RDS 실행 계획·S3·N+1 조사·실패와 보류 이유](docs/optimization-resume-2026-11-18.md)** · [후속 검토용 로그/해시](docs/evidence/optimization-resume-2026-11-18/README.md). Q2는 요청마다 계획·설정 왕복 비용을 추가하고 임시 I/O가 증가할 수 있습니다. Q3 첫 소량 시험에서는 모두 다른 동시 요청이 29% 느린 결과도 있어 그대로 보존했습니다. Q4 카메라 metadata 묶음·Q5 라벨 JDBC batch는 좌표/트랜잭션 회귀가 필요한 다음 후보이며 아직 적용하지 않았습니다.
 
@@ -230,12 +233,14 @@ python scripts/hybrid/measurement.py collect
 |백업·초기화|별도 DB 복원·33테이블 행 수 일치, S3 10객체 보존|
 |새 대용량 업로드·검색·씬 추론|사용자 TGZ 업로드 dataset 6·10씬, CLIP 2,424장 완료. 사용자 실행 #12 scene-0061 완료, 39프레임·1,308박스 API 재조회|
 
-GitHub 저장소를 기존 Vercel 프로젝트에 연결하고 **Production Branch를 `release-version`, Root Directory를 `frontend`**로 설정했습니다. 해당 브랜치 push는 GitHub CI와 Vercel 프론트 빌드를 시작합니다. 두 시스템은 별도로 실행되므로 CI 성공이 Vercel 승격을 자동으로 차단하는 구성은 아닙니다. Preview 브랜치는 운영 주소를 바꾸지 않습니다. 기존 ECS/EKS 배포 workflow는 수동이며 **push가 AWS compute를 켜지 않습니다.** [실행 증거·재개 기록](docs/work-checkpoint-2026-11-12.md), [CI](https://github.com/DriveScene2Label-Team/DriveScene2Label/actions/workflows/ci.yml).
+GitHub 저장소를 기존 Vercel 프로젝트에 연결하고 **Production Branch를 `release-version`, Root Directory를 `frontend`**로 설정했습니다. 현재 `frontend/vercel.json`의 **Git 자동 배포는 false**이며 push는 GitHub CI를 실행합니다. 이번 공개 배포는 커밋을 고정하고 CI·빌드를 확인한 뒤 명시적으로 진행합니다. CI 성공이 Vercel 승격을 자동 차단하는 플랫폼 연동을 구현한 것은 아닙니다. 기존 ECS/EKS 배포 workflow는 수동이며 **push가 AWS compute를 켜지 않습니다.** [최신 배포 기록](docs/manual-test-deployment-2026-11-18.md), [CI](https://github.com/DriveScene2Label-Team/DriveScene2Label/actions/workflows/ci.yml).
 
 ## 문서 안내
 
 |문서|내용|
 |---|---|
+|[11월 18일 재배포·직접 시험](docs/manual-test-deployment-2026-11-18.md)|현재 서비스 상태, 앱 초기화·복원, 새 사용자 시험 로그 위치|
+|[Java S3 최적화 비교](docs/s3-java-optimization-2026-11-18.md)|4.17GB 왕복·장애·재부팅 복구·기본 적용을 보류한 이유|
 |[구조 선택·인증·DB·병목 분석](docs/architecture-and-measurement-2026-11-12.md)|장단점, 코드 근거, 측정 해석, 면접·학습|
 |[Claude 전달 프롬프트](docs/claude-hybrid-architecture-prompt.md)|현재 인프라 구조도·시퀀스·설계 이유·실측 분석을 요청할 본문|
 |[11월 12일 직접 업로드 실측](docs/upload-measurement-2026-11-12.md)|공개 전송·S3·RDS·CLIP 시간과 실행 순서 문제|

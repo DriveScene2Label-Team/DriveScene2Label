@@ -243,7 +243,7 @@
     },
     {
       "source": ".local/hybrid/experiments/20261118T072013Z-s3-java/manifest.json",
-      "target": "manifest.json",
+      "target": "experiment-manifest.json",
       "source_sha256": "6809ca99b1ce4fa59375b912306d9397a93735d4bc676d8d9a415a22c58c6f2c",
       "export_sha256": "d17fd4a2c4c707b91eb4d7f446c5f7c4df7f1a7844fcbc9b41f556fd6a411451",
       "export_bytes": 492
@@ -598,5 +598,6 @@
       "export_sha256": "61f44ca985a569408f9e1f9ea0acbf2201c263305a03e1fb440be1a153d0baed",
       "export_bytes": 447
     }
-  ]
+  ],
+  "repair_note": "The initial export used the reserved manifest.json target for the source experiment manifest. Restored the originally hashed bytes as experiment-manifest.json; original experiment files unchanged. Exporter now rejects reserved and colliding targets."
 }

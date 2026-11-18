@@ -1,0 +1,9 @@
+{
+  "started_at": "2026-11-18T07:20:13.558327+00:00",
+  "baseline_commit": "725c7e3903f87d9c161da81fed92ad1061d29b53",
+  "scope": "Java S3 trials, followed by separately authorized hybrid deployment and app reset; phase boundaries retained",
+  "status": "storage_verified_multipart_opt_in",
+  "conditions": "bounded multipart upload; stream download; exact SHA/restore/fault/cleanup gates before adoption",
+  "finished_at": "2026-11-18T09:14:34.070903+00:00",
+  "review": "review/report.md"
+}

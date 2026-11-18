@@ -1,0 +1,38 @@
+{
+  "checked_at": "2026-11-18T09:34:14.327303+00:00",
+  "deployment_id": "dpl_EJu2CKzqfcF81W3x3ETmJfPbZLBk",
+  "site": "https://drivescene2label.vercel.app",
+  "checks": [
+    {
+      "path": "/",
+      "status": 200,
+      "cache_control": "public, max-age=0, must-revalidate",
+      "script_assets_ok": 1
+    },
+    {
+      "path": "/uploads",
+      "status": 200,
+      "cache_control": "no-cache"
+    },
+    {
+      "path": "/api/datasets",
+      "status": 401,
+      "cache_control": "private, no-store"
+    },
+    {
+      "path": "/api/system/status",
+      "status": 401,
+      "cache_control": "private, no-store"
+    },
+    {
+      "path": "/oauth2/start",
+      "status": 302,
+      "cache_control": "private, no-store",
+      "redirect_host": "ds2l-189750306426-seoul.auth.ap-northeast-2.amazoncognito.com"
+    }
+  ],
+  "same_deployment_on_public_domain": true,
+  "browser_ui_verified": false,
+  "browser_limit": "Computer Use ended because it could not confidently determine the current browser URL; no further UI input issued",
+  "manual_cycle_started": false
+}

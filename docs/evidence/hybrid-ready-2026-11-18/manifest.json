@@ -1,0 +1,56 @@
+{
+  "created_at": "2026-11-18T09:36:24.778622+00:00",
+  "transformation": "JSON formatting, absolute repository path replacement and LF text line endings; original evidence is retained locally",
+  "scope": "explicit selection; full vectors, original media, credentials and large raw output excluded",
+  "files": [
+    {
+      "source": ".local/hybrid/experiments/20261118T072013Z-s3-java/runtime-state.json",
+      "target": "runtime-state.json",
+      "source_sha256": "767e2162cb2d5cb911d9c3ae3ef1443b3a7188bf06ff310ba3822f557f0563ea",
+      "export_sha256": "0438f5e62182ccb5fbe4e433d234f8ad02c6ef9653809e7e6c5679fde16737a8",
+      "export_bytes": 1862
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T072013Z-s3-java/public-http-verification.json",
+      "target": "public-http-verification.json",
+      "source_sha256": "3de080ccf5a5f908959a8fb5c5a0488fda3e421b31eaeb05d5644360d0318870",
+      "export_sha256": "c8b759c78bd55982dd1b84b24c5eb9ba5bfecd370424f00ec334380063d13ee5",
+      "export_bytes": 1074
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T072013Z-s3-java/vercel-ready.json",
+      "target": "vercel-ready.json",
+      "source_sha256": "cc0f95152a6c2236f24a9be259714ef607841f166c8ad0f1b2c32da90d7bc1c2",
+      "export_sha256": "b27ddb2d5b76f172458e064c95958b86866c5c041ac5ecfc07706bc3267332f5",
+      "export_bytes": 744
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T072013Z-s3-java/ci-first-failure.json",
+      "target": "ci-first-failure.json",
+      "source_sha256": "b31a0e3a642d2fd58d7f59ceb78c0782651be318b4219bfb763776923172c0c6",
+      "export_sha256": "ff35830243b9494eb6bb1f481640d39f900921445e883e6f347b7be7ec992ff2",
+      "export_bytes": 1471
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T072013Z-s3-java/ci-retry-jobs.json",
+      "target": "ci-retry-jobs.json",
+      "source_sha256": "442324cc768c83835d035f60e7064402b88784260173a49d7cf912a195e05dad",
+      "export_sha256": "19a7eed9777796951d4bf68ba06958b351cd2fc0e2523bc975a761e6e7d40cef",
+      "export_bytes": 3677
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T072013Z-s3-java/manual-measurement.json",
+      "target": "manual-measurement.json",
+      "source_sha256": "dbefce3a7a0d9b93df8b89f54f506c7ea2afbeb36fd75ff03661528e5b36ab81",
+      "export_sha256": "87e02977d16213cc084c84c6c4ada09d4043090be3a45851ec2773ba321ade98",
+      "export_bytes": 158
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T072013Z-s3-java/release-summary.json",
+      "target": "release-summary.json",
+      "source_sha256": "84feed93ccfc4fdbc17400250089613cbd5156f03a2313e1a0d19b0445770b9c",
+      "export_sha256": "77065e7e0316c5e9aaecc040ccfa9666d909246a8499921411345ca852b39d41",
+      "export_bytes": 971
+    }
+  ]
+}

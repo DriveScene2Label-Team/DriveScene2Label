@@ -1,0 +1,7 @@
+{
+  "run_id": 44274257190,
+  "job_id": 134698232858,
+  "commit": "132669a1f78237c9c87c6c3905d1baa121d1ed4c",
+  "reason": "Docker Gradle dependency download returned Maven Central HTTP 429; backend and frontend tests passed before image build failed",
+  "log_excerpt": "2026-11-18T09:18:23.9836960Z #25 8.009             > Could not GET 'https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-buildpack-platform/4.1.1/spring-boot-buildpack-platform-4.1.1.pom'. Received status code 429 from server: Too Many Requests\n2026-11-18T09:18:23.9844278Z #25 8.010             > Could not GET 'https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-loader-tools/4.1.1/spring-boot-loader-tools-4.1.1.pom'. Received status code 429 from server: Too Many Requests\n2026-11-18T09:18:23.9861497Z #25 8.011             > Could not GET 'https://repo.maven.apache.org/maven2/org/apache/commons/commons-compress/1.27.1/commons-compress-1.27.1.pom'. Received status code 429 from server: Too Many Requests\n2026-11-18T09:18:23.9868405Z #25 8.012             > Could not GET 'https://repo.maven.apache.org/maven2/org/springframework/spring-core/7.0.9/spring-core-7.0.9.pom'. Received status code 429 from server: Too Many Requests\n2026-11-18T09:18:24.0100673Z 8.012             > Could not GET 'https://repo.maven.apache.org/maven2/org/springframework/spring-core/7.0.9/spring-core-7.0.9.pom'. Received status code 429 from server: Too Many Requests"
+}

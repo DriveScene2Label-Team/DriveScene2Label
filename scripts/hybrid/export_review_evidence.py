@@ -32,6 +32,9 @@ def main():
     destination=a.output.resolve()
     if not destination.is_relative_to(ROOT/'docs/evidence'):raise ValueError('Output must be under docs/evidence')
     selections=json.loads(a.selection.read_text(encoding='utf-8-sig'))
+    targets=[(destination/row['target']).resolve() for row in selections]
+    if destination/'manifest.json' in targets or len(set(targets))!=len(targets):
+        raise ValueError('Evidence targets must be unique and must not overwrite manifest.json')
     destination.mkdir(parents=True,exist_ok=False)
     manifest=[]
     for selected in selections:

@@ -1,0 +1,25 @@
+{
+  "checked_at": "2026-11-18T09:36:24.044650+00:00",
+  "code_commit": "132669a1f78237c9c87c6c3905d1baa121d1ed4c",
+  "ci_run": 44274257190,
+  "ci_attempt": 2,
+  "ci_conclusion": "success",
+  "vercel_paused": false,
+  "site": "https://drivescene2label.vercel.app",
+  "leave_services_running": true,
+  "reason": "latest user requested manual full-cycle test on hybrid architecture",
+  "s3_originals_preserved": 26,
+  "app_reset_restored_tables": 33,
+  "app_reset_restored_sequences": 22,
+  "local_hybrid_tests": {
+    "run": 49,
+    "passed": 47,
+    "skipped": 2
+  },
+  "public_browser_ui_verified": false,
+  "browser_reason": "Computer Use stopped because it could not determine the current browser URL; subsequent verification used HTTP, not browser automation",
+  "raw_ci_logs": {
+    "ci-attempt-1.log": "b6ec6fdf6bda1f1c1274f367092084d23c3ee3d0bc1ee3fb7e383203e9a65442",
+    "ci-attempt-2.log": "2fea77d98cc9288333461d4b48c5056adbd6708b8fc805d9976dabe7912bb33d"
+  }
+}

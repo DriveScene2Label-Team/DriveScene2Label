@@ -1,0 +1,21 @@
+{
+  "id": "dpl_EJu2CKzqfcF81W3x3ETmJfPbZLBk",
+  "url": "drivescene2label-7epzz7nn3-leehyeoksu1.vercel.app",
+  "alias": [
+    "drivescene2label.vercel.app",
+    "drivescene2label-leehyeoksu1.vercel.app",
+    "drivescene2label-git-132669a1f78237c9c87c6c3-1f0b47-leehyeoksu1.vercel.app"
+  ],
+  "target": "production",
+  "readyState": "READY",
+  "meta": {
+    "githubCommitRef": "132669a1f78237c9c87c6c3905d1baa121d1ed4c",
+    "githubCommitSha": "132669a1f78237c9c87c6c3905d1baa121d1ed4c",
+    "githubCommitMessage": "Verify Java S3 transfer safety and preserve hybrid reset evidence",
+    "githubRepo": "DriveScene2Label",
+    "githubOrg": "DriveScene2Label-Team"
+  },
+  "buildingAt": 1794994339681,
+  "ready": 1794994369967,
+  "build_ms": 30286
+}

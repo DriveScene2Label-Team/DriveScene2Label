@@ -1,0 +1,59 @@
+{
+  "checked_at": "2026-11-18T09:26:20.347950+00:00",
+  "code_commit": "132669a1f78237c9c87c6c3905d1baa121d1ed4c",
+  "containers": {
+    "backend": {
+      "running": true,
+      "image": "sha256:ebeba4434266d9fa04af439e01a3a60199bace68e5a3fa3d1056f7f7c1fee6c6",
+      "created": "2026-11-18T09:10:37.425800058Z",
+      "restart_count": 0,
+      "health": "healthy"
+    },
+    "ai-server": {
+      "running": true,
+      "image": "sha256:24778191ef1f438e4d705dc6bd98002271e732f781dce44adc1ae1aa722bfa5e",
+      "created": "2026-11-18T09:10:36.977624059Z",
+      "restart_count": 0,
+      "health": "healthy"
+    },
+    "auth-upstream": {
+      "running": true,
+      "image": "sha256:dc5069ad14f19660b141b21236140b91656bf89bbc3e2417c70ae650cd66104c",
+      "created": "2026-11-18T09:10:37.838373986Z",
+      "restart_count": 0,
+      "health": "healthy"
+    },
+    "auth-gateway": {
+      "running": true,
+      "image": "sha256:8498b0d0ef0a7b29686414000a08aee467f02d0299c9ed1e006a8f33fc017916",
+      "created": "2026-11-18T09:10:38.180082178Z",
+      "restart_count": 0,
+      "health": "not_configured"
+    }
+  },
+  "flags": {
+    "backend": {
+      "UPLOAD_S3_MULTIPART_ENABLED": "false",
+      "UPLOAD_S3_UPLOAD_CONCURRENCY": "4",
+      "UPLOAD_S3_MULTIPART_THRESHOLD_BYTES": "1073741824",
+      "EMBEDDING_INDEX_PREFETCH_ENABLED": "true",
+      "SEARCH_EXACT_OPTIMIZATION_ENABLED": "true",
+      "UPLOAD_WORKER_ENABLED": "true",
+      "EMBEDDING_INDEX_WORKER_ENABLED": "true",
+      "AUTO_LABEL_WORKER_ENABLED": "true",
+      "RECORDING_WORKER_ENABLED": "true"
+    },
+    "ai-server": {
+      "VESPA_NUM_THREADS": "1",
+      "VESPA_GROUNDING_PREPROCESS": "reuse",
+      "CLIP_TEXT_CACHE_SIZE": "256"
+    }
+  },
+  "operations": {
+    "maintenance": false,
+    "activeWrites": 0,
+    "runningLabels": 0,
+    "runningRecordings": 0
+  },
+  "dataset_list": []
+}
