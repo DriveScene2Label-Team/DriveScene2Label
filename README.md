@@ -2,19 +2,25 @@
 
 nuScenes 원본을 올리고, 주행 씬을 찾아 **선택한 씬의 3D 라벨을 생성·확인·수정하는 웹 애플리케이션**입니다. CLIP 자연어 검색, 6개 카메라와 LiDAR 3D 작업대, VESPA 자동 라벨링, 객체 기준 후처리와 편집 이력을 제공합니다.
 
-**[서비스 열기](https://drivescene2label.vercel.app) · [API 명세](README_API.md) · [구조·병목 분석·면접 학습 문서](docs/architecture-and-measurement-2026-11-12.md)**
+**[서비스 주소 — 현재 중지](https://drivescene2label.vercel.app) · [API 명세](README_API.md) · [구조·병목 분석·면접 학습 문서](docs/architecture-and-measurement-2026-11-12.md)**
 
-> **수동 시험용 운영 재개 · 2026-11-18 18:57 KST 확인.** **로컬 GPU·백엔드 + AWS RDS·S3 + Vercel**에서 서비스가 준비됐습니다. Vercel READY·공개 화면 200·익명 API 401을 확인했습니다. 백업을 별도 DB에 복원해 33테이블 내용·22시퀀스 일치를 검증한 뒤 앱 데이터만 초기화했고 **S3 원본 26개·계정·모델은 보존**했습니다. [재배포·초기화·직접 시험 기록](docs/manual-test-deployment-2026-11-18.md). CI 후속 취소 경합 수정은 65개 회귀·실제 S3 7케이스를 검증해 백엔드에 반영했습니다. 사용자가 직접 시험하도록 켜두며 15:26 중지 기록은 이전 이력입니다.
+> **2026-11-18 시험 마감·운영 종료 완료.** job 14는 20:42 KST에 **39프레임·1,308박스**로 완료됐고 RDS 저장 후 전체 값이 정확히 일치했습니다. 로컬 컨테이너·터널 종료, RDS **stopped**(21:06 KST), Vercel **DEPLOYMENT_PAUSED**를 확인했습니다. S3 원본·DB·모델은 보존하고 G3/R3 후보는 미적용입니다.[^session-close-20261118]
+
+[^session-close-20261118]: [마감 report.md — 단계 시간·RDS 왕복·시도와 보류 이유·테스트·종료 상태](docs/reports/2026-11-18/report.md). [검토용 로그·SHA256](docs/evidence/session-close-2026-11-18/README.md). 18:57 운영 재개는 [이전 배포 이력](docs/manual-test-deployment-2026-11-18.md)입니다.
 
 기준: **2026-11-18 · `release-version`**. 현재 프론트는 Vercel, 백엔드와 GPU는 로컬 PC, 원본은 AWS S3, 메타데이터·라벨은 RDS에 둡니다. **EC2·ECS·EKS는 이번 MVP에 사용하지 않습니다.** 과거 전체 AWS 운영 명령과 검증 기록은 [별도 이력 문서](docs/aws-deployment-history-2026-11-09.md)로 옮겼습니다.
 
 ## 11월 17~18일 최적화·검증 버전
 
-**19:43 KST 사용자 시험 후속:** 새 dataset 22·10씬과 CLIP 2,424장 등록 완료. 이후 S3 multipart를 운영 설정에서 켰습니다(1GiB 초과·16MiB·동시 4파트, 코드 기본값 OFF). 사용자가 시작한 job 14는 진행 중이며 서버를 유지합니다. **[문제·해결 이유·장단점·비용·모델 상주 검토](docs/optimization-decisions-and-costs-2026-11-18.md)** · [해시 포함 검토용 로그](docs/evidence/optimization-decisions-2026-11-18/README.md). 이번 업로드 자체는 single PUT 기준선입니다.
+**19:43 KST 사용자 시험 후속:** 새 dataset 22·10씬과 CLIP 2,424장 등록 완료. 이후 S3 multipart를 운영 설정에서 켰습니다(1GiB 초과·16MiB·동시 4파트, 코드 기본값 OFF). job 14는 20:42 KST 완료됐고 현재 상태는 위 마감 기록을 따릅니다. **[문제·해결 이유·장단점·비용·모델 상주 검토](docs/optimization-decisions-and-costs-2026-11-18.md)** · [해시 포함 검토용 로그](docs/evidence/optimization-decisions-2026-11-18/README.md). 이번 업로드 자체는 single PUT 기준선입니다.
 
-모델은 CLIP만 서버 시작 시 로드하고 VESPA는 작업별 자식 프로세스에서 필요 시 로드합니다. job 14의 CPU 지면 제거 350.0초, 첫 Grounding DINO 15.6초·SAM 5.7초를 분리했습니다. 모델 상주 worker는 다음 검증 후보이며 아직 적용하지 않았습니다. DINOv2 getter 계측 코드는 추가했지만 진행 중 AI 컨테이너는 교체하지 않았습니다.
+모델은 CLIP만 서버 시작 시 로드하고 VESPA는 작업별 자식 프로세스에서 필요 시 로드합니다. job 14의 CPU 지면 제거 350.0초, 첫 Grounding DINO 15.6초·SAM 5.7초를 분리했습니다. 모델 상주 worker는 다음 검증 후보이며 아직 적용하지 않았습니다. DINOv2 getter 계측 코드는 추가했지만 이번 사용자 실행 중 AI 컨테이너는 교체하지 않았고 마감 때 중지했습니다.
 
 **[VESPA 계층별 CPU·RAM·GPU·VRAM·디스크·RDS/S3 사용 지도](docs/vespa-resource-map-2026-11-18.md)**에서 실행 순서와 현재 코드의 자원 사용 위치를 확인할 수 있습니다. 단계별 자원 사용률을 모두 실측했다는 의미는 아니며, 시간 로그·단일 메모리 스냅샷과 구분합니다.
+
+![최적화 전 VESPA 처리 계층과 자원 사용](docs/images/vespa-resource-baseline-2026-11-18.png)
+
+**[왜 느린지·어떤 시도가 통했고 실패했는지·다음 두 후보](docs/vespa-bottleneck-diagnosis-2026-11-18.md)**: CPU 지면 계산을 실제로 소비하는 키프레임으로 제한하는 G3와 모델을 작업 사이에도 유지하는 R3는 검증 후보로 남깁니다. 그림은 두 후보 적용 전 구조이며 후보 코드는 아직 운영 기본값이 아닙니다. job 14는 20:42 KST 완료됐고 기준 결과를 보존합니다.
 
 처음에는 **반복 Grounding 전처리**와 **CLIP 인덱싱의 원격 DB 왕복**을 개선했습니다. 후속으로 **검색 실행 계획·거리 계산**, **중복 텍스트 추론**, **S3 전송**, **추론 엔진**을 분리했습니다. 출력 회귀를 통과한 G2·C1·Q2·Q3를 hybrid 기본값에 적용했습니다. 아래 ID는 실험 버전이며 제품 SemVer가 아닙니다.
 

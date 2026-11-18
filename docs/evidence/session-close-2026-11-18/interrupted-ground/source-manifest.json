@@ -1,0 +1,24 @@
+{
+  "head": "2edc48358754d205c059f5894a1fcb6af0d062c0",
+  "dirty_source_sha256": {
+    "services\\grounding_runtime.py": "9b2d3d3a421dc4451c177a857bf16cc2e362248a872046b747c9a81c242bb545",
+    "services\\ground_runtime.py": "94728fd6c5c246b601358fb33d92afa02155c9c9d4ec886c247332f0d9dba499",
+    "services\\resident_client.py": "45301790c15ceb554d93282f9375b1954039c2c86d18677656057b980fd1f076",
+    "services\\resident_models.py": "0345fd5d3157db5ee156f8328353c5271ab36f8f1610a69936d4db3d468ec47a",
+    "services\\rigid_cache.py": "78ba3562dd834e6c04d44060d7fd499c75206f393d013169eff4994a0bfa4383",
+    "services\\runtime_scope.py": "549a3e3afa4907846b71e9b2e947dc78ad2014c8b8350693bac49a3083ed3bca",
+    "services\\stage_timing.py": "0f15671d2f913d5d167e3974dd392bf722bcaef939f559e22d7b341187d0b303",
+    "services\\vespa_resident_worker.py": "42f6217415fd2689e04a3874fbdedac2325302de5bf1f1f25e6fe9d7b114b481",
+    "services\\vespa_runner.py": "c9f5df564a768ffcddf82a3c02f066e335a61f3c0f10759ff577f286bcdd400f",
+    "tools\\benchmark_ground.py": "d3646e62868c2f977b706631da5409736a3225f1b2e2e63d3632ed011006b371",
+    "tools\\benchmark_ground_resident.py": "db3a2431e920e59155fa068498e213ebbfc0b3c96f6965900d728c1c1406765f",
+    "tools\\compare_scene.py": "f3b6f48ffb09946436a090a4eca325cb0a327ddafaad3d01b0f3a19b87030102",
+    "tools\\render_scene_quality.py": "91c3d0e03fdd7821593b12e05eee8997e71a6d29cc785f992268a5c9b7b69d2a",
+    "vespa-remote\\main_pseudo_vlm_scene.py": "bfe7f73dab3f713905f49d8b25079f946b825abbf377e73c386cdacd0653be7a",
+    "vespa-remote\\main_pseudo_vlm_scene_ver2.py": "5e6266eadbdd197b0998a7cb6b69b498631c485d518e517fba205df7e830bdc0",
+    "vespa-remote\\scripts\\render_boxes_on_images.py": "b98efadbb2cbb7671f6c39e22f9ba4006a4fd0a7dcea2095f51dd638432a097b",
+    "vespa-remote\\scripts\\render_boxes_on_images_ver2.py": "e96133de6bff8854ef7d4d6dca3acbcf87c8d12d2d42008ef83095cb0703d2f6",
+    "vespa-remote\\scripts\\scene_error_analysis.py": "78841bfee47ed5abd6f171fefb526c60397cc3c654bdbd5ee4d8d22fa422feb5",
+    "vespa-remote\\src\\postprocess\\rigid_tracklet.py": "d6ae9ad2e05da7dadb02e00ce28ff3b23c2a763ac6b07b82b4dcc4ebb09aa666"
+  }
+}

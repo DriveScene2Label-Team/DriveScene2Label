@@ -1,0 +1,80 @@
+test_large_session_cookie_is_removed_without_changing_upload_or_request_key (test_auth_upstream.AuthUpstreamTests.test_large_session_cookie_is_removed_without_changing_upload_or_request_key) ... skipped 'Set RUN_GATEWAY_INTEGRATION=1 to run isolated Docker gateway tests'
+test_partial_download_status_body_and_headers_are_preserved (test_auth_upstream.AuthUpstreamTests.test_partial_download_status_body_and_headers_are_preserved) ... skipped 'Set RUN_GATEWAY_INTEGRATION=1 to run isolated Docker gateway tests'
+test_changed_environment_blocks_pending_resume (test_cloud.CloudTests.test_changed_environment_blocks_pending_resume) ... ok
+Rebuilding the existing production frontend with the current tunnel address.
+Resuming the pending frontend deployment check.
+Vercel deployment: READY
+Vercel connected: https://drivescene2label.vercel.app
+test_failed_deploy_can_be_checked_again_without_duplicate_creation (test_cloud.CloudTests.test_failed_deploy_can_be_checked_again_without_duplicate_creation) ... ok
+test_failed_tunnel_provisioning_url_is_not_an_origin (test_cloud.CloudTests.test_failed_tunnel_provisioning_url_is_not_an_origin) ... ok
+test_project_mismatch_blocks_environment_changes (test_cloud.CloudTests.test_project_mismatch_blocks_environment_changes) ... ok
+test_public_gate_must_deny_anonymous_requests (test_cloud.CloudTests.test_public_gate_must_deny_anonymous_requests) ... ok
+RDS ds2l-hybrid-database: rebooting
+test_reboot_wait_keeps_existing_timeout (test_cloud.CloudTests.test_reboot_wait_keeps_existing_timeout) ... ok
+RDS ds2l-hybrid-database: rebooting
+RDS ds2l-hybrid-database: available
+test_rebooting_database_is_waited_for_without_another_start (test_cloud.CloudTests.test_rebooting_database_is_waited_for_without_another_start) ... ok
+test_redeploy_accepts_single_cli_deployment_and_rejects_ambiguity (test_cloud.CloudTests.test_redeploy_accepts_single_cli_deployment_and_rejects_ambiguity) ... ok
+RDS ds2l-hybrid-database: available
+test_running_database_is_never_restarted (test_cloud.CloudTests.test_running_database_is_never_restarted) ... ok
+RDS ds2l-hybrid-database: stopped
+RDS ds2l-hybrid-database: starting
+RDS ds2l-hybrid-database: rebooting
+RDS ds2l-hybrid-database: configuring-enhanced-monitoring
+RDS ds2l-hybrid-database: available
+test_stopped_database_is_started_once_and_waited_for (test_cloud.CloudTests.test_stopped_database_is_started_once_and_waited_for) ... ok
+test_tunnel_401_is_not_mistaken_for_the_app_login_gateway (test_cloud.CloudTests.test_tunnel_401_is_not_mistaken_for_the_app_login_gateway) ... ok
+Vercel already connected: https://drivescene2label.vercel.app
+test_unchanged_connection_does_not_redeploy (test_cloud.CloudTests.test_unchanged_connection_does_not_redeploy) ... ok
+test_wrong_account_never_reaches_rds (test_cloud.CloudTests.test_wrong_account_never_reaches_rds) ... ok
+test_wrong_engine_is_not_started (test_cloud.CloudTests.test_wrong_engine_is_not_started) ... ok
+test_binary_units_request_overhead_and_shared_allowance_boundaries (test_cost_scenarios.CostScenariosTests.test_binary_units_request_overhead_and_shared_allowance_boundaries) ... ok
+test_cloudflare_routes_do_not_forward_microsoft_credentials (test_dev_tunnel.PrivateTunnelTests.test_cloudflare_routes_do_not_forward_microsoft_credentials) ... ok
+test_expired_wrong_scope_cache_and_refresh_window (test_dev_tunnel.PrivateTunnelTests.test_expired_wrong_scope_cache_and_refresh_window) ... ok
+test_microsoft_sync_rejects_cloudflare_routes_before_changing_environment (test_dev_tunnel.PrivateTunnelTests.test_microsoft_sync_rejects_cloudflare_routes_before_changing_environment) ... ok
+test_rejects_reserved_and_colliding_paths_before_writing (test_evidence_export.EvidenceExportTests.test_rejects_reserved_and_colliding_paths_before_writing) ... ok
+test_source_manifest_is_exported_under_distinct_name_with_valid_digest (test_evidence_export.EvidenceExportTests.test_source_manifest_is_exported_under_distinct_name_with_valid_digest) ... ok
+test_locked_destination_preserves_old_report_then_retries (test_evidence_io.EvidenceIOTest.test_locked_destination_preserves_old_report_then_retries) ... Evidence file lock: retry 1/7 for report.json
+ok
+test_persistent_lock_is_reported_and_new_payload_is_retained (test_evidence_io.EvidenceIOTest.test_persistent_lock_is_reported_and_new_payload_is_retained) ... Evidence file lock: retry 1/7 for report.json
+Evidence file lock: retry 2/7 for report.json
+Evidence file lock: retry 3/7 for report.json
+Evidence file lock: retry 4/7 for report.json
+Evidence file lock: retry 5/7 for report.json
+Evidence file lock: retry 6/7 for report.json
+Evidence file lock: retry 7/7 for report.json
+ok
+test_duplicate_boxes_cannot_match_one_reference_twice (test_expansion_guards.ExpansionGuardsTest.test_duplicate_boxes_cannot_match_one_reference_twice) ... ok
+test_exported_plan_omits_vector_literals_recursively (test_expansion_guards.ExpansionGuardsTest.test_exported_plan_omits_vector_literals_recursively) ... ok
+test_same_count_but_different_class_is_not_a_match (test_expansion_guards.ExpansionGuardsTest.test_same_count_but_different_class_is_not_a_match) ... ok
+test_db_counters_distinguish_unavailable_from_observed_zero (test_experiment_comparisons.ComparisonTest.test_db_counters_distinguish_unavailable_from_observed_zero) ... ok
+test_duplicate_vector_rows_cannot_mask_missing_images (test_experiment_comparisons.ComparisonTest.test_duplicate_vector_rows_cannot_mask_missing_images) ... ok
+test_float_roundoff_is_separate_from_exact_equality (test_experiment_comparisons.ComparisonTest.test_float_roundoff_is_separate_from_exact_equality) ... ok
+test_identity_loss_and_nonfinite_values_fail (test_experiment_comparisons.ComparisonTest.test_identity_loss_and_nonfinite_values_fail) ... ok
+test_ranking_order_and_best_image_regression (test_experiment_comparisons.ComparisonTest.test_ranking_order_and_best_image_regression) ... ok
+test_rds_roundtrip_detects_changed_geometry_or_track (test_experiment_comparisons.ComparisonTest.test_rds_roundtrip_detects_changed_geometry_or_track) ... ok
+test_restart_conditions_reject_retained_backend_or_restarted_ai (test_experiment_comparisons.ComparisonTest.test_restart_conditions_reject_retained_backend_or_restarted_ai) ... ok
+test_vector_ids_and_geometry_are_verified (test_experiment_comparisons.ComparisonTest.test_vector_ids_and_geometry_are_verified) ... ok
+test_capture_retry_preserves_cursor_and_deduplicates_observations (test_measurement.MeasurementTests.test_capture_retry_preserves_cursor_and_deduplicates_observations) ... ok
+test_deduplicates_overlapping_capture_and_normalizes_units (test_measurement.MeasurementTests.test_deduplicates_overlapping_capture_and_normalizes_units) ... ok
+test_docker_cursor_gap_is_reported_and_cursor_not_advanced (test_measurement.MeasurementTests.test_docker_cursor_gap_is_reported_and_cursor_not_advanced) ... ok
+test_excludes_unstructured_messages_and_secrets (test_measurement.MeasurementTests.test_excludes_unstructured_messages_and_secrets) ... ok
+test_failures_remain_distinct_from_completed_and_other_runs (test_measurement.MeasurementTests.test_failures_remain_distinct_from_completed_and_other_runs) ... ok
+test_import_clip_and_recording_timings_are_captured (test_measurement.MeasurementTests.test_import_clip_and_recording_timings_are_captured) ... ok
+test_malformed_runner_and_nonfinite_durations (test_measurement.MeasurementTests.test_malformed_runner_and_nonfinite_durations) ... ok
+test_percentiles_are_nearest_rank (test_measurement.MeasurementTests.test_percentiles_are_nearest_rank) ... ok
+test_runner_configuration_is_allowlisted_without_credentials (test_measurement.MeasurementTests.test_runner_configuration_is_allowlisted_without_credentials) ... ok
+test_runner_file_and_container_event_are_counted_once (test_measurement.MeasurementTests.test_runner_file_and_container_event_are_counted_once) ... ok
+test_s3_transfers_keep_identity_and_cleanup_failures_without_secrets (test_measurement.MeasurementTests.test_s3_transfers_keep_identity_and_cleanup_failures_without_secrets) ... ok
+test_started_and_missing_times_are_not_zero_duration_success (test_measurement.MeasurementTests.test_started_and_missing_times_are_not_zero_duration_success) ... ok
+test_first_later_and_duplicate_events_stay_separate_across_runs (test_model_load_report.ModelLoadReportTests.test_first_later_and_duplicate_events_stay_separate_across_runs) ... ok
+test_missing_first_sample_and_non_finite_are_not_zero_or_cold_load (test_model_load_report.ModelLoadReportTests.test_missing_first_sample_and_non_finite_are_not_zero_or_cold_load) ... ok
+test_prepare_preserves_settings_and_existing_token (test_operations.OperationsTests.test_prepare_preserves_settings_and_existing_token) ... ok
+test_resume_checks_actual_write_path_without_creating_data (test_operations.OperationsTests.test_resume_checks_actual_write_path_without_creating_data) ... ok
+test_resume_rejects_still_quiesced_backend (test_operations.OperationsTests.test_resume_rejects_still_quiesced_backend) ... ok
+
+----------------------------------------------------------------------
+Ran 52 tests in 3.608s
+
+OK (skipped=2)
+{"directory": "C:\\Users\\User\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\AC\\#!sandbox.{ecb9b92a-8de9-4efa-b9fe-601aefe03f77}\\Temp\\tmpwzf70eph\\docs\\evidence\\check", "files": 1, "bytes": 22}

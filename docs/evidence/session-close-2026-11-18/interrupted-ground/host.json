@@ -1,0 +1,54 @@
+{
+  "started_at": "2026-11-18T11:47:45.182283+00:00",
+  "case": "ground",
+  "automatic_production_change": false,
+  "job14": {
+    "jobId": 14,
+    "datasetId": 22,
+    "status": "COMPLETED",
+    "errorMessage": null,
+    "createdAt": "2026-11-18T10:34:26.965611Z",
+    "startedAt": "2026-11-18T10:34:27.961668Z",
+    "completedAt": "2026-11-18T11:42:23.081682Z",
+    "sceneToken": "cc8c0bf57f984915a77078b10eb33198",
+    "sceneId": 80,
+    "sceneName": "scene-0061",
+    "classMode": 8,
+    "mappingName": "8class",
+    "errorCode": null,
+    "modelVersion": "acb2b6e8683363795528f049fe0444ef9f3efdb9"
+  },
+  "operations_before": {
+    "maintenance": false,
+    "activeWrites": 0,
+    "runningLabels": 0,
+    "runningRecordings": 0
+  },
+  "work_before": {
+    "uploads": 0,
+    "indexes": 0
+  },
+  "host_free_bytes": 38728159232,
+  "operations_quiesced": {
+    "maintenance": true,
+    "activeWrites": 0,
+    "runningLabels": 0,
+    "runningRecordings": 0
+  },
+  "work_quiesced": {
+    "uploads": 0,
+    "indexes": 0
+  },
+  "docker_exec_pid": 31784,
+  "exit_code": 143,
+  "wall_seconds": 100.79008000000067,
+  "error_type": "RuntimeError",
+  "error": "Benchmark failed; inspect preserved execution log",
+  "operations_resumed": {
+    "maintenance": false,
+    "activeWrites": 0,
+    "runningLabels": 0,
+    "runningRecordings": 0
+  },
+  "finished_at": "2026-11-18T11:49:41.491259+00:00"
+}

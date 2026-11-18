@@ -1,5 +1,8 @@
 # 최적화 의사결정: 문제·해결·장단점·비용
 
+> **시험 마감 후속:** 사용자 요청으로 운영을 종료합니다. 이 문서의 시각별 실행 기록은 보존하며, 최신 상태는 [마감 report.md](reports/2026-11-18/report.md)를 따릅니다.
+
+
 기준: **2026-11-18 KST**, 로컬 RTX 5060 Ti GPU·Spring + 서울 RDS/S3 + Vercel. 이 문서는 채택 여부와 근거를 한곳에서 읽기 위한 문서다. 상세 원본은 [모델·CLIP](optimization-results-2026-11-18.md), [쿼리·서빙](optimization-resume-2026-11-18.md), [Java S3](s3-java-optimization-2026-11-18.md), [코드 위치](optimization-code-map-2026-11-18.md)에 있다.
 
 **Pros = 장점, Cons = 단점. Trade-off = 한쪽의 이득을 위해 감수하는 비용·제약**이다. 사용 기술 이름보다 무엇이 반복됐고 어떤 비용을 줄였는지 먼저 설명한다. 빠른 응답, 정확도 유지, 인프라 청구액 감소는 각각 별도로 검증한다.

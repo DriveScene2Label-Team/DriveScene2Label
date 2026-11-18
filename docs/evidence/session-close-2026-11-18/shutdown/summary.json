@@ -1,0 +1,102 @@
+{
+  "confirmed_at": "2026-11-18T12:07:20.782381+00:00",
+  "region": "ap-northeast-2",
+  "rds": {
+    "Id": "ds2l-hybrid-database",
+    "State": "stopped",
+    "AutoRestart": "2026-11-25T12:06:27.076000+00:00",
+    "checked_at": "2026-11-18T12:06:39.276211+00:00"
+  },
+  "containers": {
+    "backend": {
+      "Status": "exited",
+      "Running": false,
+      "OOMKilled": false,
+      "ExitCode": 137,
+      "StartedAt": "2026-11-18T10:28:52.034450997Z",
+      "FinishedAt": "2026-11-18T11:57:21.61446943Z"
+    },
+    "ai-server": {
+      "Status": "exited",
+      "Running": false,
+      "OOMKilled": false,
+      "ExitCode": 137,
+      "StartedAt": "2026-11-18T09:10:38.455200549Z",
+      "FinishedAt": "2026-11-18T11:57:24.201375109Z"
+    },
+    "auth-gateway": {
+      "Status": "exited",
+      "Running": false,
+      "OOMKilled": false,
+      "ExitCode": 0,
+      "StartedAt": "2026-11-18T09:11:07.531001479Z",
+      "FinishedAt": "2026-11-18T11:57:17.985733219Z"
+    },
+    "auth-upstream": {
+      "Status": "exited",
+      "Running": false,
+      "OOMKilled": false,
+      "ExitCode": 0,
+      "StartedAt": "2026-11-18T09:10:56.519370561Z",
+      "FinishedAt": "2026-11-18T11:57:18.919755319Z"
+    }
+  },
+  "helpers": [
+    {
+      "Name": "tunnel",
+      "RecordedPid": 28072,
+      "Alive": false
+    },
+    {
+      "Name": "dev-tunnel",
+      "RecordedPid": 31928,
+      "Alive": false
+    },
+    {
+      "Name": "aws-refresh",
+      "RecordedPid": 29332,
+      "Alive": false
+    },
+    {
+      "Name": "manual-measurement",
+      "RecordedPid": 12332,
+      "Alive": false
+    }
+  ],
+  "vercel": {
+    "url": "https://drivescene2label.vercel.app",
+    "status": 503,
+    "vercel_error": "DEPLOYMENT_PAUSED",
+    "checked_at": "2026-11-18T11:57:41.865900+00:00"
+  },
+  "vercel_project": "prj_4oVMQaMlPUX7KYegmRBW18XFd3rM",
+  "vercel_operation": "pause, not delete",
+  "ec2": [],
+  "ecs": [
+    {
+      "Name": "ds2l-ecs",
+      "Running": 0,
+      "Pending": 0,
+      "Services": 0
+    }
+  ],
+  "eks": {
+    "clusters": []
+  },
+  "preserved": [
+    "S3 originals",
+    "RDS contents",
+    "accounts",
+    "model weights",
+    "Docker volumes",
+    "local raw logs"
+  ],
+  "limitations": [
+    "RDS automatically restarts after at most seven days",
+    "storage/backup/public IPv4 charges may remain",
+    "production paused; historical protected deployment records retained",
+    "GPU device/other desktop applications not powered off"
+  ],
+  "automatic_deployment_from_git": false,
+  "new_runtime_candidates_applied": false
+}

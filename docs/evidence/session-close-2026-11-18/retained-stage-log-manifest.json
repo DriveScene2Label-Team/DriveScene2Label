@@ -1,0 +1,22 @@
+{
+  "started_at": "2026-11-18T11:50:23.713598+00:00",
+  "since": "2026-11-18T09:17:28+00:00",
+  "scope": "retained allowlisted logs only; no job or service mutation; independent from watch cursor",
+  "services": [
+    {
+      "service": "backend",
+      "container": "drivescene-hybrid-backend-1",
+      "exit_code": 0,
+      "events": 1723,
+      "sha256": "cbed2ec99784620faab62751d2047c8be96c697feb67803cf53ffc8c24d3cacf"
+    },
+    {
+      "service": "ai",
+      "container": "drivescene-hybrid-ai-server-1",
+      "exit_code": 0,
+      "events": 2438,
+      "sha256": "3f9f51ad4b1ddd25f4e66f2b0bf12aa76bf50bfaa607d79d1df8bc4f0872a4ad"
+    }
+  ],
+  "finished_at": "2026-11-18T11:50:24.401996+00:00"
+}

@@ -1,5 +1,8 @@
 # 수동 시험을 위한 hybrid 재배포 — 2026-11-18
 
+> **시험 마감 후속:** 사용자 요청으로 운영을 종료합니다. 이 문서의 시각별 실행 기록은 보존하며, 최신 상태는 [마감 report.md](reports/2026-11-18/report.md)를 따릅니다.
+
+
 [배포·HTTP·실행 설정 증거](evidence/hybrid-ready-2026-11-18/release-summary.json) · [CI 실패/재실행 단계](evidence/hybrid-ready-2026-11-18/ci-retry-jobs.json)
 
 사용자가 선택한 **로컬 GPU·백엔드 + AWS RDS·S3 + Vercel** 구조를 유지한다. 이전 “시험 후 AWS 중지” 요청 이후 사용자가 직접 전체 사이클을 시험하도록 재배포를 요청했으므로, 이번에는 서비스가 준비되면 켜둔다. EC2/ECS/EKS는 시작하지 않았다.

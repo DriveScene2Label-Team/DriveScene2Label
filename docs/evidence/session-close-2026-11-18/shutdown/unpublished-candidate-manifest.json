@@ -1,0 +1,33 @@
+{
+  "at": "2026-11-18T12:00:33.918697+00:00",
+  "scope": "unpublished and unapplied candidates; preserve working tree; no inference launched",
+  "base_commit": "2edc48358754d205c059f5894a1fcb6af0d062c0",
+  "sha256": {
+    ".github/workflows/ci.yml": "233aaa65cfadfd97d066da192a0d8bda152d0ede6f3fe6f8c7d4061cb62e07ee",
+    "ai-server/main.py": "7e0c9cd7b8141420e269f7be1db177c67eb6bbe0f4cbbb9e4867b46b28b4f69f",
+    "ai-server/requirements-contract-test.txt": "d15af186ec1818131aae3ce426e54cea1e411f9733a51727b84f4cd075bdb4fc",
+    "ai-server/services/capability_service.py": "8ef537df5867dd53e237e38fab408d1276db51374804191bc9d341d5e4909ccb",
+    "ai-server/services/vespa_runner.py": "c9f5df564a768ffcddf82a3c02f066e335a61f3c0f10759ff577f286bcdd400f",
+    "ai-server/services/vespa_service.py": "4fa4f50a17213f3690cca4c700f0f0cd0425322f5361b9e827f5d3d45d354a56",
+    "compose.hybrid.yml": "0807b226666d0098c5ac9c2c1dee2a6100d75f3f6ca08ab64c97124c6f2afc27",
+    "scripts/hybrid/measurement.py": "c445d76ccfe49a2f7c8d5e265f285e668f5b195a429068313ad0ed6f454c528b",
+    "ai-server/services/ground_runtime.py": "94728fd6c5c246b601358fb33d92afa02155c9c9d4ec886c247332f0d9dba499",
+    "ai-server/services/resident_client.py": "45301790c15ceb554d93282f9375b1954039c2c86d18677656057b980fd1f076",
+    "ai-server/services/resident_models.py": "0345fd5d3157db5ee156f8328353c5271ab36f8f1610a69936d4db3d468ec47a",
+    "ai-server/services/runtime_scope.py": "549a3e3afa4907846b71e9b2e947dc78ad2014c8b8350693bac49a3083ed3bca",
+    "ai-server/services/vespa_resident_worker.py": "42f6217415fd2689e04a3874fbdedac2325302de5bf1f1f25e6fe9d7b114b481",
+    "ai-server/tests/test_ground_runtime.py": "cffc865b0160f6904d70147cbf15dffce8c85a982e7cae54ae035a85848dfb6a",
+    "ai-server/tests/test_resident_client.py": "6bb5966771e379ca0cbb3be956d11d22add4e4351b83b2f11bc33a971899f527",
+    "ai-server/tests/test_resident_worker.py": "0f69b71a779612e75124da62b14fd3a3d0ff129d8463c746c32c6e23ddd9e719",
+    "ai-server/tests/test_runtime_scope.py": "05952cb749cb20e28e55e79febbc7f8f5a0c99e653e9ca0c207f802f88e8ac25",
+    "ai-server/tools/benchmark_ground.py": "d3646e62868c2f977b706631da5409736a3225f1b2e2e63d3632ed011006b371",
+    "ai-server/tools/benchmark_ground_resident.py": "db3a2431e920e59155fa068498e213ebbfc0b3c96f6965900d728c1c1406765f"
+  },
+  "pending": [
+    "full contract tests",
+    "worker readiness/failure recovery API review",
+    "CPU 3-pair comparison",
+    "full-scene 3D/GT comparison",
+    "actual CUDA resident/CLIP memory and recovery tests"
+  ]
+}

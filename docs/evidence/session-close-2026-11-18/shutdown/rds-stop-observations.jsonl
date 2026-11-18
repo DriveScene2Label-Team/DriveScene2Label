@@ -1,0 +1,14 @@
+{"Id": "ds2l-hybrid-database", "State": "stopping", "AutoRestart": null, "checked_at": "2026-11-18T12:01:51.850264+00:00"}
+{"Id": "ds2l-hybrid-database", "State": "stopping", "AutoRestart": null, "checked_at": "2026-11-18T12:02:13.835080+00:00"}
+{"Id": "ds2l-hybrid-database", "State": "stopping", "AutoRestart": null, "checked_at": "2026-11-18T12:02:35.778409+00:00"}
+{"Id": "ds2l-hybrid-database", "State": "stopping", "AutoRestart": null, "checked_at": "2026-11-18T12:02:57.464713+00:00"}
+{"Id": "ds2l-hybrid-database", "State": "stopping", "AutoRestart": null, "checked_at": "2026-11-18T12:03:19.785375+00:00"}
+{"Id": "ds2l-hybrid-database", "State": "stopping", "AutoRestart": null, "checked_at": "2026-11-18T12:03:42.925310+00:00"}
+{"Id": "ds2l-hybrid-database", "State": "stopping", "AutoRestart": null, "checked_at": "2026-11-18T12:04:04.709083+00:00"}
+{"Id": "ds2l-hybrid-database", "State": "stopping", "AutoRestart": null, "checked_at": "2026-11-18T12:04:26.983191+00:00"}
+{"Id": "ds2l-hybrid-database", "State": "stopping", "AutoRestart": null, "checked_at": "2026-11-18T12:04:48.705453+00:00"}
+{"Id": "ds2l-hybrid-database", "State": "stopping", "AutoRestart": null, "checked_at": "2026-11-18T12:05:10.381341+00:00"}
+{"Id": "ds2l-hybrid-database", "State": "stopping", "AutoRestart": null, "checked_at": "2026-11-18T12:05:33.191616+00:00"}
+{"Id": "ds2l-hybrid-database", "State": "stopping", "AutoRestart": null, "checked_at": "2026-11-18T12:05:55.129463+00:00"}
+{"Id": "ds2l-hybrid-database", "State": "stopping", "AutoRestart": null, "checked_at": "2026-11-18T12:06:16.482330+00:00"}
+{"Id": "ds2l-hybrid-database", "State": "stopped", "AutoRestart": "2026-11-25T12:06:27.076000+00:00", "checked_at": "2026-11-18T12:06:39.276211+00:00"}

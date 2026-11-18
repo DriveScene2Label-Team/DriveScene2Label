@@ -1,0 +1,70 @@
+{
+  "created_at": "2026-11-18T12:07:21.286302+00:00",
+  "transformation": "JSON formatting, absolute repository path replacement and LF text line endings; original evidence is retained locally",
+  "scope": "explicit selection; full vectors, original media, credentials and large raw output excluded",
+  "files": [
+    {
+      "source": ".local/hybrid/experiments/20261118T111302Z-ground-resident/shutdown/shutdown-summary.json",
+      "target": "summary.json",
+      "source_sha256": "0b2c3437d5c40ae2d54277ad043df66265fb848ed1ad5c17fc9069fa1aeb469e",
+      "export_sha256": "9820d4a263868f9a90b9022d2f7c4602c4c78cf1a7df77a7cecbd9d1604f1eb0",
+      "export_bytes": 2539
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T111302Z-ground-resident/shutdown/rds-stop-request.json",
+      "target": "rds-stop-request.json",
+      "source_sha256": "f5c3db99963179f1e4a906882f67c4b3ed5c2403190d09465f2e2b7369fdf7d3",
+      "export_sha256": "4fcb8d677cf19e473b38a52a9802368f3581e68b6ee3bb6596a685d1e950c711",
+      "export_bytes": 80
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T111302Z-ground-resident/shutdown/rds-stop-observations.jsonl",
+      "target": "rds-stop-observations.jsonl",
+      "source_sha256": "f7304db750bec6b0efdcb2e6fadd53a4aae7f82e5af3af008eaf46af523c80d1",
+      "export_sha256": "d0be2e85a06292799177afcd6fd0a90301199db74960cea79f16afcd91901801",
+      "export_bytes": 1751
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T111302Z-ground-resident/shutdown/vercel-public-check.json",
+      "target": "vercel-public-check.json",
+      "source_sha256": "cb489e797dd91213c837de56f2ab06a582fa7857cffddc20f02336da71b3a73c",
+      "export_sha256": "a1fd322658e16b77822fccff170d42673c6eede9889998c4823c82b5f965cf8d",
+      "export_bytes": 158
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T111302Z-ground-resident/ground-partial-manifest.json",
+      "target": "interrupted-ground/manifest.json",
+      "source_sha256": "f91a58928a8a41154cabd00bfbc8a86bd51b68ca8e4f95b6c76aa7709516b63c",
+      "export_sha256": "f91a58928a8a41154cabd00bfbc8a86bd51b68ca8e4f95b6c76aa7709516b63c",
+      "export_bytes": 567
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T111302Z-ground-resident/ground-partial-stage-events.jsonl",
+      "target": "interrupted-ground/stage-events.jsonl",
+      "source_sha256": "5b4ad59c2b80c0871ad5b6701494371205cbd5c51f298ff12b67146d8862961c",
+      "export_sha256": "5b4ad59c2b80c0871ad5b6701494371205cbd5c51f298ff12b67146d8862961c",
+      "export_bytes": 160
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T111302Z-ground-resident/hybrid-tests.txt",
+      "target": "tests/hybrid-tests.txt",
+      "source_sha256": "8e51480f956f229a364ca115536af31d4be8d17a018ab6a32070c7589f773393",
+      "export_sha256": "3f69c4f12d3eafda2bf6e881b037fccff9b636c91cceb7083c1c851cf0de8124",
+      "export_bytes": 9354
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T111302Z-ground-resident/ai-contract-interruption.txt",
+      "target": "tests/contract-interruption.txt",
+      "source_sha256": "e22c9c34232ec17114e78cfae42bcba359b05304105f23192e99e74747f9aac8",
+      "export_sha256": "bcc78cb4221498f20fbc4c3b417aed3088c14f8344920dc3619714d546c61584",
+      "export_bytes": 86
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T111302Z-ground-resident/unpublished-candidate-source/manifest.json",
+      "target": "unpublished-candidate-manifest.json",
+      "source_sha256": "ba91f78e078f7ae1dd57c2e56ef0b13d6f525c974fe688a46bd9dbc94b5e9db2",
+      "export_sha256": "daf28b673a3520de484256e72d204cccc92c03f476a294319b9512b4a15fa6a4",
+      "export_bytes": 2544
+    }
+  ]
+}

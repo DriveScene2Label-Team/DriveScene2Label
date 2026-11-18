@@ -1,0 +1,98 @@
+{
+  "created_at": "2026-11-18T11:53:21.861922+00:00",
+  "transformation": "JSON formatting, absolute repository path replacement and LF text line endings; original evidence is retained locally",
+  "scope": "explicit selection; full vectors, original media, credentials and large raw output excluded",
+  "files": [
+    {
+      "source": ".local/hybrid/experiments/20261118T111302Z-ground-resident/close-summary.json",
+      "target": "summary.json",
+      "source_sha256": "36d35fa4b38bf6406466baf334b2ec6fe4a24142dfe4aaef535468104dfd08b4",
+      "export_sha256": "19a34269a247fd275a4227aef84204de2ab319c121f61c1fdf24aa059d4e8f54",
+      "export_bytes": 3507
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T111302Z-ground-resident/user-job14/stage-events.jsonl",
+      "target": "user-job14/stage-events.jsonl",
+      "source_sha256": "5c0dafa63a1beb6f5b7f2c2fd91f2070005492c9c09d7eb3e08e9d99c4039d91",
+      "export_sha256": "5c0dafa63a1beb6f5b7f2c2fd91f2070005492c9c09d7eb3e08e9d99c4039d91",
+      "export_bytes": 452256
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T111302Z-ground-resident/user-job14/model-load/model-load-report.json",
+      "target": "user-job14/model-load.json",
+      "source_sha256": "b4128fe3a8935f75561e5d1b5cf7a7662c6718b9f68f5bd83998c38b63617469",
+      "export_sha256": "96ec7d70a3c0ce638d842414d502c990f9f21d6f9bc7a929b7a73e2e41b9966e",
+      "export_bytes": 1981
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T111302Z-ground-resident/user-job14/model-load/report.md",
+      "target": "user-job14/model-load.md",
+      "source_sha256": "b49e743bc5b488ed82df4717e889bb5685148ec35e30535a0a1f25cfc77a0e93",
+      "export_sha256": "ca82ae5f42aba0f091cd4d8f187ad10ae4b7a77ab712963e161cd903740cde61",
+      "export_bytes": 952
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T111302Z-ground-resident/user-job14/api-job.json",
+      "target": "user-job14/api-job.json",
+      "source_sha256": "e9ce816d55bc3d9b6f3cf97fb2b25f96e04be80431c49e34f3ac34868f3ebf72",
+      "export_sha256": "ae601948a7e1a2d9a40e8ffbc4a2ccb90da77a8254e0efe7200eae4239b96ced",
+      "export_bytes": 451
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T111302Z-ground-resident/user-job14/sha256.json",
+      "target": "user-job14/source-hashes.json",
+      "source_sha256": "659f014215a16e5902015f2c983756ac5e083db7c84f44c8d296047e4a3fb2e2",
+      "export_sha256": "014e46de804c483aefb2d2081886cd6dcbc98e4869398d83d0cfe2edcf295745",
+      "export_bytes": 352
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T111302Z-ground-resident/ground-host.json",
+      "target": "interrupted-ground/host.json",
+      "source_sha256": "e13e047b29f561a4e0736e513c427c01237ca4800baf78b62e5ea7e31684d5db",
+      "export_sha256": "70ba24ca0248503367239195d954f40255ad2b5fe005cc390873916ce7522229",
+      "export_bytes": 1389
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T111302Z-ground-resident/source-manifest.json",
+      "target": "interrupted-ground/source-manifest.json",
+      "source_sha256": "fff0dc6ff0e573ae2c1d0b2762e75a1382967b5fa77cf2ed85b620c6d897b913",
+      "export_sha256": "634060077b100e09e2de26380992db7fda70c600b09ddcfc508b17f467e9bb8e",
+      "export_bytes": 2169
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T111302Z-ground-resident/frozen-measurement/report.md",
+      "target": "measurement/report.md",
+      "source_sha256": "110967ab6b7b5fdd3729528959ba2f0ff0d8a811111ff88e2e968a977bd7fbf3",
+      "export_sha256": "c2f2b6fd226483f1a34989cb29a9dcba09a3bcef9e48b3e9505902ce26353c4e",
+      "export_bytes": 17375
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T111302Z-ground-resident/frozen-measurement/report.json",
+      "target": "measurement/report.json",
+      "source_sha256": "b17e3612974fc40a12f61079818b55c87e890583b221cfd9d994e4307dc85d7d",
+      "export_sha256": "b97d6f5d17ae1263a04a27c950575c377523e86a4e6e569d78fcc9524332812c",
+      "export_bytes": 31935
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T111302Z-ground-resident/frozen-measurement/manifest.json",
+      "target": "measurement/manifest.json",
+      "source_sha256": "e86a709259b0c588c021990cc08869e788f4e82d781d09ed284ce1335a06c55e",
+      "export_sha256": "f7e378e66c5c546acf4495166d5ff63e48018ec44733e7d0139649df4d846c50",
+      "export_bytes": 345
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T111302Z-ground-resident/measurement-hashes.json",
+      "target": "measurement/source-hashes.json",
+      "source_sha256": "33b739155f663d2f7ff7b1d6998e0062c6e2dc91dfac3fa70830d7b799649033",
+      "export_sha256": "fea28f7a71826789da69015cc70234abd88dbbeb5fd2883eb321db9894efb428",
+      "export_bytes": 343
+    },
+    {
+      "source": ".local/hybrid/experiments/20261118T111302Z-ground-resident/final-stage-snapshot/manifest.json",
+      "target": "retained-stage-log-manifest.json",
+      "source_sha256": "defcd84192e1823d0cca7d80f383ffa877f1a11f9af26eaa54b4b90a50aa6a66",
+      "export_sha256": "7da0ca43398431d465fecbd44bbf6508680ff7bdbae978dc6126f235cbef2113",
+      "export_bytes": 704
+    }
+  ]
+}

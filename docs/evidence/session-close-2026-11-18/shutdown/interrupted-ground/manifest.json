@@ -1,0 +1,15 @@
+{
+  "at": "2026-11-18T11:48:08.007233+00:00",
+  "scene": "scene-0061",
+  "repeats": 3,
+  "scope": "ground removal only; full raw-sweep context; no GPU forward",
+  "config_sha256": "bdb76615c9db9ed9e170caad5fdee682b7ae70e65b200f27b230f9563aed3bb6",
+  "candidate_sha256": "94728fd6c5c246b601358fb33d92afa02155c9c9d4ec886c247332f0d9dba499",
+  "timing": "ground call includes NPZ writes; one loaded scene; fresh per-case output; OS cache uncontrolled",
+  "helper_profiling": false,
+  "versions": {
+    "numpy": "1.26.4"
+  },
+  "frames": 382,
+  "processed_keyframes": 39
+}

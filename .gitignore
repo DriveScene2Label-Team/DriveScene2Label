@@ -70,6 +70,7 @@ out/
 *.png
 # Reviewed product screenshots for documentation (not dataset media)
 !docs/images/*-2026-11-11.jpg
+!docs/images/vespa-resource-baseline-2026-11-18.png
 *.pcd
 *.bin
 *.npz

@@ -2,6 +2,10 @@
 
 현재 배포의 실행 순서를 기준으로 한 지도다. 계층은 설명을 위한 구분이며 각 단계가 별도 서버라는 뜻은 아니다. **주요 계산 위치는 코드로 확인했지만 단계별 CPU 사용률·VRAM peak를 모두 실측한 표는 아니다.** 시간 로그와 자원 사용률은 다른 측정이다.
 
+![CPU 지면 제거·GPU 상주 최적화 전 VESPA 계층과 자원 사용](images/vespa-resource-baseline-2026-11-18.png)
+
+[병목 비중·시도한 최적화·보류 이유·G3/R3 검증 계획](vespa-bottleneck-diagnosis-2026-11-18.md). 그림은 **해당 두 후보를 적용하기 전 구조**를 보존한 것이다.
+
 ```mermaid
 flowchart TD
     API[Spring 작업 접수 · RDS 상태] --> Runner[FastAPI · 작업별 Python 프로세스]

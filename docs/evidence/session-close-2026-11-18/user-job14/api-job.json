@@ -1,0 +1,16 @@
+{
+  "jobId": 14,
+  "datasetId": 22,
+  "status": "COMPLETED",
+  "errorMessage": null,
+  "createdAt": "2026-11-18T10:34:26.965611Z",
+  "startedAt": "2026-11-18T10:34:27.961668Z",
+  "completedAt": "2026-11-18T11:42:23.081682Z",
+  "sceneToken": "cc8c0bf57f984915a77078b10eb33198",
+  "sceneId": 80,
+  "sceneName": "scene-0061",
+  "classMode": 8,
+  "mappingName": "8class",
+  "errorCode": null,
+  "modelVersion": "acb2b6e8683363795528f049fe0444ef9f3efdb9"
+}
