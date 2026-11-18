@@ -6,6 +6,7 @@ Never log credentials, signed URLs, HTTP headers or full SDK responses.
 """
 import argparse
 from collections import Counter
+from contextlib import closing
 from datetime import datetime,timezone
 import hashlib
 import importlib.metadata
@@ -33,6 +34,14 @@ def digest(path):
     return value.hexdigest()
 
 
+def copy_response_body(body, destination):
+    # Some botocore versions return the underlying HTTPResponse from __enter__.
+    # closing keeps the StreamingBody wrapper (and its length validation).
+    with closing(body), destination.open('xb') as stream:
+        for chunk in body.iter_chunks(chunk_size=65536):
+            stream.write(chunk)
+
+
 def cleanup_cli(*args):
     """Existing operator profile, only for exact owned-key version/MPU cleanup.
 
@@ -58,7 +67,7 @@ def experiment(a):
     session=boto3.Session(aws_access_key_id=credentials['AccessKeyId'],aws_secret_access_key=credentials['SecretAccessKey'],
                           aws_session_token=credentials['SessionToken'],region_name='ap-northeast-2')
     config=Config(connect_timeout=5,read_timeout=60,max_pool_connections=8,retries={'total_max_attempts':3,'mode':'standard'})
-    with session.client('sts',config=config) as identity:
+    with closing(session.client('sts',config=config)) as identity:
         account=identity.get_caller_identity()
     if account['Account']!='189750306426' or ':assumed-role/ds2l-hybrid-storage/' not in account['Arn']:
         raise ValueError('Expected existing project S3-only role')
@@ -66,13 +75,14 @@ def experiment(a):
         raise ValueError('Cleanup operator account mismatch')
     expected=digest(a.source);orders=[['stream','mp1','mp2','mp4'],['mp4','mp2','mp1','stream'],['mp2','stream','mp4','mp1']]
     plan={'started_at':datetime.now(timezone.utc).isoformat(),'bucket':bucket,'region':'ap-northeast-2',
+          'benchmark_source_sha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
           'source_bytes':size,'source_sha256':expected,'source_name':a.source.name,'orders':orders,'part_bytes':16*1024*1024,
           'scope':'isolated Python SDK upload/download; not Java app end-to-end timing','versions':{n:importlib.metadata.version(n) for n in ('boto3','botocore','s3transfer')},
           'cleanup':'existing operator profile deletes only new UUID object versions with matching owner metadata and aborts incomplete uploads for those exact keys; app IAM policy unchanged',
           'status':'running','cases':[],'created':[],'cleanup_errors':[]}
     save_json(root/'s3-transfer-experiment.json',plan)
     lock=threading.Lock();context={'phase':'setup','case':None}
-    with session.client('s3',config=config) as s3,(root/'s3-requests.jsonl').open('x',encoding='utf-8') as requests:
+    with closing(session.client('s3',config=config)) as s3,(root/'s3-requests.jsonl').open('x',encoding='utf-8') as requests:
         def observed(model,http_response,parsed,**kwargs):
             meta=parsed.get('ResponseMetadata',{})
             with lock:
@@ -104,8 +114,7 @@ def experiment(a):
                     # permits current-object GET, not GetObjectVersion.
                     extra={}
                     if mode=='stream':
-                        with s3.get_object(Bucket=bucket,Key=key,**extra)['Body'] as body,destination.open('xb') as stream:
-                            for chunk in body.iter_chunks(chunk_size=65536):stream.write(chunk)
+                        copy_response_body(s3.get_object(Bucket=bucket,Key=key,**extra)['Body'],destination)
                     else:s3.download_file(bucket,key,str(destination),ExtraArgs=extra,Config=transfer)
                     download={'wall_seconds':time.perf_counter()-started,'cpu_seconds':time.process_time()-cpu}
                     context['phase']='hash';matched=destination.stat().st_size==size and digest(destination)==expected
@@ -115,6 +124,10 @@ def experiment(a):
                     print(json.dumps({'event':'s3_case_completed',**result}),flush=True)
                     if not matched:raise ValueError('Downloaded bytes differ')
             plan['status']='completed'
+        except Exception as error:
+            plan['status']='failed'
+            plan['error_type']=type(error).__name__
+            raise
         finally:
             context.update(phase='owned_key_cleanup',case=None)
             for owned in plan['created']:
@@ -133,6 +146,7 @@ def experiment(a):
                     if error.response['ResponseMetadata']['HTTPStatusCode']==404:owned['deleted']=True
                     else:plan['cleanup_errors'].append({'key':key,'code':error.response['Error']['Code']})
                 except (ValueError,RuntimeError) as error:plan['cleanup_errors'].append({'key':key,'code':str(error)})
+                save_json(root/'s3-transfer-experiment.json',plan)
                 try:
                     pending=cleanup_cli('s3api','list-multipart-uploads','--bucket',bucket,'--prefix',key)
                     owned['aborted_incomplete_uploads']=0

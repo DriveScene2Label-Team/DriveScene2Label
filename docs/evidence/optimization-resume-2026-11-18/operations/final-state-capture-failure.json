@@ -1,0 +1,5 @@
+{
+  "phase": "final verification, not a benchmark",
+  "error": "Docker ps UTF-8 output decoded with Windows cp949; RDS stopped snapshot already saved",
+  "fix": "explicit UTF-8 decoding; rerun read-only container snapshot"
+}

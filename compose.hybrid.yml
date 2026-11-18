@@ -37,6 +37,8 @@ services:
       EMBEDDING_INDEX_WORKER_ENABLED: ${EMBEDDING_INDEX_WORKER_ENABLED:-false}
       # C1: paired RDS timing and full vector/search equivalence passed.
       EMBEDDING_INDEX_PREFETCH_ENABLED: ${EMBEDDING_INDEX_PREFETCH_ENABLED:-true}
+      # Q2: exact SQL/API parity; keep custom planning scoped to the search transaction.
+      SEARCH_EXACT_OPTIMIZATION_ENABLED: ${SEARCH_EXACT_OPTIMIZATION_ENABLED:-true}
       RECORDING_WORKER_ENABLED: ${RECORDING_WORKER_ENABLED:-false}
       RECORDING_READ_TIMEOUT: ${RECORDING_READ_TIMEOUT:-660s}
       RECORDING_ROOT: /recordings
@@ -70,6 +72,8 @@ services:
     environment:
       VESPA_EXECUTOR: local
       AI_REQUIRE_GPU: "true"
+      # Q3: bounded, process-local exact-text cache; zero restores inference per request.
+      CLIP_TEXT_CACHE_SIZE: ${CLIP_TEXT_CACHE_SIZE:-256}
       VESPA_DATASET_VERSION: ${NUSCENES_VERSION:-v1.0-mini}
       VESPA_NUM_THREADS: ${VESPA_NUM_THREADS:-1}
       # G2: all 234 detections and 1,308 final 3D boxes exactly matched baseline.

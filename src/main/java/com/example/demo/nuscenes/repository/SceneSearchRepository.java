@@ -2,6 +2,7 @@ package com.example.demo.nuscenes.repository;
 
 import com.example.demo.nuscenes.dto.SceneSearchResult;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -9,7 +10,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 public class SceneSearchRepository {
  private final JdbcClient jdbc;
- public SceneSearchRepository(JdbcClient jdbc) { this.jdbc=jdbc; }
+ private final boolean exactOptimization;
+ public SceneSearchRepository(JdbcClient jdbc,
+   @Value("${search.exact-optimization-enabled:false}") boolean exactOptimization) {
+  this.jdbc=jdbc; this.exactOptimization=exactOptimization;
+ }
 
  /** One SQL row; the service adds matchScore. */
  record Row(long sceneId, long datasetId, String sceneToken, String sceneName, String description, double score,
@@ -25,6 +30,9 @@ public class SceneSearchRepository {
  @Transactional(readOnly=true)
  public List<SceneSearchResult> search(String vector, String model, String preprocess, Long datasetId,
    int k, String aggregation, int imageTopK, boolean keyframesOnly) {
+  // Bound to this read-only transaction, never a pool/global setting. The measured
+  // generic plan regressed sharply for repeated dataset/global searches on RDS.
+  if(exactOptimization)jdbc.sql("SET LOCAL plan_cache_mode='force_custom_plan'").update();
   return jdbc.sql("""
    WITH distances AS (
     SELECT sc.id AS scene_id, sc.dataset_id, sc.token AS scene_token, sc.name AS scene_name,
@@ -60,7 +68,8 @@ public class SceneSearchRepository {
       '/api/sensor-files/' || r.best_image_id || '/content' AS content_url
    FROM scores s JOIN ranked r ON r.scene_id=s.scene_id AND r.image_rank=1
    ORDER BY s.score DESC, r.dataset_id, r.scene_id LIMIT :k
-   """).param("vector",vector).param("model",model).param("preprocess",preprocess)
+   """.replace("WITH distances AS (",exactOptimization?"WITH distances AS MATERIALIZED (":"WITH distances AS ("))
+    .param("vector",vector).param("model",model).param("preprocess",preprocess)
     .param("dataset",datasetId).param("k",k).param("aggregation",aggregation)
     .param("imageTopK",imageTopK).param("keyframesOnly",keyframesOnly)
     .query(Row.class).list().stream().map(Row::toResult).toList();

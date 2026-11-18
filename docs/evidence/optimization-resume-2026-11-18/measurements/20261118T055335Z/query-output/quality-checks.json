@@ -1,0 +1,272 @@
+[
+  {
+    "scenario": "q0-dataset-MAX",
+    "exact_ordered_rows": true,
+    "repeat": 0
+  },
+  {
+    "scenario": "q0-dataset-MAX",
+    "exact_ordered_rows": true,
+    "repeat": 1
+  },
+  {
+    "scenario": "q0-dataset-MAX",
+    "exact_ordered_rows": true,
+    "repeat": 2
+  },
+  {
+    "scenario": "q0-dataset-AVERAGE",
+    "exact_ordered_rows": true,
+    "repeat": 0
+  },
+  {
+    "scenario": "q0-dataset-AVERAGE",
+    "exact_ordered_rows": true,
+    "repeat": 1
+  },
+  {
+    "scenario": "q0-dataset-AVERAGE",
+    "exact_ordered_rows": true,
+    "repeat": 2
+  },
+  {
+    "scenario": "q0-dataset-TOP_K_AVERAGE",
+    "exact_ordered_rows": true,
+    "repeat": 0
+  },
+  {
+    "scenario": "q0-dataset-TOP_K_AVERAGE",
+    "exact_ordered_rows": true,
+    "repeat": 1
+  },
+  {
+    "scenario": "q0-dataset-TOP_K_AVERAGE",
+    "exact_ordered_rows": true,
+    "repeat": 2
+  },
+  {
+    "scenario": "q0-global-MAX",
+    "exact_ordered_rows": true,
+    "repeat": 0
+  },
+  {
+    "scenario": "q0-global-MAX",
+    "exact_ordered_rows": true,
+    "repeat": 1
+  },
+  {
+    "scenario": "q0-global-MAX",
+    "exact_ordered_rows": true,
+    "repeat": 2
+  },
+  {
+    "scenario": "q0-global-AVERAGE",
+    "exact_ordered_rows": true,
+    "repeat": 0
+  },
+  {
+    "scenario": "q0-global-AVERAGE",
+    "exact_ordered_rows": true,
+    "repeat": 1
+  },
+  {
+    "scenario": "q0-global-AVERAGE",
+    "exact_ordered_rows": true,
+    "repeat": 2
+  },
+  {
+    "scenario": "q0-global-TOP_K_AVERAGE",
+    "exact_ordered_rows": true,
+    "repeat": 0
+  },
+  {
+    "scenario": "q0-global-TOP_K_AVERAGE",
+    "exact_ordered_rows": true,
+    "repeat": 1
+  },
+  {
+    "scenario": "q0-global-TOP_K_AVERAGE",
+    "exact_ordered_rows": true,
+    "repeat": 2
+  },
+  {
+    "scenario": "q1-dataset-MAX",
+    "exact_ordered_rows": true,
+    "repeat": 0
+  },
+  {
+    "scenario": "q1-dataset-MAX",
+    "exact_ordered_rows": true,
+    "repeat": 1
+  },
+  {
+    "scenario": "q1-dataset-MAX",
+    "exact_ordered_rows": true,
+    "repeat": 2
+  },
+  {
+    "scenario": "q1-dataset-AVERAGE",
+    "exact_ordered_rows": true,
+    "repeat": 0
+  },
+  {
+    "scenario": "q1-dataset-AVERAGE",
+    "exact_ordered_rows": true,
+    "repeat": 1
+  },
+  {
+    "scenario": "q1-dataset-AVERAGE",
+    "exact_ordered_rows": true,
+    "repeat": 2
+  },
+  {
+    "scenario": "q1-dataset-TOP_K_AVERAGE",
+    "exact_ordered_rows": true,
+    "repeat": 0
+  },
+  {
+    "scenario": "q1-dataset-TOP_K_AVERAGE",
+    "exact_ordered_rows": true,
+    "repeat": 1
+  },
+  {
+    "scenario": "q1-dataset-TOP_K_AVERAGE",
+    "exact_ordered_rows": true,
+    "repeat": 2
+  },
+  {
+    "scenario": "q1-global-MAX",
+    "exact_ordered_rows": true,
+    "repeat": 0
+  },
+  {
+    "scenario": "q1-global-MAX",
+    "exact_ordered_rows": true,
+    "repeat": 1
+  },
+  {
+    "scenario": "q1-global-MAX",
+    "exact_ordered_rows": true,
+    "repeat": 2
+  },
+  {
+    "scenario": "q1-global-AVERAGE",
+    "exact_ordered_rows": true,
+    "repeat": 0
+  },
+  {
+    "scenario": "q1-global-AVERAGE",
+    "exact_ordered_rows": true,
+    "repeat": 1
+  },
+  {
+    "scenario": "q1-global-AVERAGE",
+    "exact_ordered_rows": true,
+    "repeat": 2
+  },
+  {
+    "scenario": "q1-global-TOP_K_AVERAGE",
+    "exact_ordered_rows": true,
+    "repeat": 0
+  },
+  {
+    "scenario": "q1-global-TOP_K_AVERAGE",
+    "exact_ordered_rows": true,
+    "repeat": 1
+  },
+  {
+    "scenario": "q1-global-TOP_K_AVERAGE",
+    "exact_ordered_rows": true,
+    "repeat": 2
+  },
+  {
+    "scenario": "q2-dataset-MAX",
+    "exact_ordered_rows": true,
+    "repeat": 0
+  },
+  {
+    "scenario": "q2-dataset-MAX",
+    "exact_ordered_rows": true,
+    "repeat": 1
+  },
+  {
+    "scenario": "q2-dataset-MAX",
+    "exact_ordered_rows": true,
+    "repeat": 2
+  },
+  {
+    "scenario": "q2-dataset-AVERAGE",
+    "exact_ordered_rows": true,
+    "repeat": 0
+  },
+  {
+    "scenario": "q2-dataset-AVERAGE",
+    "exact_ordered_rows": true,
+    "repeat": 1
+  },
+  {
+    "scenario": "q2-dataset-AVERAGE",
+    "exact_ordered_rows": true,
+    "repeat": 2
+  },
+  {
+    "scenario": "q2-dataset-TOP_K_AVERAGE",
+    "exact_ordered_rows": true,
+    "repeat": 0
+  },
+  {
+    "scenario": "q2-dataset-TOP_K_AVERAGE",
+    "exact_ordered_rows": true,
+    "repeat": 1
+  },
+  {
+    "scenario": "q2-dataset-TOP_K_AVERAGE",
+    "exact_ordered_rows": true,
+    "repeat": 2
+  },
+  {
+    "scenario": "q2-global-MAX",
+    "exact_ordered_rows": true,
+    "repeat": 0
+  },
+  {
+    "scenario": "q2-global-MAX",
+    "exact_ordered_rows": true,
+    "repeat": 1
+  },
+  {
+    "scenario": "q2-global-MAX",
+    "exact_ordered_rows": true,
+    "repeat": 2
+  },
+  {
+    "scenario": "q2-global-AVERAGE",
+    "exact_ordered_rows": true,
+    "repeat": 0
+  },
+  {
+    "scenario": "q2-global-AVERAGE",
+    "exact_ordered_rows": true,
+    "repeat": 1
+  },
+  {
+    "scenario": "q2-global-AVERAGE",
+    "exact_ordered_rows": true,
+    "repeat": 2
+  },
+  {
+    "scenario": "q2-global-TOP_K_AVERAGE",
+    "exact_ordered_rows": true,
+    "repeat": 0
+  },
+  {
+    "scenario": "q2-global-TOP_K_AVERAGE",
+    "exact_ordered_rows": true,
+    "repeat": 1
+  },
+  {
+    "scenario": "q2-global-TOP_K_AVERAGE",
+    "exact_ordered_rows": true,
+    "repeat": 2
+  }
+]

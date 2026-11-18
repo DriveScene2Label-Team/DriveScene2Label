@@ -1,0 +1,15 @@
+{
+  "phase": "detections",
+  "reference": "/results/experiments/20261117T181902Z-runtime/legacy_bool_or",
+  "output": "/results/experiments/20261118T054437Z-resume",
+  "scope": "one static image/car prompt; no production adoption or full-scene claim",
+  "cases": [
+    {
+      "phase": "detections",
+      "exit_code": 0,
+      "remote_directory": "/results/experiments/20261118T054437Z-resume/six-cameras"
+    }
+  ],
+  "production_environment_modified": false,
+  "completed": true
+}

@@ -1,0 +1,56 @@
+{
+  "ai": {
+    "passed": 16,
+    "junit_source": "measurements/20261118T062125Z/ai-tests.xml"
+  },
+  "java": {
+    "scope": "isolated Linux test workspace + ephemeral pgvector; synthetic AI; no AWS resources",
+    "started_at": "2026-11-18T06:23:13.610112+00:00",
+    "network": "ds2l-opt-test-20261118062313",
+    "containers": [
+      "ds2l-opt-test-20261118062313-db",
+      "ds2l-opt-test-20261118062313-java"
+    ],
+    "exit_code": 0,
+    "suites": [
+      {
+        "name": "com.example.demo.PrefetchedSceneSearchTests",
+        "tests": "11",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "18.233"
+      },
+      {
+        "name": "com.example.demo.SceneSearchTests",
+        "tests": "11",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "9.523"
+      },
+      {
+        "name": "com.example.demo.WorkerConcurrencyTests",
+        "tests": "1",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "1.25"
+      }
+    ],
+    "finished_at": "2026-11-18T06:24:14.756463+00:00"
+  },
+  "hybrid_host": {
+    "run": 46,
+    "passed": 44,
+    "skipped": 2,
+    "reason": "optional gateway integration disabled locally; CI enables it"
+  },
+  "s3_actual_streaming_body": {
+    "passed": 2
+  },
+  "syntax": {
+    "exit_code": 0,
+    "wall_seconds": 0.32799999999997453
+  }
+}

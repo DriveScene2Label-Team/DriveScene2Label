@@ -1,0 +1,77 @@
+{
+  "started_at": "2026-11-18T05:33:17.737317+00:00",
+  "git_revision": "f9de3f1494e12657b7794e8f8d59cc4af45d27f8",
+  "cases": [
+    {
+      "case": "R1 empty diagnostic",
+      "measurement": "20261118T053436Z",
+      "decision": "inconclusive"
+    },
+    {
+      "case": "R1 six cameras",
+      "measurement": "20261118T053854Z",
+      "decision": "diagnostic only"
+    },
+    {
+      "case": "R2 engine",
+      "measurement": "20261118T053959Z",
+      "decision": "built/timed; raw mismatch"
+    },
+    {
+      "case": "R2 six cameras",
+      "measurement": "20261118T054437Z",
+      "decision": "six matched; geometry differences"
+    },
+    {
+      "case": "S2 SDK transfer",
+      "measurement": "20261118T054854Z",
+      "decision": "multipart4 upload candidate; Java unchanged"
+    },
+    {
+      "case": "Q2 paired",
+      "measurement": "20261118T060849Z",
+      "decision": "adopted in hybrid"
+    },
+    {
+      "case": "Q3 pilot",
+      "measurement": "20261118T061354Z",
+      "decision": "288 exact; no-hit timing variance"
+    },
+    {
+      "case": "Q3 confirmation",
+      "measurement": "20261118T062125Z",
+      "decision": "1152 exact; adopted LRU256"
+    },
+    {
+      "case": "Q2+Q3 API",
+      "measurement": "20261118T061542Z",
+      "decision": "54 exact"
+    }
+  ],
+  "gpu_authorized": true,
+  "aws_stop_after_tests": true,
+  "status": "experiments_validated_and_resources_stopped",
+  "active_measurement": "20261118T061542Z",
+  "active_phase": "loopback search baseline/optimized",
+  "completed_cases": [
+    "R1 diagnostics",
+    "R1 six cameras",
+    "R2 engine build/inference",
+    "R2 six cameras",
+    "S2 transfer",
+    "Q2 auto/custom/generic/paired",
+    "Q3 288 paired response pilot"
+  ],
+  "pending": [
+    "Git export/review",
+    "Commit/push",
+    "Remote CI"
+  ],
+  "finished_experiments_at": "2026-11-18T06:31:29.961245+00:00",
+  "rds": {
+    "id": "ds2l-hybrid-database",
+    "status": "stopped",
+    "restart": "2026-11-25T06:24:52.942000+00:00"
+  },
+  "local_services_stopped": true
+}

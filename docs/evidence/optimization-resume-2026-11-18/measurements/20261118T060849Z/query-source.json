@@ -1,0 +1,8 @@
+{
+  "repository_file": "src\\main\\java\\com\\example\\demo\\nuscenes\\repository\\SceneSearchRepository.java",
+  "source_sha256": "7fa07a1b128f9fcb2b7ea93b4d3128088e6fd0478dcc1dcc9b97aeb164e93cbf",
+  "sql_sha256": "92df474be1648581afac674b137a48476088058d07a311f11e3957137350097d",
+  "candidate": "distances CTE AS MATERIALIZED; paired_custom also times candidate SET LOCAL",
+  "session_plan_mode": "paired_custom",
+  "gate": "all ordered fields identical; inspect client/server time and temp I/O; no automatic deployment"
+}

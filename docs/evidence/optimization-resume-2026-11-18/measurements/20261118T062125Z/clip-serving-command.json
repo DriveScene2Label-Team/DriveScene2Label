@@ -1,0 +1,13 @@
+[
+  "docker",
+  "exec",
+  "ds2l-serving-check-ai",
+  "python",
+  "tools/benchmark_clip_serving.py",
+  "--output",
+  "/evidence/clip-serving",
+  "--repeats",
+  "6",
+  "--requests",
+  "32"
+]

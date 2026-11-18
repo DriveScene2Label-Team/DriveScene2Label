@@ -1,0 +1,65 @@
+{
+  "status": "completed",
+  "version": "11.4.0.106",
+  "quality": {
+    "outputs": [
+      {
+        "name": "logits",
+        "same_shape": true,
+        "reference_shape": [
+          1,
+          900,
+          256
+        ],
+        "actual_shape": [
+          1,
+          900,
+          256
+        ],
+        "max_finite_absolute_difference": 4.088473796844482,
+        "infinity_signs_match": true,
+        "has_nan": false,
+        "within_tolerance": false
+      },
+      {
+        "name": "pred_boxes",
+        "same_shape": true,
+        "reference_shape": [
+          1,
+          900,
+          4
+        ],
+        "actual_shape": [
+          1,
+          900,
+          4
+        ],
+        "max_finite_absolute_difference": 0.9683485627174377,
+        "infinity_signs_match": true,
+        "has_nan": false,
+        "within_tolerance": false
+      }
+    ],
+    "passed": false,
+    "rtol": 0.0001,
+    "atol": 1e-05,
+    "scope": "raw logits/boxes for one fixed image and prompt only; padding negative infinities compared by sign"
+  },
+  "boundary": "host arrays -> CUDA TensorRT forward -> host arrays",
+  "repetitions": 10,
+  "warmups": 3,
+  "seconds": [
+    0.2108065610000267,
+    0.2082391149999694,
+    0.22321393799995803,
+    0.2195991569999478,
+    0.20815909299994928,
+    0.21362703499994495,
+    0.20775139900001705,
+    0.2228755319999891,
+    0.2086975860000848,
+    0.2229825530000653
+  ],
+  "median_seconds": 0.21221679799998583,
+  "decision": "one static prompt/image only; no full-class/dynamic/full-scene deployment gate"
+}

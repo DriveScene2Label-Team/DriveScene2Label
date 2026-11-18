@@ -1,0 +1,17 @@
+{
+  "boundary": "loopback HTTP Spring + CLIP HTTP/JSON + exact RDS search; warm model, sequential requests",
+  "dataset_id": 21,
+  "runs": 54,
+  "cache_condition": "repeated public text; one excluded warmup per scenario",
+  "source_sha256": "6115f0bd7d9326d12d100eef70bcc113e3eb2951375757a6b85bd4f5ca8c09b1",
+  "median_seconds": {
+    "dataset": 0.08837119999998322,
+    "global": 0.2456781000000774
+  },
+  "exact_responses": true,
+  "reference": ".local\\hybrid\\measurements\\20261118T061542Z\\baseline",
+  "reduction": {
+    "dataset": 0.9107565523917883,
+    "global": 0.9547832156088958
+  }
+}

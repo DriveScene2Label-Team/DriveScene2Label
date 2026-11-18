@@ -1,0 +1,189 @@
+{
+  "all_exact": true,
+  "checks": [
+    {
+      "case": "repeated",
+      "concurrency": 1,
+      "repeat": 0,
+      "exact_response_vectors_and_metadata": true,
+      "responses": 16
+    },
+    {
+      "case": "repeated",
+      "concurrency": 1,
+      "repeat": 1,
+      "exact_response_vectors_and_metadata": true,
+      "responses": 16
+    },
+    {
+      "case": "repeated",
+      "concurrency": 1,
+      "repeat": 2,
+      "exact_response_vectors_and_metadata": true,
+      "responses": 16
+    },
+    {
+      "case": "mixed",
+      "concurrency": 1,
+      "repeat": 0,
+      "exact_response_vectors_and_metadata": true,
+      "responses": 16
+    },
+    {
+      "case": "mixed",
+      "concurrency": 1,
+      "repeat": 1,
+      "exact_response_vectors_and_metadata": true,
+      "responses": 16
+    },
+    {
+      "case": "mixed",
+      "concurrency": 1,
+      "repeat": 2,
+      "exact_response_vectors_and_metadata": true,
+      "responses": 16
+    },
+    {
+      "case": "distinct",
+      "concurrency": 1,
+      "repeat": 0,
+      "exact_response_vectors_and_metadata": true,
+      "responses": 16
+    },
+    {
+      "case": "distinct",
+      "concurrency": 1,
+      "repeat": 1,
+      "exact_response_vectors_and_metadata": true,
+      "responses": 16
+    },
+    {
+      "case": "distinct",
+      "concurrency": 1,
+      "repeat": 2,
+      "exact_response_vectors_and_metadata": true,
+      "responses": 16
+    },
+    {
+      "case": "repeated",
+      "concurrency": 4,
+      "repeat": 0,
+      "exact_response_vectors_and_metadata": true,
+      "responses": 16
+    },
+    {
+      "case": "repeated",
+      "concurrency": 4,
+      "repeat": 1,
+      "exact_response_vectors_and_metadata": true,
+      "responses": 16
+    },
+    {
+      "case": "repeated",
+      "concurrency": 4,
+      "repeat": 2,
+      "exact_response_vectors_and_metadata": true,
+      "responses": 16
+    },
+    {
+      "case": "mixed",
+      "concurrency": 4,
+      "repeat": 0,
+      "exact_response_vectors_and_metadata": true,
+      "responses": 16
+    },
+    {
+      "case": "mixed",
+      "concurrency": 4,
+      "repeat": 1,
+      "exact_response_vectors_and_metadata": true,
+      "responses": 16
+    },
+    {
+      "case": "mixed",
+      "concurrency": 4,
+      "repeat": 2,
+      "exact_response_vectors_and_metadata": true,
+      "responses": 16
+    },
+    {
+      "case": "distinct",
+      "concurrency": 4,
+      "repeat": 0,
+      "exact_response_vectors_and_metadata": true,
+      "responses": 16
+    },
+    {
+      "case": "distinct",
+      "concurrency": 4,
+      "repeat": 1,
+      "exact_response_vectors_and_metadata": true,
+      "responses": 16
+    },
+    {
+      "case": "distinct",
+      "concurrency": 4,
+      "repeat": 2,
+      "exact_response_vectors_and_metadata": true,
+      "responses": 16
+    }
+  ],
+  "scenarios": [
+    {
+      "case": "repeated",
+      "concurrency": 1,
+      "median_batch_seconds": {
+        "0": 0.48897823000015705,
+        "256": 0.22355069600007482
+      },
+      "reduction": 0.5428207591164068
+    },
+    {
+      "case": "repeated",
+      "concurrency": 4,
+      "median_batch_seconds": {
+        "0": 0.3891658950001329,
+        "256": 0.2121747599999253
+      },
+      "reduction": 0.4547961095104368
+    },
+    {
+      "case": "mixed",
+      "concurrency": 1,
+      "median_batch_seconds": {
+        "0": 0.44233021899981395,
+        "256": 0.3205145019996962
+      },
+      "reduction": 0.2753954212659592
+    },
+    {
+      "case": "mixed",
+      "concurrency": 4,
+      "median_batch_seconds": {
+        "0": 0.4224081090001164,
+        "256": 0.27276458200003617
+      },
+      "reduction": 0.35426291259962295
+    },
+    {
+      "case": "distinct",
+      "concurrency": 1,
+      "median_batch_seconds": {
+        "0": 0.48476415799996175,
+        "256": 0.2654275529998813
+      },
+      "reduction": 0.4524604415991038
+    },
+    {
+      "case": "distinct",
+      "concurrency": 4,
+      "median_batch_seconds": {
+        "0": 0.31240397999999914,
+        "256": 0.4035604450000392
+      },
+      "reduction": -0.2917903446685932
+    }
+  ],
+  "runs": 36,
+  "paired_responses": 288
+}

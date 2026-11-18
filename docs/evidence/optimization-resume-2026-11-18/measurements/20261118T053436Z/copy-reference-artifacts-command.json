@@ -1,0 +1,6 @@
+[
+  "docker",
+  "cp",
+  "drivescene-hybrid-ai-server-1:/results/experiments/20261118T053436Z-resume/reference-artifacts.json",
+  "$REPO\\.local\\hybrid\\measurements\\20261118T053436Z\\reference-artifacts.json"
+]

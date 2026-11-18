@@ -23,7 +23,9 @@ public final class QueryExperiment {
   return !rows.isEmpty() && rows.stream().allMatch(row->row.values().stream().allMatch(v->!(v instanceof Double d)||Double.isFinite(d)));
  }
  public static void main(String[] args) throws Exception {
-  if(args.length!=3) throw new IllegalArgumentException("Usage: dataset-id original-search-sql fresh-output-directory");
+  if(args.length<3 || args.length>4) throw new IllegalArgumentException("Usage: dataset-id original-search-sql fresh-output-directory [plan-mode]");
+  String planMode=args.length==4?args[3]:"auto";
+  if(!Set.of("auto","force_custom_plan","force_generic_plan","paired_custom").contains(planMode))throw new IllegalArgumentException("Unsupported plan mode");
   long dataset=Long.parseLong(args[0]);if(dataset<=0)throw new IllegalArgumentException("Expected positive dataset ID");
   String original=Files.readString(Path.of(args[1]));
   // Input must be the repository's SELECT CTE, never arbitrary write statements.
@@ -35,6 +37,7 @@ public final class QueryExperiment {
   String preprocess=System.getenv().getOrDefault("EMBEDDING_PREPROCESS","lr-square-crop-mean");
   Map<String,Object> manifest=new LinkedHashMap<>();
   manifest.put("started_at",Instant.now().toString());manifest.put("dataset",dataset);
+  manifest.put("plan_cache_mode",planMode);
   manifest.put("scope","existing RDS; read-only exact search; three stored image vectors as query fixtures, not text inference or end-to-end API timing");
   manifest.put("baseline_sql_sha256",hash(original));manifest.put("materialized_sql_sha256",hash(materialized));
   manifest.put("candidate","materialize distance CTE to avoid repeated cosine calculations; may add temp I/O");
@@ -44,6 +47,7 @@ public final class QueryExperiment {
    connection.setReadOnly(true);connection.setAutoCommit(false);
    try(Statement statement=connection.createStatement()) {
     statement.execute("SET LOCAL statement_timeout='30s'");statement.execute("SET LOCAL lock_timeout='2s'");
+    statement.execute("SET LOCAL plan_cache_mode='"+(planMode.equals("paired_custom")?"auto":planMode)+"'");
    }
    var jdbc=new NamedParameterJdbcTemplate(new SingleConnectionDataSource(connection,true));
    Map<String,Object> common=new HashMap<>();common.put("model",model);common.put("preprocess",preprocess);
@@ -63,11 +67,18 @@ public final class QueryExperiment {
      Map<String,Object> parameters=new HashMap<>(common);parameters.put("dataset",filtered?dataset:null);
      parameters.put("vector",vector);parameters.put("aggregation",aggregation);
      // Warm both SQL paths separately before timing. No query output or vector is logged here.
-     jdbc.queryForList(original,parameters);jdbc.queryForList(materialized,parameters);
+     for(String mode:List.of("baseline","materialized")) {
+      configurePlan(connection,planMode,mode);
+      jdbc.queryForList(mode.equals("baseline")?original:materialized,parameters);
+     }
      for(int repeat=0;repeat<3;repeat++) {
       Map<String,List<Map<String,Object>>> outputs=new HashMap<>();
       for(String mode:(repeat%2==0?List.of("baseline","materialized"):List.of("materialized","baseline"))) {
-       String sql=mode.equals("baseline")?original:materialized;long start=System.nanoTime();
+       String sql=mode.equals("baseline")?original:materialized;
+       // Reset to production auto outside baseline timing; include the candidate SET round trip.
+       if(planMode.equals("paired_custom") && mode.equals("baseline"))configurePlan(connection,planMode,mode);
+       long start=System.nanoTime();
+       if(planMode.equals("paired_custom") && mode.equals("materialized"))configurePlan(connection,planMode,mode);
        var rows=jdbc.queryForList(sql,parameters);double seconds=(System.nanoTime()-start)/1e9;
        if(!finite(rows))throw new IllegalStateException("Empty or nonfinite search fixture");
        outputs.put(mode,rows);
@@ -78,11 +89,14 @@ public final class QueryExperiment {
       checks.add(Map.of("scenario",name,"repeat",repeat,"exact_ordered_rows",outputs.get("baseline").equals(outputs.get("materialized"))));
      }
      for(String mode:List.of("baseline","materialized")) {
+      configurePlan(connection,planMode,mode);
       String sql=mode.equals("baseline")?original:materialized;
       String plan=jdbc.query("EXPLAIN (ANALYZE,BUFFERS,FORMAT JSON,TIMING OFF) "+sql,parameters,(rs,n)->rs.getString(1)).getFirst();
       // The full plan may contain the vector constant: retain it locally, not in Git.
       Files.writeString(root.resolve(name+"-"+mode+"-plan.json"),plan,StandardOpenOption.CREATE_NEW);
      }
+     // Counters belong to this session only. No SQL text or query vector is exported.
+     save(root,name+"-prepared-statements.json",jdbc.queryForList("SELECT name,md5(statement) AS statement_hash,parameter_types::text AS parameter_types,generic_plans,custom_plans FROM pg_prepared_statements ORDER BY name",Map.of()));
      System.out.println("Completed query scenario "+name+" with three paired repeats.");
     }
    }
@@ -93,6 +107,12 @@ public final class QueryExperiment {
   } catch(SQLException failure) {
    save(root,"failure.json",Map.of("type",failure.getClass().getSimpleName(),"sqlstate",Objects.toString(failure.getSQLState(),"unknown")));
    throw new IllegalStateException("Read-only query experiment failed; SQL state retained without connection details.");
+  }
+ }
+ private static void configurePlan(Connection connection,String planMode,String mode) throws SQLException {
+  if(!planMode.equals("paired_custom"))return;
+  try(Statement statement=connection.createStatement()) {
+   statement.execute("SET LOCAL plan_cache_mode='"+(mode.equals("baseline")?"auto":"force_custom_plan")+"'");
   }
  }
 }

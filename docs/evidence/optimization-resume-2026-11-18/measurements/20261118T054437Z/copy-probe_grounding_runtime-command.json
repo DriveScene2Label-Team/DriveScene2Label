@@ -1,0 +1,6 @@
+[
+  "docker",
+  "cp",
+  "$REPO\\ai-server\\tools\\probe_grounding_runtime.py",
+  "drivescene-hybrid-ai-server-1:/tmp/ds2l-runtime-resume-20261118T054437Z/tools/probe_grounding_runtime.py"
+]

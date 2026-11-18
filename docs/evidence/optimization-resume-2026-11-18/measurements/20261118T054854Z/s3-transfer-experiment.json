@@ -1,0 +1,373 @@
+{
+  "started_at": "2026-11-18T05:48:57.105744+00:00",
+  "bucket": "ds2l-189750306426-ap-northeast-2-data",
+  "region": "ap-northeast-2",
+  "source_bytes": 109696439,
+  "source_sha256": "4e3e8959c49ce9f6ba4fb0817a443d2af9763d85e6a15f00290189834a4ce9c5",
+  "source_name": "clip-index-two-scenes.tgz",
+  "orders": [
+    [
+      "stream",
+      "mp1",
+      "mp2",
+      "mp4"
+    ],
+    [
+      "mp4",
+      "mp2",
+      "mp1",
+      "stream"
+    ],
+    [
+      "mp2",
+      "stream",
+      "mp4",
+      "mp1"
+    ]
+  ],
+  "part_bytes": 16777216,
+  "scope": "isolated Python SDK upload/download; not Java app end-to-end timing",
+  "versions": {
+    "boto3": "1.35.99",
+    "botocore": "1.35.99",
+    "s3transfer": "0.10.4"
+  },
+  "cleanup": "existing operator profile deletes only new UUID object versions with matching owner metadata and aborts incomplete uploads for those exact keys; app IAM policy unchanged",
+  "status": "completed",
+  "cases": [
+    {
+      "repeat": 0,
+      "mode": "stream",
+      "concurrency": 1,
+      "upload": {
+        "wall_seconds": 14.640918199999987,
+        "cpu_seconds": 1.03125
+      },
+      "download": {
+        "wall_seconds": 3.207650000000058,
+        "cpu_seconds": 0.234375
+      },
+      "bytes": 109696439,
+      "sha256_matches": true,
+      "source_sha256": "4e3e8959c49ce9f6ba4fb0817a443d2af9763d85e6a15f00290189834a4ce9c5",
+      "object_key": "uploads/34617472-e44b-43bb-9879-420cf018d2b3.tgz",
+      "etag": "\"495381f7710f30202e11b7ddc4c6f112\""
+    },
+    {
+      "repeat": 0,
+      "mode": "mp1",
+      "concurrency": 1,
+      "upload": {
+        "wall_seconds": 15.284773300000097,
+        "cpu_seconds": 1.0
+      },
+      "download": {
+        "wall_seconds": 3.8106769999999415,
+        "cpu_seconds": 0.234375
+      },
+      "bytes": 109696439,
+      "sha256_matches": true,
+      "source_sha256": "4e3e8959c49ce9f6ba4fb0817a443d2af9763d85e6a15f00290189834a4ce9c5",
+      "object_key": "uploads/f34bd819-22a0-4edf-b0b8-ec2ba5dc6aa2.tgz",
+      "etag": "\"0bd998bc67fa066b517084bd8e6b0b4c-7\""
+    },
+    {
+      "repeat": 0,
+      "mode": "mp2",
+      "concurrency": 2,
+      "upload": {
+        "wall_seconds": 8.056319700000131,
+        "cpu_seconds": 0.875
+      },
+      "download": {
+        "wall_seconds": 3.534930599999825,
+        "cpu_seconds": 0.28125
+      },
+      "bytes": 109696439,
+      "sha256_matches": true,
+      "source_sha256": "4e3e8959c49ce9f6ba4fb0817a443d2af9763d85e6a15f00290189834a4ce9c5",
+      "object_key": "uploads/5e6d6650-27c1-4eab-b001-1a31d8baf380.tgz",
+      "etag": "\"0bd998bc67fa066b517084bd8e6b0b4c-7\""
+    },
+    {
+      "repeat": 0,
+      "mode": "mp4",
+      "concurrency": 4,
+      "upload": {
+        "wall_seconds": 4.990462199999911,
+        "cpu_seconds": 2.40625
+      },
+      "download": {
+        "wall_seconds": 3.1059307999998964,
+        "cpu_seconds": 0.453125
+      },
+      "bytes": 109696439,
+      "sha256_matches": true,
+      "source_sha256": "4e3e8959c49ce9f6ba4fb0817a443d2af9763d85e6a15f00290189834a4ce9c5",
+      "object_key": "uploads/d7718ba8-de6b-484f-865d-00329a9da1de.tgz",
+      "etag": "\"0bd998bc67fa066b517084bd8e6b0b4c-7\""
+    },
+    {
+      "repeat": 1,
+      "mode": "mp4",
+      "concurrency": 4,
+      "upload": {
+        "wall_seconds": 4.995963500000016,
+        "cpu_seconds": 1.078125
+      },
+      "download": {
+        "wall_seconds": 3.0491147000000183,
+        "cpu_seconds": 0.53125
+      },
+      "bytes": 109696439,
+      "sha256_matches": true,
+      "source_sha256": "4e3e8959c49ce9f6ba4fb0817a443d2af9763d85e6a15f00290189834a4ce9c5",
+      "object_key": "uploads/c8a9cc73-6d41-4dfe-aaa8-64364c5d8690.tgz",
+      "etag": "\"0bd998bc67fa066b517084bd8e6b0b4c-7\""
+    },
+    {
+      "repeat": 1,
+      "mode": "mp2",
+      "concurrency": 2,
+      "upload": {
+        "wall_seconds": 8.252476299999898,
+        "cpu_seconds": 1.046875
+      },
+      "download": {
+        "wall_seconds": 3.800000000000182,
+        "cpu_seconds": 0.515625
+      },
+      "bytes": 109696439,
+      "sha256_matches": true,
+      "source_sha256": "4e3e8959c49ce9f6ba4fb0817a443d2af9763d85e6a15f00290189834a4ce9c5",
+      "object_key": "uploads/af1f4c76-4f2e-4078-9ec6-f18da0b29f5b.tgz",
+      "etag": "\"0bd998bc67fa066b517084bd8e6b0b4c-7\""
+    },
+    {
+      "repeat": 1,
+      "mode": "mp1",
+      "concurrency": 1,
+      "upload": {
+        "wall_seconds": 13.47600139999986,
+        "cpu_seconds": 0.984375
+      },
+      "download": {
+        "wall_seconds": 4.250251299999945,
+        "cpu_seconds": 0.421875
+      },
+      "bytes": 109696439,
+      "sha256_matches": true,
+      "source_sha256": "4e3e8959c49ce9f6ba4fb0817a443d2af9763d85e6a15f00290189834a4ce9c5",
+      "object_key": "uploads/13de7bff-54f5-476d-a97a-9b10363582d7.tgz",
+      "etag": "\"0bd998bc67fa066b517084bd8e6b0b4c-7\""
+    },
+    {
+      "repeat": 1,
+      "mode": "stream",
+      "concurrency": 1,
+      "upload": {
+        "wall_seconds": 13.1068479999999,
+        "cpu_seconds": 0.953125
+      },
+      "download": {
+        "wall_seconds": 3.045851700000185,
+        "cpu_seconds": 0.171875
+      },
+      "bytes": 109696439,
+      "sha256_matches": true,
+      "source_sha256": "4e3e8959c49ce9f6ba4fb0817a443d2af9763d85e6a15f00290189834a4ce9c5",
+      "object_key": "uploads/f8ce7538-b14c-40d4-9fc9-e026ce425ad8.tgz",
+      "etag": "\"495381f7710f30202e11b7ddc4c6f112\""
+    },
+    {
+      "repeat": 2,
+      "mode": "mp2",
+      "concurrency": 2,
+      "upload": {
+        "wall_seconds": 7.226476999999932,
+        "cpu_seconds": 0.921875
+      },
+      "download": {
+        "wall_seconds": 3.039117499999975,
+        "cpu_seconds": 0.3125
+      },
+      "bytes": 109696439,
+      "sha256_matches": true,
+      "source_sha256": "4e3e8959c49ce9f6ba4fb0817a443d2af9763d85e6a15f00290189834a4ce9c5",
+      "object_key": "uploads/fb7f0eaf-d927-41fc-876f-c7b14017db4a.tgz",
+      "etag": "\"0bd998bc67fa066b517084bd8e6b0b4c-7\""
+    },
+    {
+      "repeat": 2,
+      "mode": "stream",
+      "concurrency": 1,
+      "upload": {
+        "wall_seconds": 12.830776800000194,
+        "cpu_seconds": 0.9375
+      },
+      "download": {
+        "wall_seconds": 4.431598500000064,
+        "cpu_seconds": 0.5
+      },
+      "bytes": 109696439,
+      "sha256_matches": true,
+      "source_sha256": "4e3e8959c49ce9f6ba4fb0817a443d2af9763d85e6a15f00290189834a4ce9c5",
+      "object_key": "uploads/b19aa6b3-0161-40ed-a32f-1968792880f5.tgz",
+      "etag": "\"495381f7710f30202e11b7ddc4c6f112\""
+    },
+    {
+      "repeat": 2,
+      "mode": "mp4",
+      "concurrency": 4,
+      "upload": {
+        "wall_seconds": 5.497843099999955,
+        "cpu_seconds": 3.3125
+      },
+      "download": {
+        "wall_seconds": 3.113628800000015,
+        "cpu_seconds": 0.3125
+      },
+      "bytes": 109696439,
+      "sha256_matches": true,
+      "source_sha256": "4e3e8959c49ce9f6ba4fb0817a443d2af9763d85e6a15f00290189834a4ce9c5",
+      "object_key": "uploads/b9dbceb7-5420-4722-9078-03118317ab99.tgz",
+      "etag": "\"0bd998bc67fa066b517084bd8e6b0b4c-7\""
+    },
+    {
+      "repeat": 2,
+      "mode": "mp1",
+      "concurrency": 1,
+      "upload": {
+        "wall_seconds": 16.202019299999847,
+        "cpu_seconds": 0.828125
+      },
+      "download": {
+        "wall_seconds": 5.17650279999998,
+        "cpu_seconds": 0.453125
+      },
+      "bytes": 109696439,
+      "sha256_matches": true,
+      "source_sha256": "4e3e8959c49ce9f6ba4fb0817a443d2af9763d85e6a15f00290189834a4ce9c5",
+      "object_key": "uploads/24b2a94e-b930-4940-9dd2-8cb78f40b553.tgz",
+      "etag": "\"0bd998bc67fa066b517084bd8e6b0b4c-7\""
+    }
+  ],
+  "created": [
+    {
+      "key": "uploads/34617472-e44b-43bb-9879-420cf018d2b3.tgz",
+      "case": "r0-stream",
+      "version_id": "4WgEbse06bmO.uOc1xFItSekwgZ_BU8i",
+      "deleted": true,
+      "aborted_incomplete_uploads": 0,
+      "absence_verified": true
+    },
+    {
+      "key": "uploads/f34bd819-22a0-4edf-b0b8-ec2ba5dc6aa2.tgz",
+      "case": "r0-mp1",
+      "version_id": "A0QsvmIPkgfkvqflR22rJgGjCvOdtKnN",
+      "deleted": true,
+      "aborted_incomplete_uploads": 0,
+      "absence_verified": true
+    },
+    {
+      "key": "uploads/5e6d6650-27c1-4eab-b001-1a31d8baf380.tgz",
+      "case": "r0-mp2",
+      "version_id": "PwYMkTeI3y1fNbMBloyCsKugt1wcu8.7",
+      "deleted": true,
+      "aborted_incomplete_uploads": 0,
+      "absence_verified": true
+    },
+    {
+      "key": "uploads/d7718ba8-de6b-484f-865d-00329a9da1de.tgz",
+      "case": "r0-mp4",
+      "version_id": "CXS7anS7bq_H_xXP2jiA3iWmD4Uohtp3",
+      "deleted": true,
+      "aborted_incomplete_uploads": 0,
+      "absence_verified": true
+    },
+    {
+      "key": "uploads/c8a9cc73-6d41-4dfe-aaa8-64364c5d8690.tgz",
+      "case": "r1-mp4",
+      "version_id": "PCHga_6D9Hwa.7C_WvELifdmH23ThtXf",
+      "deleted": true,
+      "aborted_incomplete_uploads": 0,
+      "absence_verified": true
+    },
+    {
+      "key": "uploads/af1f4c76-4f2e-4078-9ec6-f18da0b29f5b.tgz",
+      "case": "r1-mp2",
+      "version_id": "QszJAKeD7pf0nt3pAo0inrIf6nS2BcKk",
+      "deleted": true,
+      "aborted_incomplete_uploads": 0,
+      "absence_verified": true
+    },
+    {
+      "key": "uploads/13de7bff-54f5-476d-a97a-9b10363582d7.tgz",
+      "case": "r1-mp1",
+      "version_id": "S75w9KEYvN2mDe6CSUHYpYy.TMwu0X00",
+      "deleted": true,
+      "aborted_incomplete_uploads": 0,
+      "absence_verified": true
+    },
+    {
+      "key": "uploads/f8ce7538-b14c-40d4-9fc9-e026ce425ad8.tgz",
+      "case": "r1-stream",
+      "version_id": "VXQC7vsynXxd2wSgiS9LyLMNyDnap30u",
+      "deleted": true,
+      "aborted_incomplete_uploads": 0,
+      "absence_verified": true
+    },
+    {
+      "key": "uploads/fb7f0eaf-d927-41fc-876f-c7b14017db4a.tgz",
+      "case": "r2-mp2",
+      "version_id": "E1kIo1X944xS.v8szYQYDEewyn8m_A.A",
+      "deleted": true,
+      "aborted_incomplete_uploads": 0,
+      "absence_verified": true
+    },
+    {
+      "key": "uploads/b19aa6b3-0161-40ed-a32f-1968792880f5.tgz",
+      "case": "r2-stream",
+      "version_id": "Yq27a_efZuMELE9ZEIH9Vi8hNBZtb6RT",
+      "deleted": true,
+      "aborted_incomplete_uploads": 0,
+      "absence_verified": true
+    },
+    {
+      "key": "uploads/b9dbceb7-5420-4722-9078-03118317ab99.tgz",
+      "case": "r2-mp4",
+      "version_id": "foc6meGevStA12Hg.5nH4SKYCxqsgmsD",
+      "deleted": true,
+      "aborted_incomplete_uploads": 0,
+      "absence_verified": true
+    },
+    {
+      "key": "uploads/24b2a94e-b930-4940-9dd2-8cb78f40b553.tgz",
+      "case": "r2-mp1",
+      "version_id": "ym3zqTRGvsBbQH6ES_btIHFv5Q93ztT5",
+      "deleted": true,
+      "aborted_incomplete_uploads": 0,
+      "absence_verified": true
+    }
+  ],
+  "cleanup_errors": [],
+  "finished_at": "2026-11-18T05:52:24.652238+00:00",
+  "medians": {
+    "stream": {
+      "upload": 13.1068479999999,
+      "download": 3.207650000000058
+    },
+    "mp1": {
+      "upload": 15.284773300000097,
+      "download": 4.250251299999945
+    },
+    "mp2": {
+      "upload": 8.056319700000131,
+      "download": 3.534930599999825
+    },
+    "mp4": {
+      "upload": 4.995963500000016,
+      "download": 3.1059307999998964
+    }
+  }
+}

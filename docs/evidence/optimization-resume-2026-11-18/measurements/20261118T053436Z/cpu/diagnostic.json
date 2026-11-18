@@ -1,0 +1,23 @@
+{
+  "scope": "one fixed image/car. prompt; threshold score>0.3; greedy IoU>=0.5; no text decoder/NMS/AP/full-scene claim",
+  "reference": "/results/experiments/20261117T181902Z-runtime/legacy_bool_or",
+  "source_sha256": "8ce90f0ffdea48eeb1fa2f9cb1e17351024cd288901f0a7c75d368f92e45bd45",
+  "providers": [
+    "CPUExecutionProvider"
+  ],
+  "requested_provider": "cpu",
+  "raw_slot_parity": {
+    "logits": false,
+    "pred_boxes": false
+  },
+  "reference_count": 0,
+  "candidate_count": 0,
+  "matched": 0,
+  "missing": 0,
+  "extra": 0,
+  "minimum_matched_iou": null,
+  "maximum_matched_score_difference": null,
+  "reference_boxes": [],
+  "candidate_boxes": [],
+  "interpretation": "raw query slot mismatch alone does not establish detection AP regression; preserve both comparisons; production unchanged"
+}

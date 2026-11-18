@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 import time
+from collections import OrderedDict
 from pathlib import Path
 from threading import Lock
 
@@ -28,6 +29,10 @@ class ClipService:
         self.model = self.preprocess = self.tokenizer = None
         self.device = None
         self.lock = Lock()
+        self.text_cache_size = int(os.environ.get("CLIP_TEXT_CACHE_SIZE", "0"))
+        if not 0 <= self.text_cache_size <= 4096:
+            raise ValueError("CLIP_TEXT_CACHE_SIZE must be between 0 and 4096")
+        self.text_cache = OrderedDict()
         self.image_root = Path(os.environ.get("CLIP_IMAGE_ROOT", os.environ.get("NUSCENES_ROOT", "/data/nuscenes")))
 
     def load(self):
@@ -41,7 +46,9 @@ class ClipService:
         logger.info("CLIP loaded once on %s", self.device)
 
     def close(self):
-        self.model = self.preprocess = self.tokenizer = None
+        with self.lock:
+            self.model = self.preprocess = self.tokenizer = None
+            self.text_cache.clear()
 
     def _ready(self):
         if not gpu_available():
@@ -55,11 +62,32 @@ class ClipService:
         return EmbeddingResponse(embedding=vector.tolist(), preprocess=preprocess)
 
     def encode_text(self, text):
-        self._ready()
+        started = time.perf_counter()
         try:
             with self.lock:
-                vector = clip_core.encode_text(self.model, self.tokenizer, text, self.device)
-            return self._response(vector, "clip-text-tokenizer")
+                locked = time.perf_counter()
+                # Readiness still applies to cache hits, including a lost GPU.
+                self._ready()
+                vector = self.text_cache.get(text) if self.text_cache_size else None
+                cache = "hit" if vector is not None else "miss" if self.text_cache_size else "disabled"
+                encoded = time.perf_counter()
+                if vector is None:
+                    vector = clip_core.encode_text(self.model, self.tokenizer, text, self.device)
+                gpu_finished = time.perf_counter()
+                response = self._response(vector, "clip-text-tokenizer")
+                # Exact text only: case/whitespace/tokenizer behavior is unchanged.
+                # Validation precedes insertion, so failed results are never cached.
+                if self.text_cache_size:
+                    if cache == "miss":
+                        self.text_cache[text] = vector.detach().clone()
+                    self.text_cache.move_to_end(text)
+                    while len(self.text_cache) > self.text_cache_size:
+                        self.text_cache.popitem(last=False)
+                count = len(self.text_cache)
+            stage_log.info("[CLIP_STAGE] stage=text_embed cache=%s count=%s lock_wait_ms=%.3f encode_ms=%.3f handler_ms=%.3f",
+                           cache, count, (locked-started)*1000, (gpu_finished-encoded)*1000,
+                           (time.perf_counter()-started)*1000)
+            return response
         except ClipError:
             raise
         except Exception as exc:

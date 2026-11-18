@@ -1,0 +1,4 @@
+{
+  "initial_attempt": "Summary preparation raised KeyError reading session_plan_mode on historical auto run; export did not start",
+  "resolution": "Explicitly label missing mode on original runner as server-default auto; source measurements unchanged"
+}

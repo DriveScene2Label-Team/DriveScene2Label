@@ -19,6 +19,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest(properties={
+ "search.exact-optimization-enabled=true",
  "auto-label.worker.enabled=false","recording.worker.enabled=false",
  "spring.datasource.url=${TEST_DB_URL:jdbc:postgresql://localhost:55432/drivescene_test}",
  "spring.datasource.username=${TEST_DB_USERNAME:drivescene}",
@@ -61,6 +62,24 @@ class SceneSearchTests {
  @Autowired com.example.demo.nuscenes.storage.DatasetStorage storage;
  @Autowired com.example.demo.nuscenes.service.ImageEmbeddingService imageEmbeddings;
  @Autowired com.example.demo.nuscenes.repository.ImageEmbeddingRepository imageRepository;
+ @Autowired com.example.demo.nuscenes.repository.SceneSearchRepository searchRepository;
+ @Autowired org.springframework.transaction.PlatformTransactionManager transactions;
+ @org.springframework.beans.factory.annotation.Value("${search.exact-optimization-enabled:false}") boolean optimizedSearch;
+
+ @Test
+ @Transactional(propagation=org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
+ void searchPlanOverrideEndsWithTransaction() {
+  String before=jdbc.sql("SHOW plan_cache_mode").query(String.class).single();
+  var transaction=new org.springframework.transaction.support.TransactionTemplate(transactions);
+  transaction.setReadOnly(true);
+  transaction.execute(status->{
+   searchRepository.search(vector(1),MODEL,PREPROCESS,null,10,"MAX",3,true);
+   assertThat(jdbc.sql("SHOW plan_cache_mode").query(String.class).single())
+    .isEqualTo(optimizedSearch?"force_custom_plan":before);
+   return null;
+  });
+  assertThat(jdbc.sql("SHOW plan_cache_mode").query(String.class).single()).isEqualTo(before);
+ }
 
  private static String vector(double cosine) {
   var b=new StringBuilder("[").append(cosine).append(',').append(Math.sqrt(1-cosine*cosine));

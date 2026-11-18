@@ -1,0 +1,4 @@
+{"at": "2026-11-18T05:47:41.672515+00:00", "phase": "upload", "case": "r0-stream", "operation": "PutObject", "http_status": 200, "retry_attempts": 0, "request_id": "BR1HTPZRA7SM5M63"}
+{"at": "2026-11-18T05:47:41.707548+00:00", "phase": "verify_head", "case": "r0-stream", "operation": "HeadObject", "http_status": 200, "retry_attempts": 0, "request_id": "A99G7MT6YE9S7AF9"}
+{"at": "2026-11-18T05:47:41.754467+00:00", "phase": "download", "case": "r0-stream", "operation": "GetObject", "http_status": 200, "retry_attempts": 0, "request_id": "A99PXBM35F0J1Z0V"}
+{"at": "2026-11-18T05:47:42.028363+00:00", "phase": "owned_key_cleanup", "case": null, "operation": "HeadObject", "http_status": 200, "retry_attempts": 0, "request_id": "A99N3QZBE312KQFE"}

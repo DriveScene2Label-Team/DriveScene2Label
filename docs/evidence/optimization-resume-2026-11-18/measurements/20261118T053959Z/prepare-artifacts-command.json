@@ -1,0 +1,23 @@
+[
+  "docker",
+  "exec",
+  "--env",
+  "PYTHONPATH=/results/experiments/20261117T181902Z-runtime/dependencies",
+  "--env",
+  "HF_HUB_OFFLINE=1",
+  "--env",
+  "PYTHONUNBUFFERED=1",
+  "--env",
+  "OMP_NUM_THREADS=1",
+  "--env",
+  "MKL_NUM_THREADS=1",
+  "--env",
+  "OPENBLAS_NUM_THREADS=1",
+  "drivescene-hybrid-ai-server-1",
+  "/opt/vespa-env/bin/python",
+  "-c",
+  "\nimport hashlib,json,os,sys\nfrom pathlib import Path\nsource=Path(sys.argv[1]);target=Path(sys.argv[2]);phase=sys.argv[3]\nif not source.resolve().is_relative_to('/results/experiments') or not target.resolve().is_relative_to('/results/experiments'):\n    raise ValueError('Expected results paths')\ntarget.mkdir(parents=True,exist_ok=False)\nnames=['model.onnx','inputs.npz','reference.npz','manifest.json']\nif phase=='trt':\n    import onnx\n    graph=onnx.load(str(source/'model.onnx'),load_external_data=False)\n    for tensor in graph.graph.initializer:\n        for item in tensor.external_data:\n            if item.key=='location':names.append(item.value)\nrecords=[]\nfor name in sorted(set(names)):\n    path=(source/name).resolve()\n    if not path.is_relative_to(source.resolve()) or not path.is_file():raise ValueError('Missing/out-of-scope reference artifact')\n    h=hashlib.sha256()\n    with path.open('rb') as stream:\n        for block in iter(lambda:stream.read(1024*1024),b''):h.update(block)\n    records.append({'file':name,'bytes':path.stat().st_size,'sha256':h.hexdigest()})\n    if phase=='trt':\n        dest=target/name;dest.parent.mkdir(parents=True,exist_ok=True);os.link(path,dest)\n(target/'reference-artifacts.json').write_text(json.dumps(records,indent=2))\nprint(json.dumps({'artifacts':len(records),'phase':phase}))\n",
+  "/results/experiments/20261117T181902Z-runtime/legacy_bool_or",
+  "/results/experiments/20261118T053959Z-resume",
+  "trt"
+]

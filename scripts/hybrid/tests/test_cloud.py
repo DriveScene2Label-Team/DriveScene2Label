@@ -34,10 +34,23 @@ class CloudTests(unittest.TestCase):
             aws.assert_not_called()
 
     def test_stopped_database_is_started_once_and_waited_for(self):
-        with patch.object(cloud, 'database_state', side_effect=['stopped', 'stopped', 'starting', 'available']), \
+        with patch.object(cloud, 'database_state', side_effect=['stopped', 'stopped', 'starting', 'rebooting', 'available']), \
              patch.object(cloud, 'aws') as aws, patch.object(cloud.time, 'sleep'):
             cloud.ensure_database()
             aws.assert_called_once_with('rds', 'start-db-instance', '--db-instance-identifier', cloud.DATABASE)
+
+    def test_rebooting_database_is_waited_for_without_another_start(self):
+        with patch.object(cloud, 'database_state', side_effect=['rebooting', 'available']), \
+             patch.object(cloud, 'aws') as aws, patch.object(cloud.time, 'sleep'):
+            cloud.ensure_database()
+            aws.assert_not_called()
+
+    def test_reboot_wait_keeps_existing_timeout(self):
+        with patch.object(cloud, 'database_state', return_value='rebooting'), \
+             patch.object(cloud, 'aws') as aws, patch.object(cloud.time, 'monotonic', side_effect=[0, 2]):
+            with self.assertRaises(TimeoutError):
+                cloud.ensure_database(timeout=1)
+            aws.assert_not_called()
 
     def test_wrong_account_never_reaches_rds(self):
         with patch.object(cloud, 'aws', return_value={'Account': 'wrong'}) as aws:

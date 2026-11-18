@@ -1,0 +1,468 @@
+{
+  "scope": "six cameras, first frame scene-0061, car. only; score>0.3; Hungarian IoU assignment >=0.5; not AP or full-scene quality",
+  "source_sha256": "bd0e0100ec682d4dce1e4e2390bd9ef2245779e36706665225a494c539af99f5",
+  "reference": "/results/experiments/20261117T181902Z-runtime/legacy_bool_or",
+  "model_commit": "12bdfa3120f3e7ec7b434d90674b3396eccf88eb",
+  "providers": [
+    "CUDAExecutionProvider",
+    "CPUExecutionProvider"
+  ],
+  "cases": [
+    {
+      "camera": "CAM_FRONT_LEFT",
+      "token": "fe5422747a7d4268a4b07fc396707b23",
+      "image_sha256": "2c8c49149411fa88cd36f9076d19e064be963deaf4e7c0dde4a7c691e83e1e5a",
+      "raw_quality": {
+        "outputs": [
+          {
+            "name": "logits",
+            "same_shape": true,
+            "reference_shape": [
+              1,
+              900,
+              256
+            ],
+            "actual_shape": [
+              1,
+              900,
+              256
+            ],
+            "max_finite_absolute_difference": 4.088332176208496,
+            "infinity_signs_match": true,
+            "has_nan": false,
+            "within_tolerance": false
+          },
+          {
+            "name": "pred_boxes",
+            "same_shape": true,
+            "reference_shape": [
+              1,
+              900,
+              4
+            ],
+            "actual_shape": [
+              1,
+              900,
+              4
+            ],
+            "max_finite_absolute_difference": 0.9683489203453064,
+            "infinity_signs_match": true,
+            "has_nan": false,
+            "within_tolerance": false
+          }
+        ],
+        "passed": false,
+        "rtol": 0.0001,
+        "atol": 1e-05,
+        "scope": "raw logits/boxes for one fixed image and prompt only; padding negative infinities compared by sign"
+      },
+      "reference_count": 0,
+      "candidate_count": 0,
+      "matched": 0,
+      "missing": 0,
+      "extra": 0,
+      "minimum_iou": null,
+      "maximum_score_difference": null,
+      "reference_scores": [],
+      "candidate_scores": [],
+      "reference_boxes": [],
+      "candidate_boxes": []
+    },
+    {
+      "camera": "CAM_FRONT",
+      "token": "e3d495d4ac534d54b321f50006683844",
+      "image_sha256": "b7b7d466207462cf46742297a36afdd65315c05ae33126d5d36412aae70a0b62",
+      "raw_quality": {
+        "outputs": [
+          {
+            "name": "logits",
+            "same_shape": true,
+            "reference_shape": [
+              1,
+              900,
+              256
+            ],
+            "actual_shape": [
+              1,
+              900,
+              256
+            ],
+            "max_finite_absolute_difference": 4.766395568847656,
+            "infinity_signs_match": true,
+            "has_nan": false,
+            "within_tolerance": false
+          },
+          {
+            "name": "pred_boxes",
+            "same_shape": true,
+            "reference_shape": [
+              1,
+              900,
+              4
+            ],
+            "actual_shape": [
+              1,
+              900,
+              4
+            ],
+            "max_finite_absolute_difference": 0.9715544581413269,
+            "infinity_signs_match": true,
+            "has_nan": false,
+            "within_tolerance": false
+          }
+        ],
+        "passed": false,
+        "rtol": 0.0001,
+        "atol": 1e-05,
+        "scope": "raw logits/boxes for one fixed image and prompt only; padding negative infinities compared by sign"
+      },
+      "reference_count": 3,
+      "candidate_count": 3,
+      "matched": 3,
+      "missing": 0,
+      "extra": 0,
+      "minimum_iou": 0.9996050000190735,
+      "maximum_score_difference": 0.0009805858135223389,
+      "reference_scores": [
+        0.4530009925365448,
+        0.455477237701416,
+        0.4090326130390167
+      ],
+      "candidate_scores": [
+        0.45202040672302246,
+        0.4556386470794678,
+        0.40820008516311646
+      ],
+      "reference_boxes": [
+        [
+          0.6272302865982056,
+          0.5268777012825012,
+          0.6746608018875122,
+          0.5926148295402527
+        ],
+        [
+          0.4479617774486542,
+          0.5136398077011108,
+          0.4911481440067291,
+          0.5880775451660156
+        ],
+        [
+          0.5601499676704407,
+          0.5291697978973389,
+          0.5979252457618713,
+          0.5841513872146606
+        ]
+      ],
+      "candidate_boxes": [
+        [
+          0.6272318363189697,
+          0.5268802046775818,
+          0.6746594905853271,
+          0.5926156640052795
+        ],
+        [
+          0.44795918464660645,
+          0.5136419534683228,
+          0.4911484122276306,
+          0.5880763530731201
+        ],
+        [
+          0.5601522922515869,
+          0.5291818380355835,
+          0.597926139831543,
+          0.5841563940048218
+        ]
+      ]
+    },
+    {
+      "camera": "CAM_FRONT_RIGHT",
+      "token": "aac7867ebf4f446395d29fbd60b63b3b",
+      "image_sha256": "005ce4aff67c8df56233457218363687132fe7f40de758cf030aace578f55497",
+      "raw_quality": {
+        "outputs": [
+          {
+            "name": "logits",
+            "same_shape": true,
+            "reference_shape": [
+              1,
+              900,
+              256
+            ],
+            "actual_shape": [
+              1,
+              900,
+              256
+            ],
+            "max_finite_absolute_difference": 3.8246824741363525,
+            "infinity_signs_match": true,
+            "has_nan": false,
+            "within_tolerance": false
+          },
+          {
+            "name": "pred_boxes",
+            "same_shape": true,
+            "reference_shape": [
+              1,
+              900,
+              4
+            ],
+            "actual_shape": [
+              1,
+              900,
+              4
+            ],
+            "max_finite_absolute_difference": 0.9503534436225891,
+            "infinity_signs_match": true,
+            "has_nan": false,
+            "within_tolerance": false
+          }
+        ],
+        "passed": false,
+        "rtol": 0.0001,
+        "atol": 1e-05,
+        "scope": "raw logits/boxes for one fixed image and prompt only; padding negative infinities compared by sign"
+      },
+      "reference_count": 0,
+      "candidate_count": 0,
+      "matched": 0,
+      "missing": 0,
+      "extra": 0,
+      "minimum_iou": null,
+      "maximum_score_difference": null,
+      "reference_scores": [],
+      "candidate_scores": [],
+      "reference_boxes": [],
+      "candidate_boxes": []
+    },
+    {
+      "camera": "CAM_BACK_RIGHT",
+      "token": "79dbb4460a6b40f49f9c150cb118247e",
+      "image_sha256": "ab220a717b467d4fbed66b1a8a923dc522cc3aaaafa041613bcbfca3dd34ad9b",
+      "raw_quality": {
+        "outputs": [
+          {
+            "name": "logits",
+            "same_shape": true,
+            "reference_shape": [
+              1,
+              900,
+              256
+            ],
+            "actual_shape": [
+              1,
+              900,
+              256
+            ],
+            "max_finite_absolute_difference": 4.712267875671387,
+            "infinity_signs_match": true,
+            "has_nan": false,
+            "within_tolerance": false
+          },
+          {
+            "name": "pred_boxes",
+            "same_shape": true,
+            "reference_shape": [
+              1,
+              900,
+              4
+            ],
+            "actual_shape": [
+              1,
+              900,
+              4
+            ],
+            "max_finite_absolute_difference": 0.9536890983581543,
+            "infinity_signs_match": true,
+            "has_nan": false,
+            "within_tolerance": false
+          }
+        ],
+        "passed": false,
+        "rtol": 0.0001,
+        "atol": 1e-05,
+        "scope": "raw logits/boxes for one fixed image and prompt only; padding negative infinities compared by sign"
+      },
+      "reference_count": 0,
+      "candidate_count": 0,
+      "matched": 0,
+      "missing": 0,
+      "extra": 0,
+      "minimum_iou": null,
+      "maximum_score_difference": null,
+      "reference_scores": [],
+      "candidate_scores": [],
+      "reference_boxes": [],
+      "candidate_boxes": []
+    },
+    {
+      "camera": "CAM_BACK",
+      "token": "03bea5763f0f4722933508d5999c5fd8",
+      "image_sha256": "51fe14c13dc4f2ab0f7f59b6634b98925b767939b3417a9db617bd3c178c9bb4",
+      "raw_quality": {
+        "outputs": [
+          {
+            "name": "logits",
+            "same_shape": true,
+            "reference_shape": [
+              1,
+              900,
+              256
+            ],
+            "actual_shape": [
+              1,
+              900,
+              256
+            ],
+            "max_finite_absolute_difference": 4.604483604431152,
+            "infinity_signs_match": true,
+            "has_nan": false,
+            "within_tolerance": false
+          },
+          {
+            "name": "pred_boxes",
+            "same_shape": true,
+            "reference_shape": [
+              1,
+              900,
+              4
+            ],
+            "actual_shape": [
+              1,
+              900,
+              4
+            ],
+            "max_finite_absolute_difference": 0.9654684662818909,
+            "infinity_signs_match": true,
+            "has_nan": false,
+            "within_tolerance": false
+          }
+        ],
+        "passed": false,
+        "rtol": 0.0001,
+        "atol": 1e-05,
+        "scope": "raw logits/boxes for one fixed image and prompt only; padding negative infinities compared by sign"
+      },
+      "reference_count": 3,
+      "candidate_count": 3,
+      "matched": 3,
+      "missing": 0,
+      "extra": 0,
+      "minimum_iou": 0.9996992349624634,
+      "maximum_score_difference": 0.0016434788703918457,
+      "reference_scores": [
+        0.6280824542045593,
+        0.44086772203445435,
+        0.37790995836257935
+      ],
+      "candidate_scores": [
+        0.6297259330749512,
+        0.4401184916496277,
+        0.37773624062538147
+      ],
+      "reference_boxes": [
+        [
+          0.21018299460411072,
+          0.5645495057106018,
+          0.3182913362979889,
+          0.6457057595252991
+        ],
+        [
+          0.517018735408783,
+          0.5330989956855774,
+          0.533214271068573,
+          0.5608065724372864
+        ],
+        [
+          0.42057815194129944,
+          0.5208024382591248,
+          0.45829734206199646,
+          0.5543271899223328
+        ]
+      ],
+      "candidate_boxes": [
+        [
+          0.21018415689468384,
+          0.5645523071289062,
+          0.3182911276817322,
+          0.6457127332687378
+        ],
+        [
+          0.5170172452926636,
+          0.5331001281738281,
+          0.5332132577896118,
+          0.5608094930648804
+        ],
+        [
+          0.4205763339996338,
+          0.5208039879798889,
+          0.45829564332962036,
+          0.5543299317359924
+        ]
+      ]
+    },
+    {
+      "camera": "CAM_BACK_LEFT",
+      "token": "43893a033f9c46d4a51b5e08a67a1eb7",
+      "image_sha256": "3ffae8abed7fc7e703cad8f10f92535c5f55314433660f11b1ed6ef02ebd41bf",
+      "raw_quality": {
+        "outputs": [
+          {
+            "name": "logits",
+            "same_shape": true,
+            "reference_shape": [
+              1,
+              900,
+              256
+            ],
+            "actual_shape": [
+              1,
+              900,
+              256
+            ],
+            "max_finite_absolute_difference": 4.377007961273193,
+            "infinity_signs_match": true,
+            "has_nan": false,
+            "within_tolerance": false
+          },
+          {
+            "name": "pred_boxes",
+            "same_shape": true,
+            "reference_shape": [
+              1,
+              900,
+              4
+            ],
+            "actual_shape": [
+              1,
+              900,
+              4
+            ],
+            "max_finite_absolute_difference": 0.9908604621887207,
+            "infinity_signs_match": true,
+            "has_nan": false,
+            "within_tolerance": false
+          }
+        ],
+        "passed": false,
+        "rtol": 0.0001,
+        "atol": 1e-05,
+        "scope": "raw logits/boxes for one fixed image and prompt only; padding negative infinities compared by sign"
+      },
+      "reference_count": 0,
+      "candidate_count": 0,
+      "matched": 0,
+      "missing": 0,
+      "extra": 0,
+      "minimum_iou": null,
+      "maximum_score_difference": null,
+      "reference_scores": [],
+      "candidate_scores": [],
+      "reference_boxes": [],
+      "candidate_boxes": []
+    }
+  ],
+  "positive_reference_images": 2,
+  "raw_quality_passed": false,
+  "all_detection_counts_match": true,
+  "decision": "diagnostic only; no production engine change"
+}

@@ -1,0 +1,111 @@
+{
+  "collected_at": "2026-11-18T06:19:37.991932+00:00",
+  "started_at": "2026-11-18T06:15:42.506089+00:00",
+  "capture_errors": [],
+  "events": 447,
+  "timings": [
+    {
+      "boundary": "CLIP_STAGE / text_embed / all / observed / handler_ms",
+      "count": 146,
+      "sum_ms": 5812.223,
+      "p50_ms": 7.743,
+      "p95_ms": 142.834,
+      "max_ms": 859.402
+    },
+    {
+      "boundary": "CLIP_STAGE / text_embed / all / observed / lock_wait_ms",
+      "count": 146,
+      "sum_ms": 0.3,
+      "p50_ms": 0.002,
+      "p95_ms": 0.003,
+      "max_ms": 0.004
+    },
+    {
+      "boundary": "HTTP / /api/datasets / all / observed / wall_ms",
+      "count": 7,
+      "sum_ms": 808.0,
+      "p50_ms": 22.0,
+      "p95_ms": 376.0,
+      "max_ms": 376.0
+    },
+    {
+      "boundary": "HTTP / /api/search/scenes / all / observed / wall_ms",
+      "count": 148,
+      "sum_ms": 180923.0,
+      "p50_ms": 241.0,
+      "p95_ms": 5600.0,
+      "max_ms": 5818.0
+    },
+    {
+      "boundary": "SEARCH / boundary / 21 / observed / ai_ms",
+      "count": 74,
+      "sum_ms": 3934.0,
+      "p50_ms": 14.0,
+      "p95_ms": 304.0,
+      "max_ms": 964.0
+    },
+    {
+      "boundary": "SEARCH / boundary / 21 / observed / db_mapping_ms",
+      "count": 74,
+      "sum_ms": 24312.0,
+      "p50_ms": 85.0,
+      "p95_ms": 1022.0,
+      "max_ms": 1141.0
+    },
+    {
+      "boundary": "SEARCH / boundary / 21 / observed / total_ms",
+      "count": 74,
+      "sum_ms": 28284.0,
+      "p50_ms": 103.0,
+      "p95_ms": 1110.0,
+      "max_ms": 1289.0
+    },
+    {
+      "boundary": "SEARCH / boundary / null / observed / ai_ms",
+      "count": 72,
+      "sum_ms": 3110.0,
+      "p50_ms": 12.0,
+      "p95_ms": 148.0,
+      "max_ms": 284.0
+    },
+    {
+      "boundary": "SEARCH / boundary / null / observed / db_mapping_ms",
+      "count": 72,
+      "sum_ms": 148748.0,
+      "p50_ms": 268.0,
+      "p95_ms": 5545.0,
+      "max_ms": 5654.0
+    },
+    {
+      "boundary": "SEARCH / boundary / null / observed / total_ms",
+      "count": 72,
+      "sum_ms": 151900.0,
+      "p50_ms": 346.0,
+      "p95_ms": 5673.0,
+      "max_ms": 5816.0
+    }
+  ],
+  "failures": [
+    {
+      "tag": "HTTP",
+      "at": "2026-11-18T06:16:02.933068252Z",
+      "request": "6e8f6268-9a3d-476b-b4dc-8d76f0f5ef6b",
+      "method": "GET",
+      "route": "/api/search/scenes",
+      "status": "503",
+      "wall_ms": "128",
+      "service": "backend"
+    },
+    {
+      "tag": "HTTP",
+      "at": "2026-11-18T06:19:20.939790545Z",
+      "request": "911ddded-2c91-4b92-a7f5-26e3f18cb6f9",
+      "method": "GET",
+      "route": "/api/search/scenes",
+      "status": "503",
+      "wall_ms": "320",
+      "service": "backend"
+    }
+  ],
+  "limitation": "Inclusive/nested spans overlap; do not sum rows. Missing stages are unmeasured. Browser metrics are self-reported. CPU time is not CUDA kernel time."
+}

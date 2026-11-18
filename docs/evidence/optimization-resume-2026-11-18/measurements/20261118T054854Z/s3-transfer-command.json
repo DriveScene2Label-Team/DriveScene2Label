@@ -1,0 +1,10 @@
+[
+  "C:\\Users\\User\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+  "scripts/hybrid/benchmark_s3_transfers.py",
+  "--directory",
+  ".local\\hybrid\\measurements\\20261118T054854Z",
+  "--source",
+  ".local/hybrid/fixtures/20261117T1527Z-index/clip-index-two-scenes.tgz",
+  "--env-file",
+  "C:\\Users\\User\\AppData\\Local\\DriveScene2Label\\hybrid\\compose.env"
+]

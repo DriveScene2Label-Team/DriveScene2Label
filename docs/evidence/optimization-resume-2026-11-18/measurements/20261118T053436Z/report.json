@@ -1,0 +1,9 @@
+{
+  "collected_at": "2026-11-18T05:37:26.560464+00:00",
+  "started_at": "2026-11-18T05:34:36.200843+00:00",
+  "capture_errors": [],
+  "events": 0,
+  "timings": [],
+  "failures": [],
+  "limitation": "Inclusive/nested spans overlap; do not sum rows. Missing stages are unmeasured. Browser metrics are self-reported. CPU time is not CUDA kernel time."
+}

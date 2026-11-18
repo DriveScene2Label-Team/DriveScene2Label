@@ -22,21 +22,27 @@ def summarize_plan(node):
 
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--directory',type=Path,required=True)
-    p.add_argument('--env-file',type=Path,required=True);p.add_argument('--dataset-id',type=int,default=21);a=p.parse_args()
+    p.add_argument('--env-file',type=Path,required=True);p.add_argument('--dataset-id',type=int,default=21)
+    p.add_argument('--plan-mode',choices=('auto','force_custom_plan','force_generic_plan','paired_custom'),default='auto')
+    p.add_argument('--baseline-sql',type=Path,help='Preserved original SQL for reproducibility after production adoption');a=p.parse_args()
     directory=a.directory.resolve()
     if not (directory/'manifest.json').is_file():raise ValueError('Begin a fresh measurement')
     source=ROOT/'src/main/java/com/example/demo/nuscenes/repository/SceneSearchRepository.java'
+    experiment=ROOT/'src/main/java/com/example/demo/nuscenes/benchmark/QueryExperiment.java'
+    (directory/'query-experiment-source.java').write_bytes(experiment.read_bytes())
     content=source.read_text(encoding='utf-8');matches=re.findall(r'jdbc\.sql\("""\s*\n(.*?)"""\)',content,re.S)
-    if len(matches)!=1:raise ValueError('Expected one exact search SQL text block')
-    sql=textwrap.dedent(matches[0]);(directory/'search-baseline.sql').write_text(sql,encoding='utf-8')
+    if not a.baseline_sql and len(matches)!=1:raise ValueError('Expected one exact search SQL text block; use --baseline-sql after adoption')
+    sql=a.baseline_sql.read_text(encoding='utf-8') if a.baseline_sql else textwrap.dedent(matches[0])
+    (directory/'search-baseline.sql').write_text(sql,encoding='utf-8')
     save_json(directory/'query-source.json',{'repository_file':str(source.relative_to(ROOT)),'source_sha256':hashlib.sha256(source.read_bytes()).hexdigest(),
-        'sql_sha256':hashlib.sha256(sql.encode()).hexdigest(),'only_change':'distances CTE AS MATERIALIZED',
+        'sql_sha256':hashlib.sha256(sql.encode()).hexdigest(),'experiment_source_sha256':hashlib.sha256(experiment.read_bytes()).hexdigest(),
+        'candidate':'distances CTE AS MATERIALIZED; paired_custom also times candidate SET LOCAL','session_plan_mode':a.plan_mode,
         'gate':'all ordered fields identical; inspect client/server time and temp I/O; no automatic deployment'})
     name='ds2l-query-'+directory.name.lower()
     command=['docker','compose','--env-file',str(a.env_file),'-f','compose.hybrid.yml','-f','compose.gpu.yml','-f','compose.hybrid-auth.yml',
              'run','--rm','--no-deps','--name',name,'--entrypoint','java','-v',str(directory)+':/evidence','backend',
              '-Dloader.main=com.example.demo.nuscenes.benchmark.QueryExperiment','-cp','/app/app.jar',
-             'org.springframework.boot.loader.launch.PropertiesLauncher',str(a.dataset_id),'/evidence/search-baseline.sql','/evidence/query-output']
+             'org.springframework.boot.loader.launch.PropertiesLauncher',str(a.dataset_id),'/evidence/search-baseline.sql','/evidence/query-output',a.plan_mode]
     save_json(directory/'jdbc-command.json',command)
     with (directory/'jdbc.stdout.log').open('wb') as out,(directory/'jdbc.stderr.log').open('wb') as err:
         result=subprocess.run(command,cwd=ROOT,stdout=out,stderr=err)
@@ -57,7 +63,7 @@ def main():
         row['client_reduction']=1-row['modes']['materialized']['client_median_seconds']/row['modes']['baseline']['client_median_seconds']
         scenarios.append(row)
     save_json(directory/'query-comparison.json',{'scope':'exact read-only SQL on three stored image-query fixtures; paired 3 repeats/scenario; not text model inference',
-        'quality_passed':True,'pairs':len(checks),'scenarios':scenarios,'decision':'inspect workload-specific timing and temp I/O before any production SQL change',
+        'quality_passed':True,'pairs':len(checks),'scenarios':scenarios,'session_plan_mode':a.plan_mode,'decision':'inspect workload-specific timing and temp I/O before any production SQL change',
         'raw_plans':'query-output/*-plan.json retained locally; may contain query vector literals; excluded from Git'})
     print(json.dumps({'quality_passed':True,'pairs':len(checks),'scenarios':len(scenarios)}),flush=True)
 

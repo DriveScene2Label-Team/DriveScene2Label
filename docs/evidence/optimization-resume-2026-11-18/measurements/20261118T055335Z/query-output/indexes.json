@@ -1,0 +1,82 @@
+[
+  {
+    "tablename": "calibrated_sensor",
+    "indexname": "calibrated_sensor_dataset_id_token_key",
+    "indexdef": "CREATE UNIQUE INDEX calibrated_sensor_dataset_id_token_key ON public.calibrated_sensor USING btree (dataset_id, token)"
+  },
+  {
+    "tablename": "calibrated_sensor",
+    "indexname": "calibrated_sensor_pkey",
+    "indexdef": "CREATE UNIQUE INDEX calibrated_sensor_pkey ON public.calibrated_sensor USING btree (id)"
+  },
+  {
+    "tablename": "image_embedding",
+    "indexname": "image_embedding_dataset_id_sample_data_token_model_name_pre_key",
+    "indexdef": "CREATE UNIQUE INDEX image_embedding_dataset_id_sample_data_token_model_name_pre_key ON public.image_embedding USING btree (dataset_id, sample_data_token, model_name, preprocess)"
+  },
+  {
+    "tablename": "image_embedding",
+    "indexname": "image_embedding_pkey",
+    "indexdef": "CREATE UNIQUE INDEX image_embedding_pkey ON public.image_embedding USING btree (id)"
+  },
+  {
+    "tablename": "sample",
+    "indexname": "idx_sample_scene_time",
+    "indexdef": "CREATE INDEX idx_sample_scene_time ON public.sample USING btree (dataset_id, scene_token, timestamp_us)"
+  },
+  {
+    "tablename": "sample",
+    "indexname": "sample_dataset_id_token_key",
+    "indexdef": "CREATE UNIQUE INDEX sample_dataset_id_token_key ON public.sample USING btree (dataset_id, token)"
+  },
+  {
+    "tablename": "sample",
+    "indexname": "sample_pkey",
+    "indexdef": "CREATE UNIQUE INDEX sample_pkey ON public.sample USING btree (id)"
+  },
+  {
+    "tablename": "sample_data",
+    "indexname": "idx_sample_data_frame",
+    "indexdef": "CREATE INDEX idx_sample_data_frame ON public.sample_data USING btree (dataset_id, sample_token, is_key_frame)"
+  },
+  {
+    "tablename": "sample_data",
+    "indexname": "sample_data_dataset_id_token_key",
+    "indexdef": "CREATE UNIQUE INDEX sample_data_dataset_id_token_key ON public.sample_data USING btree (dataset_id, token)"
+  },
+  {
+    "tablename": "sample_data",
+    "indexname": "sample_data_pkey",
+    "indexdef": "CREATE UNIQUE INDEX sample_data_pkey ON public.sample_data USING btree (id)"
+  },
+  {
+    "tablename": "scene",
+    "indexname": "idx_scene_conditions",
+    "indexdef": "CREATE INDEX idx_scene_conditions ON public.scene USING btree (dataset_id, is_night, is_rain)"
+  },
+  {
+    "tablename": "scene",
+    "indexname": "idx_scene_dataset",
+    "indexdef": "CREATE INDEX idx_scene_dataset ON public.scene USING btree (dataset_id, name)"
+  },
+  {
+    "tablename": "scene",
+    "indexname": "scene_dataset_id_token_key",
+    "indexdef": "CREATE UNIQUE INDEX scene_dataset_id_token_key ON public.scene USING btree (dataset_id, token)"
+  },
+  {
+    "tablename": "scene",
+    "indexname": "scene_pkey",
+    "indexdef": "CREATE UNIQUE INDEX scene_pkey ON public.scene USING btree (id)"
+  },
+  {
+    "tablename": "sensor",
+    "indexname": "sensor_dataset_id_token_key",
+    "indexdef": "CREATE UNIQUE INDEX sensor_dataset_id_token_key ON public.sensor USING btree (dataset_id, token)"
+  },
+  {
+    "tablename": "sensor",
+    "indexname": "sensor_pkey",
+    "indexdef": "CREATE UNIQUE INDEX sensor_pkey ON public.sensor USING btree (id)"
+  }
+]

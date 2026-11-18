@@ -1,0 +1,90 @@
+{
+  "started_at": "2026-11-18T06:01:26.314109427Z",
+  "dataset": 21,
+  "plan_cache_mode": "force_generic_plan",
+  "scope": "existing RDS; read-only exact search; three stored image vectors as query fixtures, not text inference or end-to-end API timing",
+  "baseline_sql_sha256": "0583e2974eeb250f49017c4578f337fae19c4756dda808d5ef859813cf3fcb33",
+  "materialized_sql_sha256": "9685a88d24e1b4df84c6de9b77fb7901398bea3bd9867338d438763ed2becc2c",
+  "candidate": "materialize distance CTE to avoid repeated cosine calculations; may add temp I/O",
+  "quality_gate": "all ordered SQL result fields equal for dataset/global and MAX/AVERAGE/TOP_K_AVERAGE",
+  "server": [
+    {
+      "version": "PostgreSQL 16.15 on aarch64-unknown-linux-gnu, compiled by aarch64-unknown-linux-gnu-gcc (GCC) 12.4.0, 64-bit",
+      "work_mem": "4MB",
+      "jit": "off",
+      "parallel_workers": "2"
+    }
+  ],
+  "extensions": [
+    {
+      "extname": "vector",
+      "extversion": "0.8.2"
+    }
+  ],
+  "row_counts": [
+    {
+      "dataset_id": 6,
+      "images": 2424
+    },
+    {
+      "dataset_id": 7,
+      "images": 2424
+    },
+    {
+      "dataset_id": 8,
+      "images": 474
+    },
+    {
+      "dataset_id": 9,
+      "images": 474
+    },
+    {
+      "dataset_id": 10,
+      "images": 474
+    },
+    {
+      "dataset_id": 11,
+      "images": 474
+    },
+    {
+      "dataset_id": 12,
+      "images": 474
+    },
+    {
+      "dataset_id": 13,
+      "images": 474
+    },
+    {
+      "dataset_id": 14,
+      "images": 474
+    },
+    {
+      "dataset_id": 15,
+      "images": 474
+    },
+    {
+      "dataset_id": 16,
+      "images": 474
+    },
+    {
+      "dataset_id": 17,
+      "images": 474
+    },
+    {
+      "dataset_id": 18,
+      "images": 474
+    },
+    {
+      "dataset_id": 19,
+      "images": 474
+    },
+    {
+      "dataset_id": 20,
+      "images": 474
+    },
+    {
+      "dataset_id": 21,
+      "images": 2424
+    }
+  ]
+}

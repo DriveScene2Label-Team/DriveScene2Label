@@ -1,0 +1,6 @@
+[
+  "docker",
+  "cp",
+  "$REPO\\ai-server\\tools\\benchmark_runtime_detections.py",
+  "drivescene-hybrid-ai-server-1:/tmp/ds2l-runtime-resume-20261118T053854Z/tools/benchmark_runtime_detections.py"
+]

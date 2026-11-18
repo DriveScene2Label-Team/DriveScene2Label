@@ -1,0 +1,5 @@
+{
+  "path": "scripts/hybrid/benchmark_s3_transfers.py",
+  "sha256": "598ee72630e64c14529ef6e14699381c84eb9cde24304befa76b80e3d4526c40",
+  "note": "source snapshot during running trial; unchanged since its start"
+}

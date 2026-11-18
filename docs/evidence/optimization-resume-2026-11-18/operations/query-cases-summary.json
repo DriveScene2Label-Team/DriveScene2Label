@@ -1,0 +1,66 @@
+[
+  {
+    "measurement": "20261118T055335Z",
+    "mode": "auto (server default, original runner before mode flag)",
+    "pairs": 54,
+    "exact": true,
+    "scope_median_of_scenario_medians_ms": {
+      "dataset": {
+        "baseline": 801.9534299999999,
+        "materialized": 364.575978
+      },
+      "global": {
+        "baseline": 4488.779202,
+        "materialized": 1996.241444
+      }
+    }
+  },
+  {
+    "measurement": "20261118T060035Z",
+    "mode": "force_custom_plan",
+    "pairs": 54,
+    "exact": true,
+    "scope_median_of_scenario_medians_ms": {
+      "dataset": {
+        "baseline": 82.054778,
+        "materialized": 48.308417
+      },
+      "global": {
+        "baseline": 399.737796,
+        "materialized": 206.787834
+      }
+    }
+  },
+  {
+    "measurement": "20261118T060123Z",
+    "mode": "force_generic_plan",
+    "pairs": 54,
+    "exact": true,
+    "scope_median_of_scenario_medians_ms": {
+      "dataset": {
+        "baseline": 797.46501,
+        "materialized": 363.54839599999997
+      },
+      "global": {
+        "baseline": 4374.25616,
+        "materialized": 1954.438935
+      }
+    }
+  },
+  {
+    "measurement": "20261118T060849Z",
+    "mode": "paired_custom",
+    "pairs": 54,
+    "exact": true,
+    "scope_median_of_scenario_medians_ms": {
+      "dataset": {
+        "baseline": 789.56232,
+        "materialized": 55.289547
+      },
+      "global": {
+        "baseline": 4397.725211,
+        "materialized": 218.55434400000001
+      }
+    }
+  }
+]

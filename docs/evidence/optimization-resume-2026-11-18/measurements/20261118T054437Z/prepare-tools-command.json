@@ -1,0 +1,9 @@
+[
+  "docker",
+  "exec",
+  "drivescene-hybrid-ai-server-1",
+  "mkdir",
+  "-p",
+  "/tmp/ds2l-runtime-resume-20261118T054437Z/tools",
+  "/tmp/ds2l-runtime-resume-20261118T054437Z/services"
+]

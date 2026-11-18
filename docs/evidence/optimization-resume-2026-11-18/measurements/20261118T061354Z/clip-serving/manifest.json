@@ -1,0 +1,18 @@
+{
+  "boundary": "FastAPI text route via TestClient, JSON and lock included; no TCP/Spring/RDS",
+  "model": "ViT-L-14-quickgelu/openai",
+  "same_loaded_model_for_both_modes": true,
+  "torch": "2.14.1+cu130",
+  "python": "3.12.16",
+  "gpu": "NVIDIA GeForce RTX 5060 Ti",
+  "threads": 1,
+  "cache_sizes": [
+    0,
+    256
+  ],
+  "cache_condition": "cleared at each 16-request batch; model warm; 3 rotated paired repeats",
+  "source_sha256": {
+    "tools/benchmark_clip_serving.py": "d50209cb1cb09d69ab5e32c8d49646fd119fb616b206fb2582b9ee7c20f62ed4",
+    "services/clip_service.py": "8f68ea5670aedc07171cd1db430f4429d9beeaa96756680ea342bbf066c9dc36"
+  }
+}

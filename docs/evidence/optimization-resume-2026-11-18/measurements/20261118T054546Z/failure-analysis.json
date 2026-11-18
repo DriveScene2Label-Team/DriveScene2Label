@@ -1,0 +1,7 @@
+{
+  "status": "failed",
+  "error_type": "TypeError",
+  "reason": "Installed boto3 client is not a context manager; failed before creating any S3 object",
+  "old_status_note": "Original running status retained; old benchmark lacked failure status update",
+  "fix": "contextlib.closing retains wrapper; normal/truncated StreamingBody regression tests pass"
+}

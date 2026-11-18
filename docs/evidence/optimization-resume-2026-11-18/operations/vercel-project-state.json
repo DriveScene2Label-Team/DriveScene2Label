@@ -1,0 +1,11 @@
+{
+  "id": "prj_4oVMQaMlPUX7KYegmRBW18XFd3rM",
+  "name": "drivescene2label",
+  "live": false,
+  "paused": null,
+  "latestDeployment": {
+    "id": "dpl_33z8gSRTg8cGEvw7ciPUu3tsjtyJ",
+    "readyState": "READY"
+  },
+  "note": "Read-only project metadata; existing pause unchanged. URL fetch auto-review rejected temporary share-link creation risk; no share link created. HTTP status was not rechecked."
+}

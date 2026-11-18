@@ -1,0 +1,7 @@
+{
+  "status": "failed",
+  "error_type": "AttributeError",
+  "reason": "StreamingBody context manager returns HTTPResponse; one created object version was deleted and absence verified",
+  "old_status_note": "Original running status retained; old benchmark lacked failure status update",
+  "fix": "contextlib.closing retains wrapper; normal/truncated StreamingBody regression tests pass"
+}

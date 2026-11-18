@@ -1,0 +1,22 @@
+[
+  {
+    "file": "inputs.npz",
+    "bytes": 19996396,
+    "sha256": "62a092d6c8cd24bd08705d6af828add8afd4aab83ff1eac4d4a6ef8d9db299ff"
+  },
+  {
+    "file": "manifest.json",
+    "bytes": 1442,
+    "sha256": "055c084f119038b5d094df87ea033832fe0e965389c49d02705266897f835e8c"
+  },
+  {
+    "file": "model.onnx",
+    "bytes": 967194208,
+    "sha256": "28490d00ceb75b3b272f6179a194ad0fc0a0c7e8472ded80879cadcdf6820888"
+  },
+  {
+    "file": "reference.npz",
+    "bytes": 936518,
+    "sha256": "3079a8e4708ecfeb4d7665decb1dbdea791300513ae254c2d1fa1a3a4d7a44aa"
+  }
+]

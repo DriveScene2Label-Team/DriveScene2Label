@@ -1,0 +1,18 @@
+{
+  "repeat": 2,
+  "mode": "stream",
+  "concurrency": 1,
+  "upload": {
+    "wall_seconds": 12.830776800000194,
+    "cpu_seconds": 0.9375
+  },
+  "download": {
+    "wall_seconds": 4.431598500000064,
+    "cpu_seconds": 0.5
+  },
+  "bytes": 109696439,
+  "sha256_matches": true,
+  "source_sha256": "4e3e8959c49ce9f6ba4fb0817a443d2af9763d85e6a15f00290189834a4ce9c5",
+  "object_key": "uploads/b19aa6b3-0161-40ed-a32f-1968792880f5.tgz",
+  "etag": "\"495381f7710f30202e11b7ddc4c6f112\""
+}

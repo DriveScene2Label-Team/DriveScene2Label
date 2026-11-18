@@ -1,0 +1,37 @@
+[
+  {
+    "name": "S_3",
+    "statement_hash": "1242a1a7a3cd948d17adda1117c2b9d6",
+    "parameter_types": "{\"character varying\",\"character varying\",\"character varying\",bigint,bigint,boolean,\"character varying\",integer,\"character varying\",integer,integer}",
+    "generic_plans": 0,
+    "custom_plans": 12
+  },
+  {
+    "name": "S_4",
+    "statement_hash": "b3de9bc7d71076fa7d0971c0063d085f",
+    "parameter_types": "{\"character varying\",\"character varying\",\"character varying\",bigint,bigint,boolean,\"character varying\",integer,\"character varying\",integer,integer}",
+    "generic_plans": 0,
+    "custom_plans": 12
+  },
+  {
+    "name": "S_5",
+    "statement_hash": "10912817c3d0abd5e40342ee00e5d581",
+    "parameter_types": "{\"character varying\",\"character varying\",\"character varying\",bigint,bigint,boolean,\"character varying\",integer,\"character varying\",integer,integer}",
+    "generic_plans": 0,
+    "custom_plans": 2
+  },
+  {
+    "name": "S_6",
+    "statement_hash": "3f4671f1578f26f924aca3e1e2c89cab",
+    "parameter_types": "{\"character varying\",\"character varying\",\"character varying\",bigint,bigint,boolean,\"character varying\",integer,\"character varying\",integer,integer}",
+    "generic_plans": 0,
+    "custom_plans": 2
+  },
+  {
+    "name": "S_7",
+    "statement_hash": "5620dc727700056449aa17339f09a6c2",
+    "parameter_types": "{}",
+    "generic_plans": 2,
+    "custom_plans": 0
+  }
+]

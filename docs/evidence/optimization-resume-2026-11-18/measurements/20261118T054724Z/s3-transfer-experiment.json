@@ -1,0 +1,50 @@
+{
+  "started_at": "2026-11-18T05:47:27.386088+00:00",
+  "bucket": "ds2l-189750306426-ap-northeast-2-data",
+  "region": "ap-northeast-2",
+  "source_bytes": 109696439,
+  "source_sha256": "4e3e8959c49ce9f6ba4fb0817a443d2af9763d85e6a15f00290189834a4ce9c5",
+  "source_name": "clip-index-two-scenes.tgz",
+  "orders": [
+    [
+      "stream",
+      "mp1",
+      "mp2",
+      "mp4"
+    ],
+    [
+      "mp4",
+      "mp2",
+      "mp1",
+      "stream"
+    ],
+    [
+      "mp2",
+      "stream",
+      "mp4",
+      "mp1"
+    ]
+  ],
+  "part_bytes": 16777216,
+  "scope": "isolated Python SDK upload/download; not Java app end-to-end timing",
+  "versions": {
+    "boto3": "1.35.99",
+    "botocore": "1.35.99",
+    "s3transfer": "0.10.4"
+  },
+  "cleanup": "existing operator profile deletes only new UUID object versions with matching owner metadata and aborts incomplete uploads for those exact keys; app IAM policy unchanged",
+  "status": "running",
+  "cases": [],
+  "created": [
+    {
+      "key": "uploads/605cfbf2-e066-4e06-b755-e56c5ec89aad.tgz",
+      "case": "r0-stream",
+      "version_id": "F9_XUt3SMGcVxyW1kgjSKN_UGCkoCz2N",
+      "deleted": true,
+      "aborted_incomplete_uploads": 0,
+      "absence_verified": true
+    }
+  ],
+  "cleanup_errors": [],
+  "finished_at": "2026-11-18T05:47:45.658130+00:00"
+}

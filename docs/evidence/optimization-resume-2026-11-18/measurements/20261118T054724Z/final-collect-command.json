@@ -1,0 +1,7 @@
+[
+  "C:\\Users\\User\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+  "scripts/hybrid/measurement.py",
+  "collect",
+  "--directory",
+  ".local\\hybrid\\measurements\\20261118T054724Z"
+]

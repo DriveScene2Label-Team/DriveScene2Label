@@ -1,0 +1,86 @@
+{
+  "at": "2026-11-18T06:26:04.962559+00:00",
+  "containers": [
+    {
+      "Command": "\"java -jar /app/app.…\"",
+      "CreatedAt": "2026-11-18 15:18:57 +0900 KST",
+      "ID": "83876cbf3ee5",
+      "Image": "drivescene-hybrid-backend",
+      "Labels": "com.docker.compose.config-hash=146ef815f94a89db65a87550ac406a6f08974ee809c8e08d2aa773b12863c674,com.docker.compose.container-number=1,com.docker.compose.depends_on=ai-server:service_started:false,com.docker.compose.image=sha256:d032f825ce6fb359e369e4e446ecc1c098f2eb5a7add485a0fb7f4303ff7dfa2,com.docker.compose.oneoff=False,com.docker.compose.project.config_files=$REPO\\compose.hybrid.yml,$REPO\\compose.gpu.yml,$REPO\\compose.hybrid-auth.yml,$REPO\\.local\\hybrid\\measurements\\20261118T061542Z\\optimized.yml,com.docker.compose.project.environment_file=C:\\Users\\User\\AppData\\Local\\DriveScene2Label\\hybrid\\compose.env,com.docker.compose.project.working_dir=$REPO,com.docker.compose.project=drivescene-hybrid,com.docker.compose.replace=backend-1,com.docker.compose.service=backend,com.docker.compose.version=2.40.3,desktop.docker.io/binds/3/Source=C:/Users/User/AppData/Local/DriveScene2Label/hybrid/aws,desktop.docker.io/binds/3/SourceKind=hostFile,desktop.docker.io/binds/3/Target=/run/hybrid-aws,desktop.docker.io/mounts/0/Source=C:/Users/User/AppData/Local/DriveScene2Label/hybrid/aws/credentials,desktop.docker.io/mounts/0/SourceKind=hostFile,desktop.docker.io/mounts/0/Target=/run/secrets/s3_credentials,desktop.docker.io/ports.scheme=v2,desktop.docker.io/ports/8080/tcp=127.0.0.1:8080,org.opencontainers.image.version=22.04",
+      "LocalVolumes": "3",
+      "Mounts": "drivescene-hyb…,drivescene-hyb…,/run/desktop/m…,/run/desktop/m…,drivescene-hyb…",
+      "Names": "drivescene-hybrid-backend-1",
+      "Networks": "drivescene-hybrid_default",
+      "Platform": {
+        "architecture": "amd64",
+        "os": "linux"
+      },
+      "Ports": "",
+      "RunningFor": "7 minutes ago",
+      "Size": "36.9kB (virtual 393MB)",
+      "State": "exited",
+      "Status": "Exited (143) 5 minutes ago"
+    },
+    {
+      "Command": "\"uvicorn main:app --…\"",
+      "CreatedAt": "2026-11-18 15:18:55 +0900 KST",
+      "ID": "b1c4b03ee569",
+      "Image": "c83e45cbd236",
+      "Labels": "com.docker.compose.config-hash=4a5efd46e9c41eab2745d35a012090598048755dd04e4f3f1a39b277244926fe,com.docker.compose.container-number=1,com.docker.compose.depends_on=,com.docker.compose.image=sha256:c83e45cbd236af0c189a8b178fa51db21a11fecd737ff55c41e06f08df94568c,com.docker.compose.oneoff=False,com.docker.compose.project.config_files=$REPO\\compose.hybrid.yml,$REPO\\compose.gpu.yml,$REPO\\compose.hybrid-auth.yml,$REPO\\.local\\hybrid\\measurements\\20261118T061542Z\\optimized.yml,com.docker.compose.project.environment_file=C:\\Users\\User\\AppData\\Local\\DriveScene2Label\\hybrid\\compose.env,com.docker.compose.project.working_dir=$REPO,com.docker.compose.project=drivescene-hybrid,com.docker.compose.replace=ai-server-1,com.docker.compose.service=ai-server,com.docker.compose.version=2.40.3,desktop.docker.io/ports.scheme=v2",
+      "LocalVolumes": "5",
+      "Mounts": "drivescene-hyb…,drivescene-hyb…,drivescene-hyb…,demo_model_cac…,drivescene-hyb…",
+      "Names": "drivescene-hybrid-ai-server-1",
+      "Networks": "drivescene-hybrid_default",
+      "Platform": {
+        "architecture": "amd64",
+        "os": "linux"
+      },
+      "Ports": "",
+      "RunningFor": "7 minutes ago",
+      "Size": "586kB (virtual 10.7GB)",
+      "State": "exited",
+      "Status": "Exited (0) 4 minutes ago"
+    },
+    {
+      "Command": "\"/bin/oauth2-proxy\"",
+      "CreatedAt": "2026-11-12 17:56:41 +0900 KST",
+      "ID": "6fddd6c0fd72",
+      "Image": "quay.io/oauth2-proxy/oauth2-proxy:v7.15.5",
+      "Labels": "com.docker.compose.config-hash=c775a5909aac915657a7fe114be7461f91a32efed60b3d9fd7fa445bb4b67fa6,com.docker.compose.container-number=1,com.docker.compose.depends_on=,com.docker.compose.image=sha256:8498b0d0ef0a7b29686414000a08aee467f02d0299c9ed1e006a8f33fc017916,com.docker.compose.oneoff=False,com.docker.compose.project.config_files=$REPO\\compose.hybrid.yml,$REPO\\compose.gpu.yml,$REPO\\compose.hybrid-auth.yml,com.docker.compose.project.environment_file=C:\\Users\\User\\AppData\\Local\\DriveScene2Label\\hybrid\\compose.env,com.docker.compose.project.working_dir=$REPO,com.docker.compose.project=drivescene-hybrid,com.docker.compose.replace=auth-gateway-1,com.docker.compose.service=auth-gateway,com.docker.compose.version=2.40.3,desktop.docker.io/ports.scheme=v2,desktop.docker.io/ports/4180/tcp=127.0.0.1:4180,org.opencontainers.image.description=A reverse proxy that provides authentication with Google, Azure, OpenID Connect and many more identity providers.,org.opencontainers.image.documentation=https://oauth2-proxy.github.io/oauth2-proxy/,org.opencontainers.image.licenses=MIT,org.opencontainers.image.source=https://github.com/oauth2-proxy/oauth2-proxy,org.opencontainers.image.title=oauth2-proxy,org.opencontainers.image.url=https://quay.io/oauth2-proxy/oauth2-proxy,org.opencontainers.image.version=v7.15.5",
+      "LocalVolumes": "0",
+      "Mounts": "",
+      "Names": "drivescene-hybrid-auth-gateway-1",
+      "Networks": "drivescene-hybrid_default",
+      "Platform": {
+        "architecture": "amd64",
+        "os": "linux"
+      },
+      "Ports": "",
+      "RunningFor": "5 days ago",
+      "Size": "4.1kB (virtual 48.6MB)",
+      "State": "exited",
+      "Status": "Exited (0) 5 days ago"
+    },
+    {
+      "Command": "\"/docker-entrypoint.…\"",
+      "CreatedAt": "2026-11-12 17:56:06 +0900 KST",
+      "ID": "cbe3349a5879",
+      "Image": "nginx:1.30.4-alpine",
+      "Labels": "com.docker.compose.config-hash=221af41027551a1c0d203b958501b1a5e2ca3345c75139d79b858a9e08199c2a,com.docker.compose.container-number=1,com.docker.compose.depends_on=,com.docker.compose.image=sha256:dc5069ad14f19660b141b21236140b91656bf89bbc3e2417c70ae650cd66104c,com.docker.compose.oneoff=False,com.docker.compose.project.config_files=$REPO\\compose.hybrid.yml,$REPO\\compose.gpu.yml,$REPO\\compose.hybrid-auth.yml,com.docker.compose.project.environment_file=C:\\Users\\User\\AppData\\Local\\DriveScene2Label\\hybrid\\compose.env,com.docker.compose.project.working_dir=$REPO,com.docker.compose.project=drivescene-hybrid,com.docker.compose.service=auth-upstream,com.docker.compose.version=2.40.3,desktop.docker.io/binds/0/Source=$REPO\\infra\\local\\auth-upstream.conf,desktop.docker.io/binds/0/SourceKind=hostFile,desktop.docker.io/binds/0/Target=/etc/nginx/nginx.conf,desktop.docker.io/ports.scheme=v2,maintainer=NGINX Docker Maintainers <docker-maint@nginx.com>",
+      "LocalVolumes": "0",
+      "Mounts": "/run/desktop/m…",
+      "Names": "drivescene-hybrid-auth-upstream-1",
+      "Networks": "drivescene-hybrid_default",
+      "Platform": {
+        "architecture": "amd64",
+        "os": "linux"
+      },
+      "Ports": "",
+      "RunningFor": "5 days ago",
+      "Size": "77.8kB (virtual 72.8MB)",
+      "State": "exited",
+      "Status": "Exited (0) 5 days ago"
+    }
+  ],
+  "all_stopped": true
+}

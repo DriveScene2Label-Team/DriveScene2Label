@@ -1,0 +1,6 @@
+[
+  "docker",
+  "cp",
+  "drivescene-hybrid-ai-server-1:/results/experiments/20261118T054437Z-resume/six-cameras/comparison.json",
+  "$REPO\\.local\\hybrid\\measurements\\20261118T054437Z\\detections\\comparison.json"
+]
