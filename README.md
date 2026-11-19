@@ -12,6 +12,8 @@ nuScenes 원본을 올리고, 주행 씬을 찾아 **선택한 씬의 3D 라벨�
 
 ## 11월 17~18일 최적화·검증 버전
 
+**[최적화 전후 전체 정리: 로그 → 이전 동작 → 변경 코드 → 실측 → 미해결 문제](docs/optimization-before-after-2026-11-19.md)** · [Claude 전달용 PPT 프롬프트](docs/prompts/claude-optimization-ppt-2026-11-19.md). 사용자 제안으로 검토한 스레드·FlashAttention·저정밀도·서빙 엔진과 G3/R3 보류 이유를 구분했습니다. VESPA 모델 상주는 가능하지만 실제 GPU·메모리·복구·3D 검증이 남아 있습니다.
+
 **19:43 KST 사용자 시험 후속:** 새 dataset 22·10씬과 CLIP 2,424장 등록 완료. 이후 S3 multipart를 운영 설정에서 켰습니다(1GiB 초과·16MiB·동시 4파트, 코드 기본값 OFF). job 14는 20:42 KST 완료됐고 현재 상태는 위 마감 기록을 따릅니다. **[문제·해결 이유·장단점·비용·모델 상주 검토](docs/optimization-decisions-and-costs-2026-11-18.md)** · [해시 포함 검토용 로그](docs/evidence/optimization-decisions-2026-11-18/README.md). 이번 업로드 자체는 single PUT 기준선입니다.
 
 모델은 CLIP만 서버 시작 시 로드하고 VESPA는 작업별 자식 프로세스에서 필요 시 로드합니다. job 14의 CPU 지면 제거 350.0초, 첫 Grounding DINO 15.6초·SAM 5.7초를 분리했습니다. 모델 상주 worker는 다음 검증 후보이며 아직 적용하지 않았습니다. DINOv2 getter 계측 코드는 추가했지만 이번 사용자 실행 중 AI 컨테이너는 교체하지 않았고 마감 때 중지했습니다.
