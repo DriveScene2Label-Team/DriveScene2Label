@@ -1,7 +1,7 @@
-"""Generate the Rerun blueprints the web app sends to the viewer to mirror its GT / 예측 / 클래스 이름 toggles.
+"""Generate the Rerun blueprints the web app sends to the viewer to mirror its GT / 예측 / 클래스 이름 / 비교 toggles.
 
 The Rerun Web Viewer 0.38.1 JS API cannot hide entities, but it applies a blueprint received through a log channel.
-A blueprint only depends on the application id and entity paths (not on recording data), so the eight toggle
+A blueprint only depends on the application id and entity paths (not on recording data), so the sixteen toggle
 combinations are generated once and served as static files.
 
 Run with the exporter's SDK (rerun-sdk 0.38.1), and regenerate whenever the SDK version, the application id or the
@@ -24,8 +24,10 @@ VIEW_ID = uuid.UUID("6c6a3c39-3d6b-4d2b-9a77-1f3a2b8c0d11")
 ROOT_ID = uuid.UUID("6c6a3c39-3d6b-4d2b-9a77-1f3a2b8c0d12")
 
 
-def contents(gt: bool, pred: bool, names: bool) -> list[str]:
+def contents(gt: bool, pred: bool, names: bool, cmp: bool) -> list[str]:
     rules = ["+ /**"]
+    if not cmp:
+        rules.append("- /world/comparison/**")
     if not gt:
         rules += ["- /world/gt/**", "- /world/labels/gt/**"]
     if not pred:
@@ -37,8 +39,8 @@ def contents(gt: bool, pred: bool, names: bool) -> list[str]:
     return rules
 
 
-def write_blueprint(path: Path, gt: bool, pred: bool, names: bool) -> None:
-    view = rrb.Spatial3DView(origin="/", contents=contents(gt, pred, names), name="3D")
+def write_blueprint(path: Path, gt: bool, pred: bool, names: bool, cmp: bool) -> None:
+    view = rrb.Spatial3DView(origin="/", contents=contents(gt, pred, names, cmp), name="3D")
     view.id = VIEW_ID
     bp = rrb.Blueprint(view, auto_layout=False, auto_views=False)
     bp.root_container.id = ROOT_ID
@@ -61,10 +63,11 @@ def main() -> int:
     for gt in (True, False):
         for pred in (True, False):
             for names in (True, False):
-                name = f"gt{int(gt)}-pred{int(pred)}-names{int(names)}.rbl"
-                write_blueprint(OUT / name, gt, pred, names)
-                check(OUT / name)
-                print(name)
+                for cmp in (True, False):
+                    name = f"gt{int(gt)}-pred{int(pred)}-names{int(names)}-cmp{int(cmp)}.rbl"
+                    write_blueprint(OUT / name, gt, pred, names, cmp)
+                    check(OUT / name)
+                    print(name)
     return 0
 
 

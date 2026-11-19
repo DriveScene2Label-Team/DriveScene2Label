@@ -45,7 +45,9 @@ function RecordingBody({ paneId, scene, enabled }: Props) {
   const qc = useQueryClient();
   const listQ = useQuery({ ...recordingsQuery(scene.id), enabled });
   const targetJob = pane.resultJobId;
-  const plan = useMemo(() => (listQ.data ? planRecording(listQ.data, targetJob, pane.recordingId) : undefined), [listQ.data, targetJob, pane.recordingId]);
+  // A comparison job (HUD 비교) is drawn in the same 3D recording as its own red entity.
+  const targetCmp = targetJob != null && pane.compareJobId != null && pane.compareJobId !== targetJob ? pane.compareJobId : null;
+  const plan = useMemo(() => (listQ.data ? planRecording(listQ.data, targetJob, pane.recordingId, targetCmp) : undefined), [listQ.data, targetJob, pane.recordingId, targetCmp]);
   const picked = plan?.primary;
   const detailQ = useQuery({
     ...recordingQuery(picked?.recordingId ?? -1),
@@ -61,18 +63,18 @@ function RecordingBody({ paneId, scene, enabled }: Props) {
 
   // If the shown job changes, drop an explicit choice that belonged to another job.
   useEffect(() => {
-    if (pane.recordingId != null && rec && rec.recordingId === pane.recordingId && rec.jobId !== targetJob) setRecording(paneId, null);
-  }, [rec, pane.recordingId, targetJob, paneId, setRecording]);
+    if (pane.recordingId != null && rec && rec.recordingId === pane.recordingId && (rec.jobId !== targetJob || (rec.compareJobId ?? null) !== targetCmp)) setRecording(paneId, null);
+  }, [rec, pane.recordingId, targetJob, targetCmp, paneId, setRecording]);
 
   const scope = useServer((s) => s.scope);
   const system = useSystemStatus(scene.datasetId);
   const capability = system.capability('recording');
-  const subKey = recordingKey({ instanceId: scope, sceneId: scene.id, jobId: targetJob });
+  const subKey = recordingKey({ instanceId: scope, sceneId: scene.id, jobId: targetJob, compareJobId: targetCmp });
   const submission = useSubmissions((st) => st.recordings[subKey]);
   const creating = submission?.status === 'pending';
   const create = () => void submitRecording({
     instanceId: scope, datasetId: scene.datasetId, datasetChecksum: system.status?.dataset?.metadataChecksum ?? null, sceneId: scene.id,
-    sceneToken: scene.token, sceneName: scene.name, paneId, generation: pane.generation, jobId: targetJob, requestedAt: Date.now(),
+    sceneToken: scene.token, sceneName: scene.name, paneId, generation: pane.generation, jobId: targetJob, compareJobId: targetCmp, requestedAt: Date.now(),
   }, () => useServer.getState().scope);
   // A target without any recording (new label job, or a scene never opened in 3D) gets one without a click.
   // Once per page session per target; FAILED recordings are retried only by the button.
@@ -108,7 +110,8 @@ function RecordingBody({ paneId, scene, enabled }: Props) {
     );
   }
 
-  const jobText = targetJob != null ? `작업 #${targetJob} 예측 포함` : 'GT·센서만';
+  const jobText = targetJob == null ? 'GT·센서만' : targetCmp != null ? `작업 #${targetJob} 예측 + 비교 #${targetCmp}` : `작업 #${targetJob} 예측 포함`;
+  const targetText = targetCmp != null ? `작업 #${targetJob} 예측과 비교 #${targetCmp}` : `작업 #${targetJob} 예측`;
   const createButton = (labelText: string) => (
     <>
       <button type="button" className="btn primary sm" onClick={create} disabled={creating || !capability.canExecute} data-testid="create-recording">
@@ -128,15 +131,16 @@ function RecordingBody({ paneId, scene, enabled }: Props) {
   const fallbackRec = fallbackQ.data;
   if (targetJob != null && status !== 'FAILED' && !(status === 'READY' && rec?.contentUrl) && fallbackRec?.status === 'READY' && fallbackRec.contentUrl) {
     const progress = picked
-      ? `작업 #${targetJob} 예측을 담은 3D ${RECORDING_STATUS_KO[status ?? ''] ?? status ?? ''} · 준비되면 자동으로 바뀌어요`
-      : creating ? `작업 #${targetJob} 예측을 담은 3D를 요청하고 있어요` : null;
+      ? `${targetText}을 담은 3D ${RECORDING_STATUS_KO[status ?? ''] ?? status ?? ''} · 준비되면 자동으로 바뀌어요`
+      : creating ? `${targetText}을 담은 3D를 요청하고 있어요` : null;
+    const showing = fallbackRec.jobId != null ? `작업 #${fallbackRec.jobId} 3D 보는 중` : 'GT·센서만 보는 중';
     return (
       <>
         <RerunViewer key={fallbackRec.recordingId} paneId={paneId} recording={fallbackRec} displayedSampleToken={pane.displayedSampleToken} onFileMissing={onFileMissing} />
         <div className="v3d-fallback" role="status" data-testid="recording-badge">
           <b>LIDAR_TOP · 3D</b>
-          <span data-testid="recording-fallback">GT·센서만 보는 중 · {progress ?? `작업 #${targetJob} 예측을 담은 3D가 아직 없어요`}</span>
-          {!picked && !creating && createButton(`작업 #${targetJob} 예측 3D 만들기`)}
+          <span data-testid="recording-fallback">{showing} · {progress ?? `${targetText}을 담은 3D가 아직 없어요`}</span>
+          {!picked && !creating && createButton(`${targetText} 3D 만들기`)}
         </div>
       </>
     );
@@ -157,7 +161,7 @@ function RecordingBody({ paneId, scene, enabled }: Props) {
         <RerunViewer key={rec.recordingId} paneId={paneId} recording={rec} displayedSampleToken={pane.displayedSampleToken} onFileMissing={onFileMissing} />
         {/* Not drawn over the viewer (it covered Rerun's own timeline controls); kept for screen readers and tests. */}
         <div className="sr-only" role="status" data-testid="recording-badge">
-          3D recording 열림 · {rec.jobId != null ? `GT + 작업 #${rec.jobId} 예측` : 'GT·센서'} · 원본 박스 기준, GT·예측·클래스 이름 표시는 위 버튼을 따라요
+          3D recording 열림 · {rec.jobId != null ? `GT + 작업 #${rec.jobId} 예측${rec.compareJobId != null ? ` + 비교 #${rec.compareJobId}` : ''}` : 'GT·센서'} · 원본 박스 기준, GT·예측·클래스 이름·비교 표시는 위 버튼을 따라요
         </div>
       </>
     );

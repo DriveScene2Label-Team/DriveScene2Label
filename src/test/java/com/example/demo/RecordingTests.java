@@ -49,10 +49,15 @@ class RecordingTests {
     body.put("recording_id",id).put("execution_token",token).put("relative_path",mode.equals("traversal")?"../escape.rrd":path).put("size_bytes",rrd.length)
      .put("checksum",mode.equals("checksum")?"b".repeat(64):sha(rrd)).put("sdk_version",mode.equals("sdk")?"0.21.0":"0.38.1").put("export_version","ds2l-rrd-v3")
      .put("application_id","drivescene2label").put("rerun_recording_id","ds2l-recording-"+id).put("timeline","sample").put("time_timeline","timestamp");
-    body.putObject("entities").put("lidar","world/lidar").put("ego","world/ego").put("gt","world/gt").put("prediction","world/prediction");
+    var entities=body.putObject("entities").put("lidar","world/lidar").put("ego","world/ego").put("gt","world/gt").put("prediction","world/prediction");
+    boolean compare=!input.path("compare_job_id").isNull() && !input.path("compare_job_id").isMissingNode();
+    if(compare) entities.put("comparison","world/comparison");
     var samples=body.putArray("samples");
-    for(JsonNode s:input.path("samples")) samples.addObject().put("index",s.path("index").asInt()).put("sample_token",s.path("sample_token").asText())
-     .put("lidar_points",s.path("lidar").isNull()?0:34688).put("gt_boxes",s.path("gt").size()+(mode.equals("count")?1:0)).put("prediction_boxes",s.path("predictions").size());
+    for(JsonNode s:input.path("samples")) {
+     var row=samples.addObject().put("index",s.path("index").asInt()).put("sample_token",s.path("sample_token").asText())
+      .put("lidar_points",s.path("lidar").isNull()?0:34688).put("gt_boxes",s.path("gt").size()+(mode.equals("count")?1:0)).put("prediction_boxes",s.path("predictions").size());
+     if(compare) row.put("comparison_boxes",s.path("comparison_predictions").size()+(mode.equals("cmpcount")?1:0));
+    }
     byte[] bytes=(mode.equals("fail")?"{\"detail\":{\"code\":\"RECORDING_EXPORT_FAILED\",\"message\":\"exporter crashed\"}}":JSON.writeValueAsString(body)).getBytes(StandardCharsets.UTF_8);
     exchange.getResponseHeaders().set("Content-Type","application/json"); exchange.sendResponseHeaders(mode.equals("fail")?502:200,bytes.length);
     try(var output=exchange.getResponseBody()) { output.write(bytes); }
@@ -245,6 +250,35 @@ class RecordingTests {
   work();
   assertThat(recordingStatus(retry)).isEqualTo("READY"); assertThat(jobSnapshot()).isEqualTo(before);
   mvc.perform(get("/api/scenes/{id}/recordings",scene)).andExpect(jsonPath("$.length()").value(reasons.size()+1)).andExpect(jsonPath("$[0].recordingId").value(retry));
+ }
+ @Test void compareJobBoxesGoIntoTheirOwnRecordingAndEntity() throws Exception {
+  long cmp=job(dataset,"cmp","scene-token","COMPLETED");
+  for(String token:List.of("sample-b","sample-a")) jdbc.sql("INSERT INTO auto_label_job_sample(job_id,dataset_id,sample_token) VALUES(:j,:d,:t)").param("j",cmp).param("d",dataset).param("t",token).update();
+  long cmpBox=jdbc.sql("""
+   INSERT INTO predicted_annotation(job_id,dataset_id,sample_token,box_index,detection_name,center_x,center_y,center_z,size_w,size_l,size_h,rotation_w,rotation_x,rotation_y,rotation_z,velocity_x,velocity_y,detection_score,raw_payload)
+   VALUES(:j,:d,'sample-a',0,'car',1,2,3,2,4.4,1.5,1,0,0,0,0,0,1,'{}') RETURNING id""").param("j",cmp).param("d",dataset).query(Long.class).single();
+  long plain=create(scene,"{\"jobId\":"+job+"}",202,false);
+  long both=create(scene,"{\"jobId\":"+job+",\"compareJobId\":"+cmp+"}",202,false);
+  assertThat(both).isNotEqualTo(plain);
+  assertThat(create(scene,"{\"jobId\":"+job+",\"compareJobId\":"+cmp+"}",200,true)).isEqualTo(both);
+  work(); work();
+  JsonNode request=LAST.get();
+  assertThat(request.path("recording_id").asLong()).isEqualTo(both); assertThat(request.path("compare_job_id").asLong()).isEqualTo(cmp);
+  assertThat(request.path("samples").get(0).path("comparison_predictions").size()).isZero();
+  assertThat(request.path("samples").get(1).path("comparison_predictions").get(0).path("id").asLong()).isEqualTo(cmpBox);
+  assertThat(request.path("samples").get(1).path("predictions").size()).isEqualTo(2);
+  mvc.perform(get("/api/recordings/{id}",both)).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("READY"))
+   .andExpect(jsonPath("$.jobId").value(job)).andExpect(jsonPath("$.compareJobId").value(cmp)).andExpect(jsonPath("$.entities.comparison").value("world/comparison"));
+  mvc.perform(get("/api/recordings/{id}",plain)).andExpect(status().isOk()).andExpect(jsonPath("$.compareJobId").isEmpty()).andExpect(jsonPath("$.entities.comparison").isEmpty());
+  // A comparison count mismatch fails only that recording.
+  MODE.set("cmpcount"); long other=job(dataset,"cmp2","scene-token","COMPLETED");
+  long bad=create(scene,"{\"jobId\":"+job+",\"compareJobId\":"+other+"}",202,false); work();
+  assertThat(recordingStatus(bad)).isEqualTo("FAILED");
+  // Validation: needs jobId, must differ from it, must be a completed job of the same scene.
+  for(String body:List.of("{\"compareJobId\":"+cmp+"}","{\"jobId\":"+job+",\"compareJobId\":"+job+"}","{\"jobId\":"+job+",\"compareJobId\":0}"))
+   mvc.perform(post("/api/scenes/{id}/recordings",scene).contentType("application/json").content(body)).andExpect(status().isBadRequest());
+  mvc.perform(post("/api/scenes/{id}/recordings",scene).contentType("application/json").content("{\"jobId\":"+job+",\"compareJobId\":"+pendingJob+"}")).andExpect(status().isConflict());
+  mvc.perform(post("/api/scenes/{id}/recordings",scene).contentType("application/json").content("{\"jobId\":"+job+",\"compareJobId\":"+otherSceneJob+"}")).andExpect(status().isConflict());
  }
  @Test void jobAndSceneValidation() throws Exception {
   mvc.perform(post("/api/scenes/{id}/recordings",Long.MAX_VALUE)).andExpect(status().isNotFound());

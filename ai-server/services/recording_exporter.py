@@ -11,7 +11,8 @@ import numpy as np
 
 APPLICATION_ID = "drivescene2label"
 EXPORT_VERSION = "ds2l-rrd-v3"
-ENTITIES = {"lidar": "world/lidar", "ego": "world/ego", "gt": "world/gt", "prediction": "world/prediction"}
+ENTITIES = {"lidar": "world/lidar", "ego": "world/ego", "gt": "world/gt", "prediction": "world/prediction",
+            "comparison": "world/comparison"}  # comparison: boxes of compare_job_id (only when the request has one)
 # Text layers. Not part of the response entities: they hold no box instances, so viewer selection on them maps to nothing.
 # Split by source (v3) so the app's GT / prediction toggles can hide the matching labels: "both" = a GT box and a
 # prediction of the same class at the same place (hidden only when both sources are hidden).
@@ -19,6 +20,7 @@ LABELS_ENTITY = "world/labels"
 LABEL_ENTITIES = {"gt": "world/labels/gt", "pred": "world/labels/pred", "both": "world/labels/both"}
 GT_COLOR, PREDICTION_COLOR, EGO_COLOR = (0xFF, 0xCC, 0x4D), (0x4F, 0xE0, 0xD5), (0xC8, 0xCE, 0xD8)
 BOTH_COLOR = (0xF2, 0xF4, 0xF6)  # label shared by a GT box and a prediction of the same class
+COMPARISON_COLOR = (0xFF, 0x3B, 0x30)  # red, same as the app's camera comparison boxes (--cmp), far from GT yellow / prediction cyan
 # Label decluttering (Rerun has no screen-space label collision avoidance):
 LABEL_RADIUS_M = 30.0   # only objects within this horizontal distance of the ego get a label (same rule as the camera tags)
 MERGE_GT_PRED_M = 1.5   # a GT box and a prediction of the same class this close share one label
@@ -164,6 +166,7 @@ def boxes(rr, rows, color, labels):
 def export(request, data_root, output, rr):
     root = Path(data_root).resolve()
     with_predictions = request.get("job_id") is not None
+    with_comparison = request.get("compare_job_id") is not None
     rec = rr.RecordingStream(APPLICATION_ID, recording_id=f"ds2l-recording-{request['recording_id']}")
     tmp = output.with_name(f".{output.name}.{uuid4().hex}.tmp")
     counts = []
@@ -203,12 +206,17 @@ def export(request, data_root, output, rr):
                 raise ExportError(EXIT_INVALID, "predictions require job_id")
             if with_predictions:
                 rec.log(ENTITIES["prediction"], boxes(rr, predictions, PREDICTION_COLOR, [b["detection_name"] for b in predictions]))
+            comparisons = sample.get("comparison_predictions") or []
+            if comparisons and not with_comparison:
+                raise ExportError(EXIT_INVALID, "comparison_predictions require compare_job_id")
+            if with_comparison:
+                rec.log(ENTITIES["comparison"], boxes(rr, comparisons, COMPARISON_COLOR, [f"compare {b['detection_name']}" for b in comparisons]))
             # Written every sample (also empty) so latest-at never keeps the previous sample's labels.
             layer = label_layer(gt, predictions if with_predictions else [], ego_xy)
             for source, entity in LABEL_ENTITIES.items():
                 rec.log(entity, labels_archetype(rr, [r for r in layer if r[3] == source]))
             counts.append({"index": sample["index"], "sample_token": sample["sample_token"], "lidar_points": points,
-                           "gt_boxes": len(gt), "prediction_boxes": len(predictions)})
+                           "gt_boxes": len(gt), "prediction_boxes": len(predictions), "comparison_boxes": len(comparisons)})
         rec.flush()
         rec.disconnect()
         os.replace(tmp, output)

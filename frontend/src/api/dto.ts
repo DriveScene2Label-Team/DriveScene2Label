@@ -267,6 +267,8 @@ export interface RecordingDto {
   sceneToken: string;
   sceneName: string;
   jobId: number | null;
+  /** Older servers omit it. */
+  compareJobId?: number | null;
   status: RecordingStatusValue;
   sdkVersion: string;
   exportVersion: string;
@@ -276,7 +278,7 @@ export interface RecordingDto {
   rerunRecordingId: string | null;
   timeline: string | null;
   timeTimeline: string | null;
-  entities: { lidar: string; ego: string; gt: string; prediction: string | null } | null;
+  entities: { lidar: string; ego: string; gt: string; prediction: string | null; comparison?: string | null } | null;
   /** Omitted (or empty) in list responses and before READY. */
   samples?: RecordingSampleDto[] | null;
   contentUrl: string | null;

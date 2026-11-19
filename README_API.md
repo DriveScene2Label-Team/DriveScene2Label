@@ -224,10 +224,12 @@ LabelEdit: `id,datasetId,sceneId` number, `jobId` number|null(GT는 null), `targ
 
 |Method|URL / path variable|Query / body|성공 Response|추가 오류|
 |---|---|---|---|---|
-|POST|`/api/scenes/{sceneId}/recordings` scene ID|없음 / 생략 또는 `{"jobId":12}`|202 새 생성, 200 재사용: `{recordingId,status,reused}`|400 잘못된 jobId,404 scene/job 없음,409 job이 다른 scene 대상 또는 COMPLETED 아님|
+|POST|`/api/scenes/{sceneId}/recordings` scene ID|없음 / 생략, `{"jobId":12}` 또는 `{"jobId":12,"compareJobId":35}`|202 새 생성, 200 재사용: `{recordingId,status,reused}`. (jobId, compareJobId) 쌍마다 따로 재사용|400 잘못된 jobId·compareJobId(jobId 없음/같은 ID),404 scene/job 없음,409 job이 다른 scene 대상 또는 COMPLETED 아님|
 |GET|`/api/scenes/{sceneId}/recordings` scene ID|없음 / 없음|`RecordingSummary[]` 최신순|404 scene 없음|
 |GET|`/api/recordings/{id}` recording ID|없음 / 없음|`Recording`|404|
 |GET|`/api/recordings/{id}/content` recording ID|없음 / 없음|`.rrd` bytes|404 없음/파일 없음,409 READY 아님|
+
+`compareJobId`(V14, 선택): 같은 씬의 다른 COMPLETED 작업. 박스가 `entities.comparison`(`world/comparison`, 빨강 `#ff3b30`)으로 같은 recording에 들어가며 recording 응답에 `compareJobId`가 붙는다. 비교 박스는 선택·편집 대상이 아니고 `samples[].predictionIds`에 포함되지 않는다. 프론트 블루프린트는 `gt?-pred?-names?-cmp?` 16개다.
 
 ```json
 {"recordingId":5,"status":"PENDING","reused":false}
@@ -285,9 +287,9 @@ LabelEdit: `id,datasetId,sceneId` number, `jobId` number|null(GT는 null), `targ
 |GET|`/health`|없음|200 `{status,service,inference:{clip,vespa},device}`|503 CLIP not ready; 모델 startup 실패는 프로세스 기동 자체 실패|
 |POST|`/embedding/text`|`{"text":"rainy night road"}`|200 `{model_name,dimension:768,embedding:[...],preprocess:"clip-text-tokenizer"}`|422 입력,503 미준비,500 inference|
 |POST|`/embedding/image`|`{"image_path":"samples/CAM_FRONT/example.jpg","preprocess":"lr-square-crop-mean"}`|200 같은 embedding 구조|422 입력,404 파일 없음,400 잘못된 경로/이미지,503 미준비,500 inference|
+|POST|`/embedding/images`|`{"image_paths":["samples/CAM_FRONT/a.jpg","samples/CAM_BACK/b.jpg"],"preprocess":"lr-square-crop-mean","dataset_key":null}` (1~64개, 2026-11-18)|200 `{model_name,dimension:768,preprocess,results:[{image_path,embedding|null,error:{status,code,message}|null}]}` — `results[i]`는 `image_paths[i]`. 이미지별 오류는 `/embedding/image`와 같은 status/code를 해당 항목에만 담는다|422 입력(0개·65개 이상 포함),503 미준비,500 inference(호출 전체)|
 |POST|`/auto-label`|`{"scene_name":"scene-0061","class_mode":8,"job_id":12,"execution_token":"UUID"}`|200 아래 구조|422 입력,404 scene 없음,409 실행 중,503 미설정/실행불가,502 실행/출력 오류,504 timeout|
 |POST|`/recordings`|Spring이 DB에서 만든 scene sample·LIDAR_TOP·pose·calibration·GT·예측 (snake_case)|200 파일 경로·checksum·timeline·entity·sample별 개수|422 입력,404 lidar 파일 없음,503 SDK/설정 없음,502 exporter 실패,504 timeout|
-|POST|`/embedding/images`|`{"image_paths":["samples/CAM_FRONT/a.jpg","samples/CAM_BACK/b.jpg"],"preprocess":"lr-square-crop-mean","dataset_key":null}` (1~64개, 2026-11-18)|200 `{model_name,dimension:768,preprocess,results:[{image_path,embedding|null,error:{status,code,message}|null}]}` — `results[i]`는 `image_paths[i]`. 이미지별 오류는 `/embedding/image`와 같은 status/code를 해당 항목에만 담는다|422 입력(0개·65개 이상 포함),503 미준비,500 inference(호출 전체)|
 
 AI 요청에는 path/query 변수가 없다. image 파일 upload는 현재 지원하지 않고 상대 경로 JSON만 받는다. image preprocess 대안 `openclip-eval-224-centercrop`도 AI는 지원하지만 Spring 기본 저장/검색 정책은 lr-square-crop-mean이다.
 Auto-label job_id/execution_token은 둘 다 생략하거나 둘 다 제공하며 Spring은 항상 제공한다. 응답: `run_id,scene_name,class_mode,job_id,execution_token,mapping_name,split,coordinate_frame,score_type,meta,results,artifact_path,result_checksum`. results는 `{sample_token:[{sample_token,translation:[x,y,z],size:[w,l,h],rotation:[w,x,y,z],velocity:[vx,vy],detection_name,detection_score,attribute_name}]}`.

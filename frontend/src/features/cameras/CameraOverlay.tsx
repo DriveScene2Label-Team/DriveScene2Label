@@ -33,10 +33,10 @@ export function projectAll(camera: CompiledCamera | null, boxes: readonly BoxVie
 
 /**
  * Box colours of the design: GT yellow dashed, prediction blue solid (line style also names the source).
- * CMP: comparison job (e.g. VESPA ver2) in green, short dashes drawn over the prediction, so where both runs give
- * the same box the blue line shows through the gaps and where they differ the green box stands apart.
+ * CMP: comparison job (e.g. VESPA ver2) in red, short dashes drawn over the prediction, so where both runs give
+ * the same box the blue line shows through the gaps and where they differ the red box stands apart.
  */
-export const BOX_COLOR = { GT: '#ffc800', VESPA: '#3d8bff', CMP: '#19d67a' } as const;
+export const BOX_COLOR = { GT: '#ffc800', VESPA: '#3d8bff', CMP: '#ff3b30' } as const;
 const INK = { GT: '#191f28', VESPA: '#ffffff', CMP: '#06281a' } as const;
 type Tone = keyof typeof BOX_COLOR;
 const toneOf = (box: BoxView): Tone => (box.compare ? 'CMP' : box.source);
@@ -93,7 +93,7 @@ export const CameraOverlay = memo(function CameraOverlay({ items, width, height,
       const diff = it.box.compare === true && it.box.compareKind !== 'same';
       if (!strong && (compact || anySel || (it.dist > 30 && !diff))) continue;
       const cmp = it.box.compare === true;
-      // An unchanged comparison box only adds its line (blue shows through the green dashes); its tag would repeat the prediction's.
+      // An unchanged comparison box only adds its line (blue shows through the red dashes); its tag would repeat the prediction's.
       if (cmp && it.box.compareKind === 'same' && !strong) continue;
       const text = cmp ? `${it.box.compareTag ?? '비교'} · ${it.box.cls}` : it.box.cls;
       const pw = (textWidth(text) + 16) * s;

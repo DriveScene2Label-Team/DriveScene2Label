@@ -67,6 +67,27 @@ def column(rows, entity, name, index):
     raise KeyError(name)
 
 
+def test_real_export_with_comparison_job(service, tmp_path):
+    body = make_request(tmp_path/"data", samples=3, gt=1, predictions=2, job_id=12, recording_id=7)
+    body["compare_job_id"] = 13
+    for i, sample in enumerate(body["samples"]):
+        sample["comparison_predictions"] = [dict(p, id=p["id"] + 100, size_wlh=[1.7, 4.4, 1.5]) for p in sample["predictions"][:1 if i else 0]]
+    result = service.export(RecordingRequest(**body))
+    assert result.entities.comparison == "world/comparison"
+    assert [(s.prediction_boxes, s.comparison_boxes) for s in result.samples] == [(2, 0), (2, 1), (2, 1)]
+    _, counts, _, rows = read_back(service.output_root / result.relative_path)
+    assert counts["/world/comparison"] == {0: 0, 1: 1, 2: 1}  # written every sample so latest-at clears it
+    assert counts["/world/prediction"] == {0: 2, 1: 2, 2: 2}
+    assert column(rows, "/world/comparison", "Boxes3D:labels", 1) == ["compare car"]
+    # Red (0xFF3B30, RGBA-packed), apart from the GT yellow and the cyan of the shown job's predictions.
+    assert column(rows, "/world/comparison", "Boxes3D:colors", 1) == [0xFF3B30FF]
+    assert column(rows, "/world/prediction", "Boxes3D:colors", 1)[0] != 0xFF3B30FF
+    with pytest.raises(ValueError):
+        RecordingRequest(**{**body, "compare_job_id": None})  # comparison boxes need compare_job_id
+    with pytest.raises(ValueError):
+        RecordingRequest(**{**body, "compare_job_id": 12})  # must differ from job_id
+
+
 def test_real_export_with_predictions(service, tmp_path):
     body = make_request(tmp_path/"data", samples=4, gt=3, predictions=2, job_id=12, recording_id=5)
     body["samples"][2]["gt"], body["samples"][2]["predictions"] = [], []  # empty batch must clear latest-at
@@ -78,7 +99,8 @@ def test_real_export_with_predictions(service, tmp_path):
     assert result.size_bytes == len(data) and result.checksum == hashlib.sha256(data).hexdigest()
     assert result.sdk_version == rerun.__version__ == "0.38.1"
     assert (result.export_version, result.application_id, result.rerun_recording_id) == ("ds2l-rrd-v3", "drivescene2label", "ds2l-recording-5")
-    assert result.entities.model_dump() == {"lidar": "world/lidar", "ego": "world/ego", "gt": "world/gt", "prediction": "world/prediction"}
+    assert result.entities.model_dump() == {"lidar": "world/lidar", "ego": "world/ego", "gt": "world/gt", "prediction": "world/prediction",
+                                            "comparison": None}
     points = write_lidar(tmp_path/"count.bin")
     assert [(s.index, s.sample_token, s.lidar_points, s.gt_boxes, s.prediction_boxes) for s in result.samples] == [
         (0, "synthetic-sample-0", points, 3, 2), (1, "synthetic-sample-1", points, 3, 2),

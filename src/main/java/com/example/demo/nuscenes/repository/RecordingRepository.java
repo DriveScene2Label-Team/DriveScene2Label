@@ -8,7 +8,7 @@ public class RecordingRepository {
  public record Live(long id,String status) {}
  public record Content(String status,String relativePath) {}
  private static final String VIEW="""
-  SELECT r.id AS recording_id,r.dataset_id,s.id AS scene_id,r.scene_token,s.name AS scene_name,r.job_id,r.status,r.sdk_version,r.export_version,
+  SELECT r.id AS recording_id,r.dataset_id,s.id AS scene_id,r.scene_token,s.name AS scene_name,r.job_id,r.compare_job_id,r.status,r.sdk_version,r.export_version,
    CAST(r.metadata AS text) AS metadata,r.size_bytes,r.failure_reason,r.error_code,r.created_at,r.started_at,r.completed_at
   FROM scene_recording r JOIN scene s ON s.dataset_id=r.dataset_id AND s.token=r.scene_token
   """;
@@ -18,15 +18,17 @@ public class RecordingRepository {
   return jdbc.sql("SELECT requested_targets->>0 AS scene_token,target_type,jsonb_array_length(requested_targets) AS targets,status FROM auto_label_job WHERE dataset_id=:d AND id=:j")
    .param("d",dataset).param("j",job).query(JobTarget.class).optional();
  }
- public Optional<Long> insert(long dataset,String scene,Long job,String exportVersion,String sdkVersion) {
+ public Optional<Long> insert(long dataset,String scene,Long job,Long compare,String exportVersion,String sdkVersion) {
   return jdbc.sql("""
-   INSERT INTO scene_recording(dataset_id,scene_token,job_id,export_version,sdk_version) VALUES(:d,:s,CAST(:j AS bigint),:e,:v)
-   ON CONFLICT(dataset_id,scene_token,(COALESCE(job_id,0)),export_version) WHERE status<>'FAILED' DO NOTHING RETURNING id
-   """).param("d",dataset).param("s",scene).param("j",job).param("e",exportVersion).param("v",sdkVersion).query(Long.class).optional();
+   INSERT INTO scene_recording(dataset_id,scene_token,job_id,compare_job_id,export_version,sdk_version) VALUES(:d,:s,CAST(:j AS bigint),CAST(:c AS bigint),:e,:v)
+   ON CONFLICT(dataset_id,scene_token,(COALESCE(job_id,0)),(COALESCE(compare_job_id,0)),export_version) WHERE status<>'FAILED' DO NOTHING RETURNING id
+   """).param("d",dataset).param("s",scene).param("j",job).param("c",compare).param("e",exportVersion).param("v",sdkVersion).query(Long.class).optional();
  }
- public Optional<Live> live(long dataset,String scene,Long job,String exportVersion) {
-  return jdbc.sql("SELECT id,status FROM scene_recording WHERE dataset_id=:d AND scene_token=:s AND COALESCE(job_id,0)=COALESCE(CAST(:j AS bigint),0) AND export_version=:e AND status<>'FAILED'")
-   .param("d",dataset).param("s",scene).param("j",job).param("e",exportVersion).query(Live.class).optional();
+ public Optional<Live> live(long dataset,String scene,Long job,Long compare,String exportVersion) {
+  return jdbc.sql("""
+   SELECT id,status FROM scene_recording WHERE dataset_id=:d AND scene_token=:s AND COALESCE(job_id,0)=COALESCE(CAST(:j AS bigint),0)
+    AND COALESCE(compare_job_id,0)=COALESCE(CAST(:c AS bigint),0) AND export_version=:e AND status<>'FAILED'
+   """).param("d",dataset).param("s",scene).param("j",job).param("c",compare).param("e",exportVersion).query(Live.class).optional();
  }
  public Optional<Row> find(long id) { return jdbc.sql(VIEW+" WHERE r.id=:id").param("id",id).query(Row.class).optional(); }
  public List<Row> byScene(long dataset,String scene) { return jdbc.sql(VIEW+" WHERE r.dataset_id=:d AND r.scene_token=:s ORDER BY r.created_at DESC,r.id DESC").param("d",dataset).param("s",scene).query(Row.class).list(); }
@@ -34,12 +36,12 @@ public class RecordingRepository {
  /** Call inside a transaction: row lock is held until commit. */
  public Optional<Work> claim() {
   if(jdbc.sql("SELECT maintenance FROM deployment_control WHERE id=1 FOR SHARE").query(Boolean.class).single()) return Optional.empty();
-  var pending=jdbc.sql("SELECT id,dataset_id,scene_token,job_id,sdk_version,export_version,execution_token FROM scene_recording WHERE status='PENDING' ORDER BY created_at,id LIMIT 1 FOR UPDATE SKIP LOCKED")
+  var pending=jdbc.sql("SELECT id,dataset_id,scene_token,job_id,compare_job_id,sdk_version,export_version,execution_token FROM scene_recording WHERE status='PENDING' ORDER BY created_at,id LIMIT 1 FOR UPDATE SKIP LOCKED")
    .query(Work.class).optional();
   if(pending.isEmpty()) return Optional.empty();
   Work p=pending.get(); UUID token=UUID.randomUUID();
   jdbc.sql("UPDATE scene_recording SET status='RUNNING',started_at=now(),execution_token=:t WHERE id=:id AND status='PENDING'").param("t",token).param("id",p.id()).update();
-  return Optional.of(new Work(p.id(),p.datasetId(),p.sceneToken(),p.jobId(),p.sdkVersion(),p.exportVersion(),token));
+  return Optional.of(new Work(p.id(),p.datasetId(),p.sceneToken(),p.jobId(),p.compareJobId(),p.sdkVersion(),p.exportVersion(),token));
  }
  public Optional<String> sceneName(long dataset,String scene) { return jdbc.sql("SELECT name FROM scene WHERE dataset_id=:d AND token=:s").param("d",dataset).param("s",scene).query(String.class).optional(); }
  public List<SceneSample> samples(long dataset,String scene) {

@@ -112,15 +112,16 @@ class RecordingService:
             summary = json.loads(summary_path.read_text())
             if summary["sdk_version"] != SDK_VERSION:
                 raise RecordingError(503, "RECORDING_SDK_MISMATCH", f"Exporter rerun-sdk must be {SDK_VERSION}.")
-            expected = [(s.index, s.sample_token, len(s.gt), len(s.predictions)) for s in request.samples]
-            if [(r["index"], r["sample_token"], r["gt_boxes"], r["prediction_boxes"]) for r in summary["samples"]] != expected:
+            expected = [(s.index, s.sample_token, len(s.gt), len(s.predictions), len(s.comparison_predictions)) for s in request.samples]
+            if [(r["index"], r["sample_token"], r["gt_boxes"], r["prediction_boxes"], r.get("comparison_boxes", 0)) for r in summary["samples"]] != expected:
                 raise ValueError("Sample order or box counts differ from the request")
             data = output.read_bytes()
             response = RecordingResponse(recording_id=request.recording_id, execution_token=request.execution_token,
                 relative_path=output.relative_to(self.output_root).as_posix(), size_bytes=len(data),
                 checksum=hashlib.sha256(data).hexdigest(), sdk_version=summary["sdk_version"], export_version=EXPORT_VERSION,
                 application_id=APPLICATION_ID, rerun_recording_id=f"ds2l-recording-{request.recording_id}",
-                entities=RecordingEntities(prediction=ENTITIES["prediction"] if request.job_id is not None else None),
+                entities=RecordingEntities(prediction=ENTITIES["prediction"] if request.job_id is not None else None,
+                                           comparison=ENTITIES["comparison"] if request.compare_job_id is not None else None),
                 samples=summary["samples"])
         except RecordingError:
             raise

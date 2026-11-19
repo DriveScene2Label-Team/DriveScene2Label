@@ -25,7 +25,7 @@ export function LayerToggle({ paneId, layer }: { paneId: PaneId; layer: LayerKey
   const m = META[layer];
   return (
     <button type="button" className="hud-tog" aria-pressed={on} data-layer={layer} onClick={() => toggleLayerAnnounced(paneId, layer)}
-      title={`${m.label} ${on ? '숨기기' : '보이기'}${m.key ? ` (${m.key})` : ''}${layer === 'cmp' ? ' · 카메라에 적용' : layer !== 'names' ? ' · 카메라·3D·객체 목록에 적용' : ' · 카메라·3D에 적용'}`}>
+      title={`${m.label} ${on ? '숨기기' : '보이기'}${m.key ? ` (${m.key})` : ''}${layer === 'cmp' ? ' · 카메라·3D에 적용' : layer !== 'names' ? ' · 카메라·3D·객체 목록에 적용' : ' · 카메라·3D에 적용'}`}>
       {layer === 'names' ? <Icon name="text" /> : <><Icon name="eye" className="i-on" /><Icon name="eye-off" className="i-off" /></>}
       {layer !== 'names' && <span className={`sw sw-${layer}`} aria-hidden="true" />}
       <span>{m.label}</span>
@@ -72,7 +72,7 @@ export function Hud({ paneId, compareTag, sync, onResetSplit, onExitCompare }: P
 }
 
 /**
- * Picks a second completed job of the scene whose boxes are drawn over the shown predictions as green dashes (e.g. the
+ * Picks a second completed job of the scene whose boxes are drawn over the shown predictions as red dashes (e.g. the
  * VESPA ver2 run next to the original). The swatch part toggles them; the note sums up the whole-job difference.
  * Hidden while the scene has no other completed job.
  */
@@ -93,7 +93,7 @@ function CompareJobPicker({ paneId }: { paneId: PaneId }) {
   return (
     <div className="hud-cmp" role="group" aria-label="비교 작업">
       <button type="button" className="hud-cmp-tog" aria-pressed={active != null && on} disabled={active == null}
-        title={active == null ? '비교할 작업을 고르세요' : `비교 박스 ${on ? '숨기기' : '보이기'} · 카메라에 적용`}
+        title={active == null ? '비교할 작업을 고르세요' : `비교 박스 ${on ? '숨기기' : '보이기'} · 카메라·3D에 적용`}
         onClick={() => toggleLayerAnnounced(paneId, 'cmp')}>
         <span className="sw sw-cmp" aria-hidden="true" />비교
       </button>
@@ -101,7 +101,7 @@ function CompareJobPicker({ paneId }: { paneId: PaneId }) {
         const v = e.currentTarget.value ? Number(e.currentTarget.value) : null;
         setCompareJob(paneId, v);
         if (v != null && !useWorkspace.getState().panes[paneId].layers.cmp) useWorkspace.getState().toggleLayer(paneId, 'cmp');
-        announce(v == null ? '비교를 껐어요' : `작업 #${v}의 박스를 초록 점선으로 겹쳐 보여요`);
+        announce(v == null ? '비교를 껐어요' : `작업 #${v}의 박스를 빨간 점선으로 겹쳐 보여요`);
       }}>
         <option value="">없음</option>
         {compareJobId != null && !done.some((j) => j.jobId === compareJobId) && <option value={compareJobId}>#{compareJobId}</option>}

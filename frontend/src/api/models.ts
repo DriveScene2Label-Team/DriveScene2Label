@@ -166,11 +166,13 @@ export interface Recording {
   sceneId: number;
   sceneToken: string;
   jobId: number | null;
+  /** Second job drawn as its own green entity (world/comparison), null for a plain recording. */
+  compareJobId: number | null;
   status: RecordingStatusValue;
   sdkVersion: string;
   rerunRecordingId: string;
   timeline: string;
-  entities: { lidar: string; ego: string; gt: string; prediction: string | null };
+  entities: { lidar: string; ego: string; gt: string; prediction: string | null; comparison?: string | null };
   samples: RecordingSample[];
   contentUrl: string | null;
   sizeBytes: number | null;

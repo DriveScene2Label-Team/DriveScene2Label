@@ -40,25 +40,28 @@ public class RecordingService {
    @Value("${recording.sdk-version:0.38.1}") String sdkVersion,@Value("${recording.export-version:ds2l-rrd-v3}") String exportVersion) {
   this.repo=repo;this.readiness=readiness;this.gt=gt;this.scenes=scenes;this.files=files;this.json=json;this.tx=new TransactionTemplate(manager);this.sdkVersion=sdkVersion;this.exportVersion=exportVersion;
  }
- public Created create(long sceneId,Long jobId) {
+ public Created create(long sceneId,Long jobId) { return create(sceneId,jobId,null); }
+ public Created create(long sceneId,Long jobId,Long compareJobId) {
   if(jobId!=null && jobId<=0) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"jobId must be a positive job ID");
+  if(compareJobId!=null && (compareJobId<=0 || jobId==null || compareJobId.equals(jobId))) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"compareJobId needs jobId and must be another positive job ID");
   Scene target=scene(sceneId);
   // 1) Reuse a live recording (also while the AI is down). A READY row whose file is confirmed gone is released.
   var reused=tx.execute(status->{
    Scene scene=scene(sceneId);
-   if(jobId!=null) {
-    var job=repo.job(scene.datasetId(),jobId).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Job not found in this dataset"));
+   for(Long id:new Long[]{jobId,compareJobId}) {
+    if(id==null) continue;
+    var job=repo.job(scene.datasetId(),id).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Job not found in this dataset"));
     if(!"SCENE".equals(job.targetType()) || job.targets()!=1 || !scene.token().equals(job.sceneToken())) throw new ResponseStatusException(HttpStatus.CONFLICT,"Job targets another scene");
     if(!"COMPLETED".equals(job.status())) throw new ResponseStatusException(HttpStatus.CONFLICT,"Job has not completed successfully");
    }
-   var live=repo.live(scene.datasetId(),scene.token(),jobId,exportVersion);
+   var live=repo.live(scene.datasetId(),scene.token(),jobId,compareJobId,exportVersion);
    if(live.isPresent() && !fileLost(live.get().id())) return new Created(live.get().id(),live.get().status(),true);
    return null;
   });
   if(reused!=null) return reused;
   // 2) New export only: server-side readiness check outside any transaction, then insert.
   readiness.requireRecording(target.datasetId());
-  return insert(target,jobId);
+  return insert(target,jobId,compareJobId);
  }
  /**
   * True only when the recording root is readable and the READY file is confirmed absent; the row is then moved to
@@ -74,13 +77,13 @@ public class RecordingService {
   if(repo.markFileMissing(id,row.relativePath())==1) org.slf4j.LoggerFactory.getLogger(getClass()).warn("[RERUN] recording={} READY file {} is missing; marked FAILED",id,row.relativePath());
   return true;
  }
- private Created insert(Scene scene,Long jobId) {
+ private Created insert(Scene scene,Long jobId,Long compareJobId) {
   return tx.execute(status->{
    // A concurrent live row can turn FAILED between the conflict and the lookup; retry the insert in that case.
    for(int attempt=0;attempt<3;attempt++) {
-    var inserted=repo.insert(scene.datasetId(),scene.token(),jobId,exportVersion,sdkVersion);
+    var inserted=repo.insert(scene.datasetId(),scene.token(),jobId,compareJobId,exportVersion,sdkVersion);
     if(inserted.isPresent()) return new Created(inserted.get(),"PENDING",false);
-    var live=repo.live(scene.datasetId(),scene.token(),jobId,exportVersion);
+    var live=repo.live(scene.datasetId(),scene.token(),jobId,compareJobId,exportVersion);
     if(live.isPresent()) return new Created(live.get().id(),live.get().status(),true);
    }
    throw new ResponseStatusException(HttpStatus.CONFLICT,"Recording is changing state; retry");
@@ -107,7 +110,7 @@ public class RecordingService {
   Metadata m=r.metadata()==null?null:json.readValue(r.metadata(),Metadata.class);
   boolean ready="READY".equals(r.status()) && m!=null;
   List<SampleMap> samples=!detail?null:ready && m.samples()!=null?m.samples():List.of();
-  return new Recording(r.recordingId(),r.datasetId(),r.sceneId(),r.sceneToken(),r.sceneName(),r.jobId(),r.status(),r.sdkVersion(),r.exportVersion(),"WORLD",
+  return new Recording(r.recordingId(),r.datasetId(),r.sceneId(),r.sceneToken(),r.sceneName(),r.jobId(),r.compareJobId(),r.status(),r.sdkVersion(),r.exportVersion(),"WORLD",
    ready?m.applicationId():null,ready?m.rerunRecordingId():null,ready?m.timeline():null,ready?m.timeTimeline():null,ready?m.entities():null,samples,
    ready?"/api/recordings/"+r.recordingId()+"/content":null,ready?r.sizeBytes():null,r.failureReason(),r.errorCode(),r.createdAt(),r.startedAt(),r.completedAt());
  }
@@ -124,14 +127,17 @@ public class RecordingService {
    .collect(Collectors.groupingBy(GtAnnotationView::sampleToken,LinkedHashMap::new,Collectors.mapping(RecordingService::gt,Collectors.toList())));
   Map<String,List<AiPrediction>> predictions=w.jobId()==null?Map.of():repo.predictions(w.datasetId(),w.jobId()).stream()
    .collect(Collectors.groupingBy(PredictionRow::sampleToken,LinkedHashMap::new,Collectors.mapping(RecordingService::prediction,Collectors.toList())));
+  Map<String,List<AiPrediction>> comparisons=w.compareJobId()==null?Map.of():repo.predictions(w.datasetId(),w.compareJobId()).stream()
+   .collect(Collectors.groupingBy(PredictionRow::sampleToken,LinkedHashMap::new,Collectors.mapping(RecordingService::prediction,Collectors.toList())));
   List<AiSample> out=new ArrayList<>();
   for(int i=0;i<samples.size();i++) {
    var s=samples.get(i);
-   out.add(new AiSample(i,s.token(),s.timestampUs(),lidar(lidar.get(s.token())),boxes.getOrDefault(s.token(),List.of()),predictions.getOrDefault(s.token(),List.of())));
+   out.add(new AiSample(i,s.token(),s.timestampUs(),lidar(lidar.get(s.token())),boxes.getOrDefault(s.token(),List.of()),predictions.getOrDefault(s.token(),List.of()),
+    comparisons.getOrDefault(s.token(),List.of())));
   }
   var dataset=readiness.dataset(w.datasetId()).orElseThrow(()->new Invalid("DATA_NOT_READY","Dataset no longer exists"));
   boolean uploaded="uploads".equals(dataset.storageKey());
-  return new AiRequest(w.id(),w.executionToken(),sceneName,w.sceneToken(),w.jobId(),out,
+  return new AiRequest(w.id(),w.executionToken(),sceneName,w.sceneToken(),w.jobId(),w.compareJobId(),out,
     uploaded?dataset.rootRelativePath():null,uploaded?dataset.version():null);
  }
  /** Validates the AI result against the request and the file on disk, then stores READY only if this execution still owns the row. */
@@ -140,7 +146,7 @@ public class RecordingService {
   if(!w.sdkVersion().equals(r.sdkVersion())) throw new Invalid("Rerun SDK version mismatch (expected "+w.sdkVersion()+")");
   if(!w.exportVersion().equals(r.exportVersion())) throw new Invalid("Export version mismatch (expected "+w.exportVersion()+")");
   if(blank(r.applicationId()) || blank(r.rerunRecordingId()) || blank(r.timeline()) || blank(r.timeTimeline()) || r.entities()==null
-    || blank(r.entities().lidar()) || blank(r.entities().ego()) || blank(r.entities().gt()) || (w.jobId()!=null && blank(r.entities().prediction()))) throw new Invalid("AI response is missing timeline/entity metadata");
+    || blank(r.entities().lidar()) || blank(r.entities().ego()) || blank(r.entities().gt()) || (w.jobId()!=null && blank(r.entities().prediction())) || (w.compareJobId()!=null && blank(r.entities().comparison()))) throw new Invalid("AI response is missing timeline/entity metadata");
   if(r.checksum()==null || !r.checksum().matches("[0-9a-f]{64}") || r.sizeBytes()==null || r.sizeBytes()<=0) throw new Invalid("AI response has invalid checksum/size");
   String path=r.relativePath();
   if(path==null || path.isBlank() || path.startsWith("/") || path.contains("..") || path.contains("\\") || path.contains(":") || !path.endsWith(".rrd")) throw new Invalid("AI response has an unsafe recording path");
@@ -149,7 +155,8 @@ public class RecordingService {
   for(int i=0;i<req.samples().size();i++) {
    AiSample q=req.samples().get(i); AiSampleResult a=r.samples().get(i);
    if(a==null || a.index()==null || a.index()!=i || !q.sampleToken().equals(a.sampleToken())) throw new Invalid("AI response sample order differs at index "+i);
-   if(a.gtBoxes()==null || a.gtBoxes()!=q.gt().size() || a.predictionBoxes()==null || a.predictionBoxes()!=q.predictions().size()) throw new Invalid("AI response box count differs at index "+i);
+   if(a.gtBoxes()==null || a.gtBoxes()!=q.gt().size() || a.predictionBoxes()==null || a.predictionBoxes()!=q.predictions().size()
+     || (w.compareJobId()!=null && (a.comparisonBoxes()==null || a.comparisonBoxes()!=q.comparisons().size()))) throw new Invalid("AI response box count differs at index "+i);
    if(a.lidarPoints()==null || a.lidarPoints()<0 || (q.lidar()==null && a.lidarPoints()!=0)) throw new Invalid("AI response lidar point count is invalid at index "+i);
    mapping.add(new SampleMap(i,q.sampleToken(),q.timestampUs(),a.lidarPoints(),q.gt().stream().map(AiGt::id).toList(),q.predictions().stream().map(AiPrediction::id).toList()));
   }
@@ -159,7 +166,7 @@ public class RecordingService {
   catch(IOException e) { throw new Invalid("Recording file cannot be read"); }
   var e=r.entities();
   String metadata=json.writeValueAsString(new Metadata(r.applicationId(),r.rerunRecordingId(),r.timeline(),r.timeTimeline(),
-   new Entities(e.lidar(),e.ego(),e.gt(),w.jobId()==null?null:e.prediction()),mapping));
+   new Entities(e.lidar(),e.ego(),e.gt(),w.jobId()==null?null:e.prediction(),w.compareJobId()==null?null:e.comparison()),mapping));
   if(repo.ready(w,path,r.sizeBytes(),r.checksum(),r.sdkVersion(),metadata)!=1) throw new IllegalStateException("Recording is no longer running with this execution");
  }
  public void fail(Work w,String code,String reason) { repo.fail(w,code,reason.length()>300?reason.substring(0,300):reason); }

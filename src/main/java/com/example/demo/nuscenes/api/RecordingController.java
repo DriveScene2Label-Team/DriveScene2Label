@@ -16,7 +16,7 @@ public class RecordingController {
  public RecordingController(RecordingService recordings) { this.recordings=recordings; }
  /** 202 new PENDING recording, 200 when a live (non-FAILED) recording for the same scene/job/export version is reused. */
  @PostMapping("/scenes/{sceneId}/recordings") public ResponseEntity<Created> create(@PathVariable long sceneId,@RequestBody(required=false) CreateRequest body) {
-  var created=recordings.create(sceneId,body==null?null:body.jobId());
+  var created=recordings.create(sceneId,body==null?null:body.jobId(),body==null?null:body.compareJobId());
   return ResponseEntity.status(created.reused()?HttpStatus.OK:HttpStatus.ACCEPTED).body(created);
  }
  @GetMapping("/scenes/{sceneId}/recordings") public List<Recording> list(@PathVariable long sceneId) { return recordings.list(sceneId); }

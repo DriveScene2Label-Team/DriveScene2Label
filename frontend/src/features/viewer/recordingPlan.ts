@@ -1,12 +1,15 @@
 import type { Recording } from '@/api/models';
 
-/** Pick the recording to show: the pane's explicit choice, else the newest one for the shown job (or GT-only). */
-export function pickRecording(list: Recording[], jobId: number | null, explicit: number | null): Recording | undefined {
+/**
+ * Pick the recording to show: the pane's explicit choice, else the newest one for the shown job (or GT-only) with the
+ * same comparison job (none when cmp is null).
+ */
+export function pickRecording(list: Recording[], jobId: number | null, explicit: number | null, cmp: number | null = null): Recording | undefined {
   if (explicit != null) {
-    const found = list.find((r) => r.recordingId === explicit);
+    const found = list.find((r) => r.recordingId === explicit && (r.compareJobId ?? null) === cmp);
     if (found) return found;
   }
-  const same = list.filter((r) => r.jobId === jobId).sort((a, b) => b.createdAt - a.createdAt || b.recordingId - a.recordingId);
+  const same = list.filter((r) => r.jobId === jobId && (r.compareJobId ?? null) === cmp).sort((a, b) => b.createdAt - a.createdAt || b.recordingId - a.recordingId);
   return same.find((r) => r.status !== 'FAILED') ?? same[0];
 }
 
@@ -23,9 +26,13 @@ export interface RecordingPlan {
  * When a label job finishes the pane switches to that job, which has no recording yet. Instead of dropping the 3D
  * view, keep the GT recording visible and ask the server for the job's recording; switch once it is READY.
  */
-export function planRecording(list: Recording[], targetJob: number | null, explicit: number | null): RecordingPlan {
-  const primary = pickRecording(list, targetJob, explicit);
+export function planRecording(list: Recording[], targetJob: number | null, explicit: number | null, cmp: number | null = null): RecordingPlan {
+  const primary = pickRecording(list, targetJob, explicit, cmp);
   const waiting = !primary || primary.status === 'PENDING' || primary.status === 'RUNNING';
-  const fallback = targetJob != null && waiting ? pickRecording(list.filter((r) => r.status === 'READY'), null, null) : undefined;
+  const ready = list.filter((r) => r.status === 'READY');
+  // While the comparison recording is being made, keep the shown job's own 3D (else GT-only) on screen.
+  const fallback = targetJob != null && waiting
+    ? (cmp != null ? pickRecording(ready, targetJob, null) : undefined) ?? pickRecording(ready, null, null)
+    : undefined;
   return { primary, fallback, autoCreate: primary === undefined };
 }

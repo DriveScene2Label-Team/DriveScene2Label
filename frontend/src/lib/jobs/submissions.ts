@@ -32,6 +32,8 @@ export interface JobSnapshot extends UiContext {
 
 export interface RecordingSnapshot extends UiContext {
   jobId: number | null;
+  /** Comparison job drawn next to jobId (needs jobId). */
+  compareJobId?: number | null;
   requestedAt: number;
 }
 
@@ -102,7 +104,8 @@ export function dismissJobSubmission(key: string): void {
   setJob(key, null);
 }
 
-export const recordingKey = (s: Pick<RecordingSnapshot, 'instanceId' | 'sceneId' | 'jobId'>) => `${s.instanceId}:${s.sceneId}:${s.jobId ?? 'gt'}`;
+export const recordingKey = (s: Pick<RecordingSnapshot, 'instanceId' | 'sceneId' | 'jobId' | 'compareJobId'>) =>
+  `${s.instanceId}:${s.sceneId}:${s.jobId ?? 'gt'}${s.compareJobId != null ? `:cmp${s.compareJobId}` : ''}`;
 
 /** POST a recording for the snapshot; only the original scene's queries and (if unchanged) pane are updated. */
 export async function submitRecording(snapshot: RecordingSnapshot, currentScope: () => string): Promise<number | null> {
@@ -110,7 +113,8 @@ export async function submitRecording(snapshot: RecordingSnapshot, currentScope:
   useSubmissions.setState((st) => ({ recordings: { ...st.recordings, [key]: { snapshot, status: 'pending' } } }));
   try {
     const res = await requestJson<RecordingCreatedDto>(`/api/scenes/${snapshot.sceneId}/recordings`, {
-      method: 'POST', body: snapshot.jobId != null ? { jobId: snapshot.jobId } : {},
+      method: 'POST',
+      body: snapshot.jobId == null ? {} : snapshot.compareJobId != null ? { jobId: snapshot.jobId, compareJobId: snapshot.compareJobId } : { jobId: snapshot.jobId },
     });
     useSubmissions.setState((st) => {
       const recordings = { ...st.recordings };
@@ -120,7 +124,9 @@ export async function submitRecording(snapshot: RecordingSnapshot, currentScope:
     void client?.invalidateQueries({ queryKey: qk.recordings(snapshot.sceneId) });
     void client?.invalidateQueries({ queryKey: qk.recording(res.data.recordingId) });
     const pane = useWorkspace.getState().panes[snapshot.paneId];
-    if (sameContext(snapshot, currentScope()) && pane.resultJobId === snapshot.jobId) useWorkspace.getState().setRecording(snapshot.paneId, res.data.recordingId);
+    if (sameContext(snapshot, currentScope()) && pane.resultJobId === snapshot.jobId && (pane.compareJobId ?? null) === (snapshot.compareJobId ?? null)) {
+      useWorkspace.getState().setRecording(snapshot.paneId, res.data.recordingId);
+    }
     return res.data.recordingId;
   } catch (error) {
     useSubmissions.setState((st) => ({ recordings: { ...st.recordings, [key]: { snapshot, status: 'error', error } } }));

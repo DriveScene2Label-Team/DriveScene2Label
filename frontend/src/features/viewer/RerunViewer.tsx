@@ -25,8 +25,8 @@ const STALL_MS = 45_000;
  * prebuilt blueprint per toggle combination (scripts/generate_rerun_blueprints.py → public/rerun-blueprints) is sent
  * through a log channel. All variants share one view id, so switching keeps the camera.
  */
-export function blueprintName(layers: { gt: boolean; pred: boolean; names: boolean }): string {
-  return `gt${Number(layers.gt)}-pred${Number(layers.pred)}-names${Number(layers.names)}`;
+export function blueprintName(layers: { gt: boolean; pred: boolean; names: boolean; cmp: boolean }): string {
+  return `gt${Number(layers.gt)}-pred${Number(layers.pred)}-names${Number(layers.names)}-cmp${Number(layers.cmp)}`;
 }
 const blueprintCache = new Map<string, Promise<Uint8Array>>();
 function loadBlueprint(name: string): Promise<Uint8Array> {

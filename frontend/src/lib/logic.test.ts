@@ -147,7 +147,7 @@ describe('GT category → VESPA comparison class', () => {
 
 describe('Rerun selection → box key', () => {
   const rec: Recording = {
-    recordingId: 5, datasetId: 1, sceneId: 7, sceneToken: 'scene-tok', jobId: 12, status: 'READY', sdkVersion: '0.38.1',
+    recordingId: 5, datasetId: 1, sceneId: 7, sceneToken: 'scene-tok', jobId: 12, compareJobId: null, status: 'READY', sdkVersion: '0.38.1',
     rerunRecordingId: 'ds2l-recording-5', timeline: 'sample', entities: { lidar: 'world/lidar', ego: 'world/ego', gt: 'world/gt', prediction: 'world/prediction' },
     samples: [
       { index: 0, sampleToken: 's0', timestampUs: 0, lidarPoints: 10, gtAnnotationIds: [11, 12], predictionIds: [900] },

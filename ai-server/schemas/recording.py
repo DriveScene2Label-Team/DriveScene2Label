@@ -50,6 +50,8 @@ class RecordingSample(Strict):
     lidar: RecordingLidar | None
     gt: list[RecordingGtBox] = []
     predictions: list[RecordingPredictionBox] = []
+    # Boxes of compare_job_id, drawn as their own entity next to the predictions (e.g. a VESPA ver2 run).
+    comparison_predictions: list[RecordingPredictionBox] = []
 
 
 class RecordingRequest(Strict):
@@ -58,6 +60,7 @@ class RecordingRequest(Strict):
     scene_name: str = Field(pattern=r"^scene-[0-9]{4}$")
     scene_token: str = Field(min_length=1, max_length=128)
     job_id: int | None = Field(default=None, gt=0)
+    compare_job_id: int | None = Field(default=None, gt=0)
     samples: list[RecordingSample] = Field(min_length=1, max_length=10000)
     dataset_key: str | None = Field(default=None, pattern=r"^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$")
     dataset_version: Literal["v1.0-mini", "v1.0-trainval"] | None = None
@@ -74,6 +77,10 @@ class RecordingRequest(Strict):
             raise ValueError("samples must be ordered by timestamp_us")
         if self.job_id is None and any(s.predictions for s in self.samples):
             raise ValueError("predictions require job_id")
+        if self.compare_job_id is not None and (self.job_id is None or self.compare_job_id == self.job_id):
+            raise ValueError("compare_job_id requires job_id and must differ from it")
+        if self.compare_job_id is None and any(s.comparison_predictions for s in self.samples):
+            raise ValueError("comparison_predictions require compare_job_id")
         return self
 
 
@@ -82,6 +89,7 @@ class RecordingEntities(BaseModel):
     ego: Literal["world/ego"] = "world/ego"
     gt: Literal["world/gt"] = "world/gt"
     prediction: Literal["world/prediction"] | None
+    comparison: Literal["world/comparison"] | None = None
 
 
 class RecordingSampleSummary(BaseModel):
@@ -90,6 +98,7 @@ class RecordingSampleSummary(BaseModel):
     lidar_points: int = Field(ge=0)
     gt_boxes: int = Field(ge=0)
     prediction_boxes: int = Field(ge=0)
+    comparison_boxes: int = Field(default=0, ge=0)
 
 
 class RecordingResponse(BaseModel):

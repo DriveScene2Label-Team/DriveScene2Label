@@ -160,7 +160,7 @@ export function toJobResults(r: JobResultsDto): JobResults {
 export function toRecording(r: RecordingDto): Recording {
   return {
     recordingId: r.recordingId, datasetId: r.datasetId, sceneId: r.sceneId, sceneToken: r.sceneToken, jobId: r.jobId,
-    status: r.status, sdkVersion: r.sdkVersion, rerunRecordingId: r.rerunRecordingId ?? '', timeline: r.timeline ?? 'sample',
+    compareJobId: r.compareJobId ?? null, status: r.status, sdkVersion: r.sdkVersion, rerunRecordingId: r.rerunRecordingId ?? '', timeline: r.timeline ?? 'sample',
     entities: r.entities ?? { lidar: 'world/lidar', ego: 'world/ego', gt: 'world/gt', prediction: null }, samples: [...(r.samples ?? [])].sort((a, b) => a.index - b.index),
     contentUrl: r.status === 'READY' ? r.contentUrl : null, sizeBytes: r.sizeBytes, errorMessage: r.errorMessage, errorCode: r.errorCode ?? null,
     createdAt: time(r.createdAt) ?? 0,

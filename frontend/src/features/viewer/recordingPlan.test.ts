@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import type { Recording } from '@/api/models';
 import { planRecording } from './recordingPlan';
 
-const rec = (recordingId: number, jobId: number | null, status: Recording['status'], createdAt = recordingId): Recording => ({
-  recordingId, datasetId: 1, sceneId: 8, sceneToken: 'scene-tok', jobId, status, sdkVersion: '0.38.1', rerunRecordingId: `r${recordingId}`,
+const rec = (recordingId: number, jobId: number | null, status: Recording['status'], createdAt = recordingId, compareJobId: number | null = null): Recording => ({
+  recordingId, datasetId: 1, sceneId: 8, sceneToken: 'scene-tok', jobId, compareJobId, status, sdkVersion: '0.38.1', rerunRecordingId: `r${recordingId}`,
   timeline: 'sample', entities: { lidar: 'world/lidar', ego: 'world/ego', gt: 'world/gt', prediction: jobId != null ? 'world/prediction' : null },
   samples: [], contentUrl: status === 'READY' ? `/api/recordings/${recordingId}/content` : null, sizeBytes: null, errorMessage: null,
   errorCode: null, createdAt,
@@ -50,5 +50,16 @@ describe('which 3D recording a pane shows', () => {
   it('an explicit choice of the pane wins over the newest one', () => {
     const plan = planRecording([rec(10, 16, 'READY'), rec(17, 16, 'READY')], 16, 10);
     expect(plan.primary?.recordingId).toBe(10);
+  });
+
+  it('a comparison job gets its own recording and the shown job 3D stays on screen meanwhile', () => {
+    const list = [rec(2, null, 'READY'), rec(17, 16, 'READY'), rec(20, 16, 'RUNNING', 20, 35)];
+    const plan = planRecording(list, 16, null, 35);
+    expect(plan.primary?.recordingId).toBe(20);
+    expect(plan.fallback?.recordingId).toBe(17);
+    expect(planRecording([rec(2, null, 'READY'), rec(17, 16, 'READY')], 16, null, 35)).toMatchObject({ primary: undefined, autoCreate: true });
+    // Without a comparison job the comparison recording is not picked, even as an explicit choice.
+    expect(planRecording(list, 16, 20).primary?.recordingId).toBe(17);
+    expect(planRecording([...list.slice(0, 2), rec(21, 16, 'READY', 21, 39)], 16, null, 39).primary?.recordingId).toBe(21);
   });
 });
